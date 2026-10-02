@@ -20,6 +20,7 @@
   --cyan: #52e0ff;
   --amber: #ffc861;
   --miss: #ff5d5d;
+  --perfect: #c6ff3d;   /* electric lime: the brightest color on screen, kept for Perfect only */
   --f-display: "Bungee", "Impact", "Arial Black", sans-serif;
   --f-ui: "Barlow Semi Condensed", "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
   --f-music: "Noto Music", "Bravura Text", "Apple Symbols", serif;
@@ -437,7 +438,7 @@ legend { padding: 0; margin-bottom: 6px; font-size: 12px; font-weight: 700; lett
 'use strict';
 const $ = id => document.getElementById(id);
 const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const C = Object.fromEntries(['night','wall','brick','edge','chalk','haze','neon','cyan','amber','miss'].map(k => [k, cssv('--' + k)]));
+const C = Object.fromEntries(['night','wall','brick','edge','chalk','haze','neon','cyan','amber','miss','perfect'].map(k => [k, cssv('--' + k)]));
 const F = { display: cssv('--f-display'), ui: cssv('--f-ui'), music: cssv('--f-music') };
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const store = {
@@ -500,7 +501,7 @@ const HOODS = ['Downtown', 'Old Town', 'Market Street', 'Harbor District', 'Thea
 const LEVEL_BARS = 8, LEVEL_BEATS = 32, STEP_BPM = 4, MAX_BPM = 120;
 const PTS = { P: 100, G: 60, E: 25, L: 25 }, WRONG_PTS = 20, HOLD_BONUS = 40;
 const JTEXT = { P: 'Perfect', G: 'Good', E: 'Early', L: 'Late', W: 'Wrong note', M: 'Miss' };
-const jColor = j => j === 'P' || j === 'G' ? C.cyan : j === 'E' || j === 'L' ? C.amber : C.miss;
+const jColor = j => j === 'P' ? C.perfect : j === 'G' ? C.cyan : j === 'E' || j === 'L' ? C.amber : C.miss;
 const isHit = j => j === 'P' || j === 'G' || j === 'E' || j === 'L';
 
 /* ---------- settings ---------- */
@@ -1080,7 +1081,9 @@ function drawPopups() {
     if (age > 1 || age < -.5) continue;
     ctx.save(); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, age));
     ctx.font = `${g * (row ? .95 : 1.2)}px ${F.display}`; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-    ctx.fillStyle = p.col; ctx.shadowColor = p.col; ctx.shadowBlur = 14;
+    const bright = p.col === C.perfect;
+    if (bright && !row) ctx.font = `${g * 1.35}px ${F.display}`;
+    ctx.fillStyle = p.col; ctx.shadowColor = p.col; ctx.shadowBlur = bright ? 26 : 14;
     ctx.fillText(p.text.toUpperCase(), PL + 1.4 * g, Math.max(g * 1.4, y - 3.2 * g - Math.max(0, age) * 1.6 * g + row * 1.5 * g));
     ctx.restore();
     if (++row > 1) break;
@@ -1181,7 +1184,7 @@ function liveTick() {
 function demoTick() {
   for (const a of G.attacks) {
     if (a.b > G.v) break;
-    if (!a.j) { a.j = 'P'; a.pressAt = a.b; a.relAt = a.b + a.len * .95; a.h = 'held'; pop('Perfect', C.cyan); }
+    if (!a.j) { a.j = 'P'; a.pressAt = a.b; a.relAt = a.b + a.len * .95; a.h = 'held'; pop('Perfect', C.perfect); }
   }
 }
 function levelTick() {
