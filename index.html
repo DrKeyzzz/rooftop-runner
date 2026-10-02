@@ -736,19 +736,34 @@ function click(when, accent, force) {
   v.gain.setValueAtTime(vol, when); v.gain.exponentialRampToValueAtTime(.0005, when + .05);
   o.connect(v).connect(actx.destination); o.start(when); o.stop(when + .06);
 }
+/* Rhythm only: holding plays a chord, a new one each level. The root moves around the circle of fifths;
+   Levels 1–4 are the four triads, and from Level 5 the seventh chords come in, one between each triad. */
+const CHORD_ROOTS = ['C', 'G', 'D', 'A', 'E', 'B', 'F♯', 'D♭', 'A♭', 'E♭', 'B♭', 'F'];
+const ROOT_PC = { C: 0, G: 7, D: 2, A: 9, E: 4, B: 11, 'F♯': 6, 'D♭': 1, 'A♭': 8, 'E♭': 3, 'B♭': 10, F: 5 };
+const TRIADS = [['major', [0, 4, 7]], ['minor', [0, 3, 7]], ['augmented', [0, 4, 8]], ['diminished', [0, 3, 6]]];
+const SEVENTHS = [['major 7', [0, 4, 7, 11]], ['minor 7', [0, 3, 7, 10]], ['dominant 7', [0, 4, 7, 10]], ['minor 7 ♭5', [0, 3, 6, 10]], ['diminished 7', [0, 3, 6, 9]], ['augmented 7', [0, 4, 8, 10]], ['minor-major 7', [0, 3, 7, 11]]];
+function chordFor(L) {
+  const root = CHORD_ROOTS[L % 12];
+  let q;
+  if (L < 4) q = TRIADS[L];
+  else { const i = L - 4; q = i % 2 === 0 ? SEVENTHS[(i / 2) % SEVENTHS.length] : TRIADS[((i - 1) / 2) % TRIADS.length]; }
+  const base = 55 + ((ROOT_PC[root] - 7 + 12) % 12);      // roots from G3 up to F♯4, so every chord sits in the middle of the range
+  return { name: `${root} ${q[0]}`, midis: q[1].map(iv => base + iv) };
+}
+const chordNow = () => chordFor(levelOf(Math.max(0, G.v)));
 const holdTones = new Map();
 function startHoldTone(src) {
   if (!actx || !settings.sound || holdTones.has(src)) return;
-  const o = actx.createOscillator(), v = actx.createGain(), t0 = actx.currentTime;
-  o.type = 'triangle'; o.frequency.value = 523.25;
-  v.gain.setValueAtTime(0, t0); v.gain.linearRampToValueAtTime(.09, t0 + .015);
-  o.connect(v).connect(actx.destination); o.start(t0);
-  holdTones.set(src, { o, v });
+  const t0 = actx.currentTime, v = actx.createGain(), notes = chordNow().midis;
+  v.gain.setValueAtTime(0, t0); v.gain.linearRampToValueAtTime(.2 / Math.sqrt(notes.length) * .7, t0 + .015);
+  v.connect(actx.destination);
+  const os = notes.map(m => { const o = actx.createOscillator(); o.type = 'triangle'; o.frequency.value = midiFreq(m); o.connect(v); o.start(t0); return o; });
+  holdTones.set(src, { os, v });
 }
 function stopHoldTone(src) {
   const h = holdTones.get(src); if (!h) return;
   const t0 = actx.currentTime; h.v.gain.cancelScheduledValues(t0); h.v.gain.setValueAtTime(h.v.gain.value, t0); h.v.gain.exponentialRampToValueAtTime(.0005, t0 + .08);
-  h.o.stop(t0 + .1); holdTones.delete(src);
+  h.os.forEach(o => o.stop(t0 + .1)); holdTones.delete(src);
 }
 const sfx = {
   miss() { tone(110, .25, 'sine', .18); tone(82, .3, 'triangle', .08); },
@@ -1090,6 +1105,7 @@ function drawBeatCounter() {
   const counting = G.t < 0 || (G.freeze != null && G.t < G.freeze);
   const bar = Math.floor(Math.max(0, G.v) / 4);
   let label = counting ? 'Count-in: get ready' : G.mode === 'practice' ? `Bar ${bar + 1}` + (G.loop ? ` · repeating · clean runs ${G.clean}` : '') : `Bar ${bar % LEVEL_BARS + 1} of ${LEVEL_BARS}`;
+  if (G.style === 'rhythm' && !G.demo) label += ` · ${chordNow().name} chord`;
   if (G.demo) label = 'Demo · press Start running';
   ctx.font = `600 ${g * .95}px ${F.ui}`; ctx.textAlign = 'left'; ctx.fillStyle = counting ? C.amber : C.haze;
   ctx.fillText(label, PL + 9.6 * g, y + g * .05);
@@ -1237,7 +1253,7 @@ function levelTick() {
     G.level = L; sfx.level();
     const bpm = bpmAt(G.v);
     if (isKeyChangeBar(L * LEVEL_BARS)) G.banner = { at: G.v, text: `KEY OF ${keyName(levelKey(L)).toUpperCase()} MAJOR`, sub: `Level ${L + 1} · ${hoodOf(L)}${G.mode === 'practice' ? '' : ' · ' + bpm + ' BPM'}` };
-    else G.banner = { at: G.v, text: `LEVEL ${L + 1} · ${hoodOf(L).toUpperCase()}`, sub: G.mode === 'practice' ? 'New neighborhood' : `Tempo up to ${bpm} BPM` };
+    else G.banner = { at: G.v, text: `LEVEL ${L + 1} · ${hoodOf(L).toUpperCase()}`, sub: (G.mode === 'practice' ? 'New neighborhood' : `Tempo up to ${bpm} BPM`) + (G.style === 'rhythm' ? ` · new chord: ${chordFor(L).name}` : '') };
   }
   G.topBpm = Math.max(G.topBpm, bpmAt(Math.max(0, G.v)));
 }
