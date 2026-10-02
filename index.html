@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Rooftop Sight-Reading Runner</title>
+<title>Rooftop Sight Reading Runner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Barlow+Semi+Condensed:wght@500;600;700&family=Noto+Music&display=swap">
@@ -36,8 +36,11 @@ header.top { display: flex; flex-wrap: wrap; align-items: end; gap: 12px 24px; }
 .brand { margin-right: auto; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--cyan); }
 h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(26px, 4.6vw, 42px); line-height: 1; margin: 0; text-shadow: 0 0 18px color-mix(in srgb, var(--neon) 55%, transparent); text-wrap: balance; }
-h1 span { color: var(--neon); }
-body[data-view="splash"] h1 { font-size: clamp(34px, 7vw, 64px); }
+/* the title: "Sight Reading" is the neon sign between the two words of the game's name, and never breaks apart */
+h1 .sr { color: var(--neon); white-space: nowrap; }
+body[data-view="splash"] h1 { font-size: clamp(30px, 8.4vw, 66px); line-height: .92; }
+body[data-view="splash"] h1 .l { display: block; }
+body[data-view="splash"] h1 .sr { font-size: .78em; letter-spacing: .06em; margin-block: .08em .04em; text-shadow: 0 0 14px color-mix(in srgb, var(--neon) 80%, transparent), 0 0 34px color-mix(in srgb, var(--neon) 45%, transparent); }
 .top-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
 button { font: inherit; font-weight: 700; font-size: 15px; letter-spacing: .03em; color: var(--chalk); background: var(--brick); border: 1px solid var(--edge); border-radius: 10px; padding: 7px 14px; cursor: pointer; }
@@ -169,6 +172,8 @@ legend { padding: 0; margin-bottom: 6px; font-size: 12px; font-weight: 700; lett
 .modal.see-through { background: color-mix(in srgb, var(--night) 88%, transparent); }
 .mcard { width: min(500px, 100%); display: flex; flex-direction: column; gap: 14px; padding: 26px 24px; background: var(--wall); border: 1px solid var(--edge); border-radius: 16px; box-shadow: 0 0 60px -20px var(--neon); }
 .mcard h2 { font-family: var(--f-display); font-weight: 400; font-size: 32px; line-height: 1; margin: 0; color: var(--chalk); }
+.mcard h2 .l { display: block; }
+.mcard h2 .sr { color: var(--neon); white-space: nowrap; font-size: .78em; letter-spacing: .06em; margin-block: .08em .04em; text-shadow: 0 0 14px color-mix(in srgb, var(--neon) 70%, transparent); }
 .mcard label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
 .mcard input[type="text"] { font: 600 17px var(--f-ui); color: var(--chalk); background: var(--night); border: 1px solid var(--edge); border-radius: 10px; padding: 11px 12px; width: 100%; }
 .mcard input:disabled { opacity: .4; }
@@ -201,7 +206,7 @@ legend { padding: 0; margin-bottom: 6px; font-size: 12px; font-weight: 700; lett
   <header class="top">
     <div class="brand">
       <div class="eyebrow">Read it · play it · in time</div>
-      <h1>Rooftop <span>Sight-Reading</span> Runner</h1>
+      <h1 aria-label="Rooftop Sight Reading Runner"><span class="l">Rooftop</span> <span class="l sr">Sight Reading</span> <span class="l">Runner</span></h1>
     </div>
     <div class="hud game-only" aria-label="Scoreboard">
       <div class="stat"><span class="k">Score</span><span class="v" id="hud-score">0</span></div>
@@ -397,7 +402,7 @@ legend { padding: 0; margin-bottom: 6px; font-size: 12px; font-weight: 700; lett
 <div class="modal" id="welcome" hidden role="dialog" aria-modal="true" aria-labelledby="w-title">
   <form class="mcard" id="w-form" autocomplete="off">
     <div class="eyebrow">Welcome to the city</div>
-    <h2 id="w-title">Rooftop Sight-Reading Runner</h2>
+    <h2 id="w-title" aria-label="Rooftop Sight Reading Runner"><span class="l">Rooftop</span> <span class="l sr">Sight Reading</span> <span class="l">Runner</span></h2>
     <p class="muted">Tell us who you are. Your name goes on the leaderboards.</p>
     <div class="wrow">
       <label for="w-first">First name<input type="text" id="w-first" maxlength="15" autocapitalize="words" spellcheck="false"></label>
@@ -1611,7 +1616,9 @@ function openBoard(run) {
 }
 
 /* ---------- MIDI keyboard input (Web MIDI: note-on and note-off) ---------- */
-let midiAccess = null, midiState = 'off', midiNames = [];
+let midiAccess = null, midiState = 'off', midiNames = [], midiPlaying = '';
+// virtual and helper ports (the Mac's IAC bus, network sessions, a keyboard's DAW-control port) go last, so a real keyboard is named first
+const VIRTUAL_MIDI = /\bIAC\b|Network|Session|\bDAW\b|Through|Virtual/i;
 const MIDI_TEXT = {
   off: ['MIDI keyboard', 'Have a MIDI keyboard? Plug it in and press <b>MIDI keyboard</b> at the top of the page.'],
   asking: ['Connecting…', 'Allow MIDI access if your browser asks.'],
@@ -1634,13 +1641,15 @@ async function connectMidi() {
 function attachMidi() {
   const ins = [...midiAccess.inputs.values()].filter(i => i.state !== 'disconnected');
   ins.forEach(i => { i.onmidimessage = onMidi; });
+  ins.sort((a, b) => VIRTUAL_MIDI.test(a.name || '') - VIRTUAL_MIDI.test(b.name || ''));
   midiNames = ins.map(i => i.name || 'MIDI keyboard');
+  if (midiPlaying && !midiNames.includes(midiPlaying)) midiPlaying = '';
   midiState = ins.length ? 'ready' : 'none'; syncMidi();
 }
 function syncMidi() {
   const b = $('midi-btn'), [label] = MIDI_TEXT[midiState];
   b.dataset.state = midiState;
-  $('midi-label').textContent = midiState === 'ready' ? 'MIDI: ' + midiNames[0].slice(0, 22) : label;
+  $('midi-label').textContent = midiState === 'ready' ? 'MIDI: ' + (midiPlaying || midiNames[0]).slice(0, 26) : label;
   syncStyleNote();
   if (view() === 'game') syncPad();
 }
@@ -1648,7 +1657,12 @@ function onMidi(e) {
   const [st, note, vel] = e.data, kind = st & 0xf0;
   const on = kind === 0x90 && vel > 0, off = kind === 0x80 || (kind === 0x90 && vel === 0);
   if (!on && !off) return;
-  if (on) { const b = $('midi-btn'); b.classList.remove('ping'); void b.offsetWidth; b.classList.add('ping'); }
+  if (on) {
+    const b = $('midi-btn'); b.classList.remove('ping'); void b.offsetWidth; b.classList.add('ping');
+    // the button names whichever device is actually sending notes
+    const nm = (e.target && e.target.name) || '';
+    if (nm && nm !== midiPlaying) { midiPlaying = nm; syncMidi(); }
+  }
   const ts = e.timeStamp || performance.now();
   if (on) {
     if (cal.on) { calTap(ts); return; }
@@ -1661,7 +1675,8 @@ $('midi-btn').addEventListener('click', connectMidi);
 function syncStyleNote() {
   const el = $('style-note');
   if (settings.style === 'midi') el.innerHTML = midiState === 'ready'
-    ? `<b>${midiNames.map(n => n.replace(/[<>&]/g, '')).join(', ')}</b> is connected. Play each note ${DIFFS[settings.diff].exact ? 'in the exact octave' : 'in any octave'}${DIFFS[settings.diff].hold ? ', and hold it for its full length' : ''}.`
+    ? `<b>${(midiPlaying ? [midiPlaying] : midiNames).map(n => n.replace(/[<>&]/g, '')).join(', ')}</b> ${midiPlaying || midiNames.length === 1 ? 'is' : 'are'} connected${midiPlaying ? '' : '. Play a key and the button shows which one you\'re using'}.`
+    + ` Play each note ${DIFFS[settings.diff].exact ? 'in the exact octave' : 'in any octave'}${DIFFS[settings.diff].hold ? ', and hold it for its full length' : ''}.`
     : MIDI_TEXT[midiState][1] || MIDI_TEXT.off[1];
   else if (settings.style === 'keys') el.innerHTML = 'Type <b>C D E F G A B</b> as each note reaches the line, or tap the letters on screen. Any octave counts.';
   else el.innerHTML = 'Every note sits on one line. <b>Hold the space bar</b> for each note\'s full length, or use the tap pad on a touch screen.';
