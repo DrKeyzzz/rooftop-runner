@@ -253,10 +253,10 @@ legend { padding: 0; margin-bottom: 6px; font-size: 12px; font-weight: 700; lett
     <div class="setup-grid">
       <fieldset class="tiles four">
         <legend>Difficulty</legend>
-        <input type="radio" name="diff" id="diff-easy" value="easy" checked><label for="diff-easy"><b>Easy</b><span>Quarter, half and whole notes, quarter rests · C to G · starts at 48 BPM</span></label>
-        <input type="radio" name="diff" id="diff-medium" value="medium"><label for="diff-medium"><b>Medium</b><span>Adds eighth notes and half rests · whole staff · 52 BPM</span></label>
-        <input type="radio" name="diff" id="diff-hard" value="hard"><label for="diff-hard"><b>Hard</b><span>Adds dotted rhythms, ties and eighth rests · ledger lines and ♯ ♭ · 56 BPM</span></label>
-        <input type="radio" name="diff" id="diff-expert" value="expert"><label for="diff-expert"><b>Expert</b><span>Like Hard, then a new key signature every level from Level 3 · 60 BPM</span></label>
+        <input type="radio" name="diff" id="diff-easy" value="easy" checked><label for="diff-easy"><b>Easy</b><span>Quarter, half and whole notes, a few quarter rests · C to G · starts at 48 BPM</span></label>
+        <input type="radio" name="diff" id="diff-medium" value="medium"><label for="diff-medium"><b>Medium</b><span>Adds pairs of eighth notes and half rests · whole staff · 52 BPM</span></label>
+        <input type="radio" name="diff" id="diff-hard" value="hard"><label for="diff-hard"><b>Hard</b><span>Adds dotted half, dotted quarter–eighth and a few ties · ledger lines and ♯ ♭ · 56 BPM</span></label>
+        <input type="radio" name="diff" id="diff-expert" value="expert"><label for="diff-expert"><b>Expert</b><span>Adds sixteenth-note patterns, triplets and eighth rests · new key signature each level from Level 3 · 60 BPM</span></label>
       </fieldset>
       <fieldset class="tiles">
         <legend>Play style</legend>
@@ -476,15 +476,16 @@ const midiFreq = m => 440 * Math.pow(2, (m - 69) / 12);
 /* ---------- difficulty and rhythm vocabulary ---------- */
 // staff positions: 0 = bottom line, 8 = top line; Easy is C D E F G in both clefs (C4–G4 treble, C3–G3 bass)
 const DIFFS = {
-  easy:   { title: 'Easy',   bpm: 48, range: { treble: [-2, 2], bass: [3, 7] },   w: { q: 5, h: 3, w: 1, qr: 1.5 } },
-  medium: { title: 'Medium', bpm: 52, range: { treble: [0, 8], bass: [0, 8] },    w: { q: 5, h: 2.5, w: .6, qr: 1.2, e2: 3, hr: .8 }, hold: true },
-  hard:   { title: 'Hard',   bpm: 56, range: { treble: [-3, 11], bass: [-3, 11] }, w: { q: 4, h: 2, w: .4, qr: 1, e2: 3, hr: .6, dq: 2, dh: 1, re: 1 }, hold: true, acc: true, ties: true, exact: true },
-  expert: { title: 'Expert', bpm: 60, range: { treble: [-3, 11], bass: [-3, 11] }, w: { q: 4, h: 2, w: .4, qr: 1, e2: 3, hr: .6, dq: 2, dh: 1, re: 1 }, hold: true, acc: true, ties: true, exact: true, keyed: true },
+// Easy and Medium keep half notes on beats 1 and 3; Hard and Expert allow them on beat 2 as well (sync)
+  easy:   { title: 'Easy',   bpm: 48, range: { treble: [-2, 2], bass: [3, 7] },   w: { q: 6, h: 3, w: 1, qr: .8 } },
+  medium: { title: 'Medium', bpm: 52, range: { treble: [0, 8], bass: [0, 8] },    w: { q: 6, h: 3, w: .6, qr: .8, e2: 1.6, hr: .5 }, hold: true },
+  hard:   { title: 'Hard',   bpm: 56, range: { treble: [-3, 11], bass: [-3, 11] }, w: { q: 5, h: 2.5, w: .4, qr: .8, e2: 2.2, hr: .5, dh: 1, dq: 1.2 }, hold: true, acc: true, ties: .1, exact: true, sync: true },
+  expert: { title: 'Expert', bpm: 60, range: { treble: [-3, 11], bass: [-3, 11] }, w: { q: 3, h: 1.5, w: .3, qr: .7, e2: 1.8, hr: .4, dh: .7, dq: 1, re: .7, s4: 1.2, es: 1.2, se: 1.2, ds: 1, tr: 1.2 }, hold: true, acc: true, ties: .16, exact: true, sync: true, keyed: true },
 };
 // each token fills part of a bar: items are [beats, isRest]
 const TOKENS = {
   q:  { len: 1, items: [[1]] },
-  h:  { len: 2, ok: o => o <= 2, items: [[2]] },
+  h:  { len: 2, ok: (o, D) => D.sync ? o <= 2 : o % 2 === 0, items: [[2]] },
   w:  { len: 4, ok: o => o === 0, items: [[4]] },
   qr: { len: 1, rest: true, items: [[1, 1]] },
   hr: { len: 2, rest: true, ok: o => o % 2 === 0, items: [[2, 1]] },
@@ -492,9 +493,15 @@ const TOKENS = {
   dq: { len: 2, ok: o => o % 2 === 0, items: [[1.5], [.5]] },
   dh: { len: 3, ok: o => o === 0, items: [[3]] },
   re: { len: 1, restish: true, items: [[.5, 1], [.5]] },
+  // Expert: the four sixteenth-note patterns and eighth-note triplets, each filling one beat
+  s4: { len: 1, beam: true, items: [[.25], [.25], [.25], [.25]] },
+  es: { len: 1, beam: true, items: [[.5], [.25], [.25]] },
+  se: { len: 1, beam: true, items: [[.25], [.25], [.5]] },
+  ds: { len: 1, beam: true, items: [[.75], [.25]] },
+  tr: { len: 1, beam: true, tri: true, items: [[1 / 3], [1 / 3], [1 / 3]] },
 };
-const CAT_TITLE = { e: 'Eighth notes', q: 'Quarter notes', dq: 'Dotted quarters', h: 'Half notes', dh: 'Dotted halves', w: 'Whole notes', tie: 'Tied notes' };
-const CAT_TOKENS = { e: ['e2', 're', 'dq'], q: ['q'], dq: ['dq'], h: ['h'], dh: ['dh'], w: ['w'], tie: [] };
+const CAT_TITLE = { e: 'Eighth notes', q: 'Quarter notes', dq: 'Dotted quarters', h: 'Half notes', dh: 'Dotted halves', w: 'Whole notes', tie: 'Tied notes', s: 'Sixteenth notes', de: 'Dotted eighths', t: 'Triplets' };
+const CAT_TOKENS = { e: ['e2', 're', 'dq', 'es', 'se'], q: ['q'], dq: ['dq'], h: ['h'], dh: ['dh'], w: ['w'], tie: [], s: ['s4', 'es', 'se', 'ds'], de: ['ds'], t: ['tr'] };
 const STYLE_TITLE = { midi: 'MIDI', keys: 'Computer keys', rhythm: 'Rhythm only' };
 const CLEF_TITLE = { treble: 'Treble', bass: 'Bass', none: '' };
 const HOODS = ['Downtown', 'Old Town', 'Market Street', 'Harbor District', 'Theater Row', 'Uptown', 'Chinatown', 'Skyline Heights', 'Riverside', 'Arts District', 'Midtown', 'Neon Mile'];
@@ -575,14 +582,24 @@ function pick(weights) {
   for (const [k, w] of weights) { if ((r -= w) <= 0) return k; }
   return weights[weights.length - 1][0];
 }
+// From Level 7, a few rhythms from the next difficulty up start to appear: rarely at first, a little more each level
+const NEXT_DIFF = { easy: 'medium', medium: 'hard', hard: 'expert' }, PREVIEW_FROM = 6;
+function barWeights(k) {
+  const D = DIFFS[G.diff], w = { ...D.w }, L = Math.floor(k / LEVEL_BARS), nx = DIFFS[NEXT_DIFF[G.diff]];
+  if (nx && L >= PREVIEW_FROM) {
+    const share = Math.min(.5, .15 + .07 * (L - PREVIEW_FROM));
+    for (const [tk, v] of Object.entries(nx.w)) if (!(tk in w)) w[tk] = v * share;
+  }
+  return w;
+}
 function planBar(k, tieIn) {
-  const D = DIFFS[G.diff], boost = G.drill ? G.drill.tokens : null;
+  const D = DIFFS[G.diff], boost = G.drill ? G.drill.tokens : null, weights = barWeights(k);
   for (let tries = 0; tries < 50; tries++) {
     const plan = []; let o = 0, rests = 0, hits = 0;
     while (o < 4) {
-      const opts = Object.entries(D.w).filter(([tk]) => {
+      const opts = Object.entries(weights).filter(([tk]) => {
         const T = TOKENS[tk];
-        if (T.len > 4 - o || (T.ok && !T.ok(o))) return false;
+        if (T.len > 4 - o || (T.ok && !T.ok(o, D))) return false;
         if ((T.rest || T.restish) && (rests >= 1 || (k === 0 && o === 0) || (tieIn && o === 0))) return false;
         if (o === 0 && tieIn && tk !== 'q' && tk !== 'h') return false;
         return true;
@@ -645,10 +662,12 @@ function genBar(k) {
     // practice: repeat the chosen bar until it's switched off
     for (const t of G.loop.tpl) {
       const n = makeNote(bar, t.o, t.d, t.rest);
-      if (!t.rest) Object.assign(n, { p: t.p, dia: t.dia, acc: t.acc, showAcc: t.showAcc, midi: t.midi, flag: t.flag });
+      if (!t.rest) Object.assign(n, { p: t.p, dia: t.dia, acc: t.acc, showAcc: t.showAcc, midi: t.midi, flag: t.flag, tri: t.tri });
       bar.notes.push(n);
     }
-    for (let i = 0; i < bar.notes.length; i++) if (G.loop.tpl[i].beamNext) { bar.notes[i].beam = bar.notes[i + 1]; bar.notes[i + 1].beamFrom = bar.notes[i]; }
+    const groups = {};
+    G.loop.tpl.forEach((t, i) => { if (t.grp != null) (groups[t.grp] = groups[t.grp] || []).push(bar.notes[i]); });
+    Object.values(groups).forEach(grp => grp.forEach(n => { n.grp = grp; }));
     pushBar(bar); return;
   }
   const plan = planBar(k, tieIn);
@@ -667,11 +686,11 @@ function genBar(k) {
       if (!r) group.push(n);
       oo += d;
     });
-    if (T.beam && group.length === 2) { group[0].beam = group[1]; group[1].beamFrom = group[0]; }
-    else group.forEach(n => { if (n.d === .5) n.flag = true; });
+    if (T.beam && group.length >= 2) group.forEach(n => { n.grp = group; n.tri = !!T.tri; });
+    else group.forEach(n => { if (n.d < 1) n.flag = true; });
     last = group[group.length - 1] || null; lastTk = tk;
   }
-  if (D.ties && last && (lastTk === 'q' || lastTk === 'h') && !isKeyChangeBar(k + 1) && Math.random() < (G.drill && G.drill.ties ? .4 : .18)) G.tieCarry = last;
+  if (D.ties && last && (lastTk === 'q' || lastTk === 'h') && !isKeyChangeBar(k + 1) && Math.random() < (G.drill && G.drill.ties ? .4 : D.ties)) G.tieCarry = last;
   pushBar(bar);
 }
 function ensureBars(upTo) { while (G.nextBar * 4 < upTo) genBar(G.nextBar++); }
@@ -694,7 +713,7 @@ function setLoop(on) {
   G.attacks = G.attacks.filter(a => a.note.bar.k <= k);
   for (const n of G.notes) if (n.tieTo && n.tieTo.bar.k > k) { n.tieTo = null; if (n.attack) { n.attack.len = n.attack.note.d; n.attack.tied = false; } }
   G.nextBar = k + 1; G.tieCarry = null;
-  G.loop = on ? { k, tpl: bar.notes.map(n => ({ o: n.o, d: n.d, rest: n.rest, p: n.p, dia: n.dia, acc: n.acc, showAcc: n.showAcc, midi: n.midi, flag: n.flag || (n.tiedFrom && n.d === .5), beamNext: !!n.beam })) } : null;
+  G.loop = on ? { k, tpl: bar.notes.map(n => ({ o: n.o, d: n.d, rest: n.rest, p: n.p, dia: n.dia, acc: n.acc, showAcc: n.showAcc, midi: n.midi, flag: n.flag || (n.tiedFrom && n.d < 1), tri: n.tri, grp: n.grp ? bar.notes.indexOf(n.grp[0]) : null })) } : null;
   G.clean = 0;
   $('loop-btn').setAttribute('aria-pressed', String(on));
   $('loop-btn').textContent = on ? 'Stop repeating (R)' : 'Repeat this bar (R)';
@@ -769,7 +788,7 @@ function layout() {
   const sig = G.diff ? maxSig() : 0;
   panelEnd = (sig ? 4.1 + sig * .95 + 2.2 : 6.3) * g;
   PL = panelEnd + 3 * g;
-  ppb = Math.max(4.6 * g, Math.min((W - PL) / 6.5, 9 * g));
+  ppb = Math.max((G.diff === 'expert' ? 7.2 : G.diff === 'hard' ? 6.2 : 4.6) * g, Math.min((W - PL) / 6.5, 9 * g));   // Expert's sixteenths need room between noteheads
 }
 function roofY(p) {
   const [lo, hi] = G.style === 'rhythm' ? [0, 2] : rangeOf(), span = skyBot - 8 * g;
@@ -960,6 +979,34 @@ function drawRest(x, d) {
   ctx.beginPath(); ctx.moveTo(x - .3 * g, y4 - .8 * g); ctx.quadraticCurveTo(x, y4 - .7 * g, x + .32 * g, y4 - 1.15 * g); ctx.lineTo(x - .1 * g, y4 + .9 * g); ctx.stroke();
 }
 const stemUp = p => rhythmView() || p < 4;
+// one straight beam over a group: stems up or down by the group's average pitch, gently sloped from first note to last
+function beamOf(grp) {
+  const ys = grp.map(m => yOf(shownP(m.p))), up = stemUp(grp.reduce((s, m) => s + shownP(m.p), 0) / grp.length);
+  const sx0 = xOf(grp[0].b) + (up ? .56 : -.56) * g, sx1 = xOf(grp[grp.length - 1].b) + (up ? .56 : -.56) * g;
+  const slope = Math.max(-g, Math.min(g, (ys[ys.length - 1] - ys[0]) * .2));
+  const ext = up ? Math.min(...ys) - 3.3 * g - Math.max(0, slope) : Math.max(...ys) + 3.3 * g - Math.min(0, slope);
+  return { up, sx0, sx1, yAt: x => ext + (sx1 === sx0 ? 0 : slope * (x - sx0) / (sx1 - sx0)) };
+}
+function drawBeams(grp, bm, col) {
+  const th = .46 * g * (bm.up ? 1 : -1), inner = .74 * g * (bm.up ? 1 : -1);
+  const bar = (x0, x1, off) => { ctx.beginPath(); ctx.moveTo(x0, bm.yAt(x0) + off); ctx.lineTo(x1, bm.yAt(x1) + off); ctx.lineTo(x1, bm.yAt(x1) + off + th); ctx.lineTo(x0, bm.yAt(x0) + off + th); ctx.closePath(); ctx.fill(); };
+  ctx.fillStyle = col;
+  bar(bm.sx0, bm.sx1, 0);
+  // second beam for sixteenths: joins neighbouring sixteenths, or a short stub for one on its own
+  const sx = grp.map(m => xOf(m.b) + (bm.up ? .56 : -.56) * g);
+  for (let i = 0; i < grp.length; i++) {
+    if (grp[i].d !== .25) continue;
+    if (grp[i + 1] && grp[i + 1].d === .25) { bar(sx[i], sx[i + 1], inner); continue; }
+    if (grp[i - 1] && grp[i - 1].d === .25) continue;
+    const stub = Math.min(1.1 * g, Math.abs(sx[1] - sx[0]) * .45);
+    if (i > 0) bar(sx[i] - stub, sx[i], inner); else bar(sx[i], sx[i] + stub, inner);
+  }
+  if (grp[0].tri) {
+    const mx = (bm.sx0 + bm.sx1) / 2;
+    ctx.font = `italic 700 ${1.25 * g}px Georgia, "Times New Roman", serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('3', mx, bm.yAt(mx) + (bm.up ? -.9 : 1.35) * g);
+  }
+}
 function drawNotes() {
   const lo = panelEnd - g, fadeW = PL - panelEnd;
   for (const n of G.notes) {
@@ -977,7 +1024,7 @@ function drawNotes() {
     const p = shownP(n.p), y = yOf(p), hollow = n.d >= 2, whole = n.d >= 4;
     if (!rhythmView()) ledgers(x, p);
     head(x, y, col, hollow, whole);
-    if (n.d === 1.5 || n.d === 3) { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x + .98 * g, y - (p % 2 === 0 ? .45 * g : 0), .17 * g, 0, Math.PI * 2); ctx.fill(); }
+    if (n.d === .75 || n.d === 1.5 || n.d === 3) { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x + .98 * g, y - (p % 2 === 0 ? .45 * g : 0), .17 * g, 0, Math.PI * 2); ctx.fill(); }
     if (!rhythmView() && n.showAcc != null) {
       ctx.fillStyle = col; ctx.font = `${4 * g}px ${F.music}`; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
       ctx.fillText(ANY_ACC[n.showAcc], x - 1.7 * g, y + ACC_DROP[n.showAcc] * g);
@@ -985,25 +1032,22 @@ function drawNotes() {
     if (a && a.j === 'W' && a.note === n && a.played != null && judged && !rhythmView()) drawGhost(x, a);
     // stem, flag or beam
     if (!whole) {
-      const partnerA = n.beam ? n : n.beamFrom, partnerB = n.beam ? n.beam : n;
-      const beamed = !!(n.beam || n.beamFrom);
-      const up = beamed ? stemUp((shownP(partnerA.p) + shownP(partnerB.p)) / 2) : stemUp(p);
+      const beamed = !!n.grp;
+      const bm = beamed ? beamOf(n.grp) : null, up = beamed ? bm.up : stemUp(p);
       const sx = x + (up ? .56 : -.56) * g;
       ctx.strokeStyle = col; ctx.lineWidth = Math.max(1.2, g * .11);
       let tip;
       if (beamed) {
-        const ya = yOf(shownP(partnerA.p)), yb = yOf(shownP(partnerB.p));
-        const ext = up ? Math.min(ya, yb) - 3.3 * g : Math.max(ya, yb) + 3.3 * g, slope = Math.max(-g, Math.min(g, (yb - ya) * .2));
-        tip = n === partnerB ? ext + slope : ext;
-        if (n.beam) {
-          const bx = xOf(partnerB.b) + (up ? .56 : -.56) * g, th = .46 * g * (up ? 1 : -1);
-          ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(sx, ext); ctx.lineTo(bx, ext + slope); ctx.lineTo(bx, ext + slope + th); ctx.lineTo(sx, ext + th); ctx.closePath(); ctx.fill();
-        }
-      } else tip = up ? y - 3.4 * g : y + 3.4 * g;
+        tip = bm.yAt(sx);
+        if (n === n.grp[0]) drawBeams(n.grp, bm, col);
+      } else tip = up ? y - 3.4 * g : y + (n.d < .5 ? 3.9 : 3.4) * g;
       ctx.beginPath(); ctx.moveTo(sx, up ? y - .1 * g : y + .1 * g); ctx.lineTo(sx, tip); ctx.stroke();
       if (n.flag && !beamed) {
         const dir = up ? 1 : -1; ctx.lineWidth = g * .2;
-        ctx.beginPath(); ctx.moveTo(sx, tip); ctx.bezierCurveTo(sx + .15 * g, tip + dir * .9 * g, sx + 1.05 * g, tip + dir * 1.2 * g, sx + .55 * g, tip + dir * 2.3 * g); ctx.stroke();
+        for (let f = 0; f < (n.d < .5 ? 2 : 1); f++) {
+          const t0 = tip + dir * f * .8 * g;
+          ctx.beginPath(); ctx.moveTo(sx, t0); ctx.bezierCurveTo(sx + .15 * g, t0 + dir * .9 * g, sx + 1.05 * g, t0 + dir * 1.2 * g, sx + .55 * g, t0 + dir * 2.3 * g); ctx.stroke();
+        }
       }
     }
     if (n.tieTo) {
@@ -1096,7 +1140,7 @@ function draw() {
 
 /* ---------- judging ---------- */
 const windowBeats = b => .2 * bpmAt(b) / 60;
-function catOf(a) { return a.tied ? 'tie' : ({ .5: 'e', 1: 'q', 1.5: 'dq', 2: 'h', 3: 'dh', 4: 'w' })[a.note.d] || 'q'; }
+function catOf(a) { return a.tied ? 'tie' : a.note.tri ? 't' : ({ .25: 's', .5: 'e', .75: 'de', 1: 'q', 1.5: 'dq', 2: 'h', 3: 'dh', 4: 'w' })[a.note.d] || 'q'; }
 function tally(a, ok) {
   const s = G.stats, c = catOf(a);
   s.attacks++; if (ok) s.hits++;
