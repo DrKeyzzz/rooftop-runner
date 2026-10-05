@@ -268,6 +268,58 @@ button.sm { font-size: 13px; padding: 5px 11px; }
 .adv-row .sw input { width: 20px; height: 20px; accent-color: var(--neon); }
 .adv-err { margin: 0; color: var(--miss); font-size: 15px; min-height: 1.2em; }
 
+
+/* ---------- Live: instrument picker, mic check and the in-game listening strip ---------- */
+.live-set { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 16px 22px; border: 1px solid var(--neon); border-radius: 12px; padding: 14px; background: color-mix(in srgb, var(--neon) 5%, var(--night)); }
+@media (max-width: 820px) { .live-set { grid-template-columns: 1fr; } }
+.live-set > * { min-width: 0; }
+.inst-pick { display: flex; flex-direction: column; gap: 10px; }
+.igrp h4 { margin: 0 0 5px; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--haze); }
+.igrp h4 em { font-style: normal; font-family: var(--f-display); font-weight: 400; color: var(--cyan); letter-spacing: .02em; margin-left: 4px; }
+.ichips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ichips button { font-size: 14px; font-weight: 600; padding: 5px 12px; border-radius: 999px; background: var(--night); }
+.ichips button.other { color: var(--haze); border-style: dashed; }
+.ichips button[aria-pressed="true"] { background: var(--neon); border-color: var(--neon); color: var(--night); }
+.inst-part { margin: 0; font-size: 15px; color: var(--haze); }
+.inst-part b { color: var(--chalk); font-size: 17px; }
+.mic-box { display: flex; flex-direction: column; gap: 10px; }
+.mic-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.heard { font-family: var(--f-display); font-size: 32px; line-height: 1; color: var(--perfect); text-shadow: 0 0 14px color-mix(in srgb, var(--perfect) 55%, transparent); min-width: 3.2ch; }
+.heard-sub { font-size: 13px; color: var(--haze); font-weight: 600; min-height: 1.2em; }
+.lmeter { flex: 1 1 160px; height: 12px; border-radius: 999px; background: var(--night); border: 1px solid var(--edge); overflow: hidden; }
+.lmeter i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--cyan), var(--perfect) 70%, var(--amber)); }
+.ltuner { position: relative; flex: 1 1 160px; height: 26px; }
+.ltuner .sc { position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: var(--edge); }
+.ltuner .md { position: absolute; left: 50%; top: 3px; bottom: 3px; width: 2px; background: var(--perfect); }
+.ltuner .nd { position: absolute; top: 1px; bottom: 1px; width: 4px; margin-left: -2px; left: 50%; border-radius: 2px; background: var(--chalk); box-shadow: 0 0 8px var(--chalk); }
+.mic-tip { margin: 0; font-size: 14px; color: var(--haze); }
+.mic-tip b { color: var(--cyan); }
+.mic-err { margin: 0; color: var(--miss); font-size: 14px; min-height: 1.2em; }
+.live-hud { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 10px 14px; border: 1px solid var(--edge); border-radius: 14px; background: var(--night); }
+.live-hud .k { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--haze); }
+.live-hud .heard { font-size: 26px; }
+
+
+/* tuner: required before a Live run */
+.tcard { width: min(560px, 100%); }
+.tsteps { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; flex-wrap: wrap; }
+.tsteps li { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--haze); border: 1px solid var(--edge); border-radius: 999px; padding: 4px 12px; }
+.tsteps li.now { color: var(--night); background: var(--cyan); border-color: var(--cyan); }
+.tsteps li.done { color: var(--perfect); border-color: color-mix(in srgb, var(--perfect) 60%, var(--edge)); }
+.tdial { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px; border: 1px solid var(--edge); border-radius: 14px; background: var(--night); }
+.theard { font-family: var(--f-display); font-size: 56px; line-height: 1; color: var(--chalk); }
+.theard.in { color: var(--perfect); text-shadow: 0 0 18px color-mix(in srgb, var(--perfect) 60%, transparent); }
+.ttarget { font-size: 15px; color: var(--haze); font-weight: 600; text-align: center; }
+.ttarget b { color: var(--amber); }
+.tscale { position: relative; width: 100%; height: 46px; display: flex; justify-content: space-between; align-items: flex-end; font-size: 12px; color: var(--haze); border-bottom: 2px solid var(--edge); padding-bottom: 2px; }
+.tscale .ok { color: var(--perfect); font-weight: 700; }
+.tscale .tzone { position: absolute; left: 40%; width: 20%; top: 0; bottom: 18px; background: color-mix(in srgb, var(--perfect) 18%, transparent); border-radius: 6px; }
+.tscale .tneedle { position: absolute; left: 50%; top: 0; bottom: 18px; width: 4px; margin-left: -2px; background: var(--chalk); border-radius: 2px; box-shadow: 0 0 10px var(--chalk); transition: left .08s linear; }
+.tdial .lmeter { flex: none; width: 100%; height: 12px; }
+.tstatus { margin: 0; min-height: 2.6em; text-align: center; font-size: 16px; }
+.tstatus b { color: var(--perfect); }
+.tstatus .warn { color: var(--amber); }
+
 @media (max-width: 560px) {
   .stat .v { font-size: 20px; }
   .letters button { font-size: 18px; }
@@ -347,9 +399,34 @@ header:has(> .mtg-home) { flex-wrap: wrap; }
       <fieldset class="tiles">
         <legend>Play style</legend>
         <input type="radio" name="style" id="style-midi" value="midi" checked><label for="style-midi"><b>MIDI keyboard</b><span>Play the notes. Hold each key for its length from Medium up.</span></label>
-        <input type="radio" name="style" id="style-keys" value="keys"><label for="style-keys"><b>Computer keys</b><span>Type the letter A–G. Shift for ♯, Option or Alt for ♭.</span></label>
         <input type="radio" name="style" id="style-rhythm" value="rhythm"><label for="style-rhythm"><b>Rhythm only</b><span>Hold the space bar, any piano key or the tap pad for each note's full length.</span></label>
+        <input type="radio" name="style" id="style-live" value="live"><label for="style-live"><b>Live · microphone</b><span>Play your instrument or sing. Pick your instrument below.</span></label>
       </fieldset>
+      <div class="live-set" id="live-set" hidden>
+        <div class="inst-pick">
+          <legend style="margin:0">Your instrument</legend>
+          <div id="inst-pick" class="inst-pick"></div>
+        </div>
+        <div class="mic-box">
+          <legend style="margin:0">Your part</legend>
+          <p class="inst-part" id="inst-part"></p>
+          <legend style="margin:6px 0 0">Microphone</legend>
+          <div class="row"><button type="button" id="mic-btn" class="btn-go" aria-pressed="false">Turn on microphone</button></div>
+          <p class="mic-err" id="mic-err" role="alert"></p>
+          <div id="mic-live" hidden style="display:flex;flex-direction:column;gap:8px">
+            <div class="mic-row">
+              <div><div class="heard" id="mic-heard">—</div><div class="heard-sub" id="mic-cents"></div></div>
+              <div class="ltuner" aria-hidden="true"><div class="sc"></div><div class="md"></div><div class="nd" id="mic-needle"></div></div>
+            </div>
+            <div class="lmeter" aria-hidden="true"><i id="mic-meter"></i></div>
+            <p class="mic-tip">Play one note: it should show your <b>written</b> note.</p>
+          </div>
+          <div class="calib-line"><span id="tune-line">Not tuned yet.</span><button type="button" id="tune-btn" class="ghost sm">Tune up</button></div>
+          <div class="range-row"><label for="live-sens">Sensitivity</label><input type="range" id="live-sens" min="0" max="100" step="5" value="55"><output id="live-sens-out" for="live-sens">55</output></div>
+          <p class="mic-tip">🎧 <b>Use headphones</b> so the mic hears your instrument, not the metronome. A quiet spot works best. Turn sensitivity down in a noisy room.</p>
+        </div>
+      </div>
+
       <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
         <fieldset id="clef-set">
           <legend>Clef</legend>
@@ -424,6 +501,12 @@ header:has(> .mtg-home) { flex-wrap: wrap; }
       <div class="letters small" id="sharp-row" hidden></div>
       <div class="letters" id="letter-row"></div>
       <div class="letters small" id="flat-row" hidden></div>
+    </div>
+    <div class="live-hud" id="live-hud" hidden>
+      <span class="k">Hearing</span>
+      <div><div class="heard" id="lh-heard">—</div><div class="heard-sub" id="lh-cents"></div></div>
+      <div class="ltuner" aria-hidden="true"><div class="sc"></div><div class="md"></div><div class="nd" id="lh-needle"></div></div>
+      <div class="lmeter" aria-hidden="true"><i id="lh-meter"></i></div>
     </div>
     <div class="game-bar">
       <p class="hint" id="hint"></p>
@@ -505,8 +588,8 @@ header:has(> .mtg-home) { flex-wrap: wrap; }
         <div class="seg">
           <input type="radio" name="bstyle" id="bstyle-all" value="all" checked><label for="bstyle-all">All</label>
           <input type="radio" name="bstyle" id="bstyle-midi" value="midi"><label for="bstyle-midi">MIDI</label>
-          <input type="radio" name="bstyle" id="bstyle-keys" value="keys"><label for="bstyle-keys">Computer keys</label>
           <input type="radio" name="bstyle" id="bstyle-rhythm" value="rhythm"><label for="bstyle-rhythm">Rhythm only</label>
+          <input type="radio" name="bstyle" id="bstyle-live" value="live"><label for="bstyle-live">Live</label>
         </div>
       </fieldset>
       <fieldset>
@@ -544,6 +627,27 @@ header:has(> .mtg-home) { flex-wrap: wrap; }
   </form>
 </div>
 
+
+<div class="modal see-through" id="tune" hidden role="dialog" aria-modal="true" aria-labelledby="t-title">
+  <div class="mcard tcard">
+    <div class="eyebrow" id="t-eyebrow">Before you play · about 10 seconds</div>
+    <h2 id="t-title">Tune up</h2>
+    <p class="muted" id="t-help"></p>
+    <ol class="tsteps" id="t-steps"><li id="t-s1">Stay quiet</li><li id="t-s2">Play your tuning note</li><li id="t-s3">Done</li></ol>
+    <div class="tdial">
+      <div class="theard" id="t-heard">—</div>
+      <div class="ttarget" id="t-target"></div>
+      <div class="tscale" aria-hidden="true"><span>−50¢</span><span>flat</span><span class="ok">in tune</span><span>sharp</span><span>+50¢</span><i class="tzone"></i><i class="tneedle" id="t-needle"></i></div>
+      <div class="lmeter" aria-hidden="true"><i id="t-meter"></i></div>
+      <p class="tstatus" id="t-status" role="status"></p>
+    </div>
+    <div class="row">
+      <button class="btn-go" id="t-start" type="button">Start</button>
+      <button class="ghost" id="t-close" type="button">Back to settings</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal see-through" id="calib" hidden role="dialog" aria-modal="true" aria-labelledby="c-title">
   <div class="mcard">
     <div class="eyebrow">Once per computer · about 15 seconds</div>
@@ -574,16 +678,16 @@ const store = {
 
 /* ---------- music theory (shared with Tidal Tones) ---------- */
 const LETTERS = 'CDEFGAB', SEMI = [0, 2, 4, 5, 7, 9, 11];
-const BOTTOM = { treble: 30, bass: 18 };                       // diatonic number of the bottom line (C4 = 28)
-const GLYPH = { treble: '\u{1D11E}', bass: '\u{1D122}' };
-const CLEF_LIFT = { treble: 0, bass: .422 };                    // staff spaces: Noto Music's bass clef sits low, so its dots straddle the F line only after this lift
+const BOTTOM = { treble: 30, bass: 18, alto: 24, treble8: 30 };                       // diatonic number of the bottom line (C4 = 28)
+const GLYPH = { treble: '\u{1D11E}', bass: '\u{1D122}', alto: '\u{1D121}', treble8: '\u{1D11E}' };
+const CLEF_LIFT = { treble: 0, bass: .422, alto: 0, treble8: 0 };                    // staff spaces: Noto Music's bass clef sits low, so its dots straddle the F line only after this lift
 const SHARP_OK = [1, 1, 0, 1, 1, 1, 0], FLAT_OK = [0, 1, 1, 0, 1, 1, 1];
 const MAJOR = [['Db',1,-1,-5],['Ab',5,-1,-4],['Eb',2,-1,-3],['Bb',6,-1,-2],['F',3,0,-1],['C',0,0,0],['G',4,0,1],['D',1,0,2],['A',5,0,3],['E',2,0,4],['B',6,0,5]]
   .map(([id, li, acc, sig]) => ({ id, li, acc, sig }));
 const KEY_BY_ID = Object.fromEntries(MAJOR.map(k => [k.id, k]));
 const SHARP_ORDER = [3, 0, 4, 1, 5, 2, 6], FLAT_ORDER = [6, 2, 5, 1, 4, 0, 3];
 const SIG_POS = { sharp: [8, 5, 9, 6, 3, 7, 4], flat: [4, 7, 3, 6, 2, 5, 1] };   // treble staff positions
-const SIG_SHIFT = { treble: 0, bass: -2 };
+const SIG_SHIFT = { treble: 0, bass: -2, alto: -1, treble8: 0 };
 const keyAccFor = (key, l) => key.sig > 0 ? (SHARP_ORDER.slice(0, key.sig).includes(l) ? 1 : 0) : key.sig < 0 ? (FLAT_ORDER.slice(0, -key.sig).includes(l) ? -1 : 0) : 0;
 const ANY_ACC = { '-1': '♭', '0': '♮', '1': '♯' };
 const ACC_DROP = { '-1': .4, '0': .53, '1': .52 };              // baseline offsets (staff spaces) from the measured glyphs
@@ -629,7 +733,7 @@ const TOKENS = {
 };
 const CAT_TITLE = { e: 'Eighth notes', q: 'Quarter notes', dq: 'Dotted quarters', h: 'Half notes', dh: 'Dotted halves', w: 'Whole notes', tie: 'Tied notes', s: 'Sixteenth notes', de: 'Dotted eighths', t: 'Triplets' };
 const CAT_TOKENS = { e: ['e2', 're', 'dq', 'es', 'se', 'ses'], q: ['q'], dq: ['dq'], h: ['h'], dh: ['dh'], w: ['w'], tie: [], s: ['s4', 'es', 'se', 'ses', 'ds'], de: ['ds'], t: ['tr'] };
-const STYLE_TITLE = { midi: 'MIDI', keys: 'Computer keys', rhythm: 'Rhythm only' };
+const STYLE_TITLE = { midi: 'MIDI', keys: 'Computer keys', rhythm: 'Rhythm only', live: 'Live' };
 const CLEF_TITLE = { treble: 'Treble', bass: 'Bass', none: '' };
 const HOODS = ['Downtown', 'Old Town', 'Market Street', 'Harbor District', 'Theater Row', 'Uptown', 'Chinatown', 'Skyline Heights', 'Riverside', 'Arts District', 'Midtown', 'Neon Mile'];
 const LEVEL_BARS = 8, LEVEL_BEATS = 32, STEP_BPM = 5;   // no top speed: it keeps climbing as long as the student can hang on
@@ -639,15 +743,19 @@ const jColor = j => j === 'P' ? C.perfect : j === 'G' ? C.cyan : j === 'E' || j 
 const isHit = j => j === 'P' || j === 'G' || j === 'E' || j === 'L';
 
 /* ---------- settings ---------- */
-const settings = { diff: 'easy', style: 'midi', clef: 'treble', mode: 'levels', practiceBpm: 60, met: 'on', metVol: 70, sound: true, keySound: 'on', customOn: false, custom: [], customTies: false };
+const settings = { diff: 'easy', style: 'midi', clef: 'treble', mode: 'levels', practiceBpm: 60, met: 'on', metVol: 70, sound: true, keySound: 'on', customOn: false, custom: [], customTies: false, instrument: 'alto-sax', liveSens: 55 };
 let latency = store.get('rooftop:latency', null);               // ms between a click and a tap on this computer
+let liveLatency = store.get('rooftop:latency:live', null);       // the same, measured through the microphone
+const calLive = () => settings.style === 'live';
+const curLat = () => (calLive() ? liveLatency : latency);
 let skipCalib = false;
 
 /* ---------- the run ---------- */
 const G = {};
 function newRun(o) {
   Object.assign(G, {
-    demo: !!o.demo, style: o.style, diff: o.diff, clef: o.style === 'rhythm' ? 'treble' : o.clef, mode: o.mode,
+    demo: !!o.demo, style: o.style, diff: o.diff, mode: o.mode, inst: o.style === 'live' ? (INSTR[o.inst] || INSTR['alto-sax']) : null,
+    clef: o.style === 'rhythm' ? 'treble' : o.style === 'live' ? ((INSTR[o.inst] || INSTR['alto-sax']).perc ? 'treble' : (INSTR[o.inst] || INSTR['alto-sax']).clef) : o.clef,
     startBpm: DIFFS[o.diff].bpm, practiceBpm: o.practiceBpm || 60, drill: o.drill || null, custom: o.custom || null,
     running: true, paused: false, over: false, aB: -4, aMs: performance.now() + 250, freeze: null, t: -4, v: -4,
     bars: [], notes: [], attacks: [], nextBar: 0, lastP: null, prevB: -9, tieCarry: null, levelKeys: {}, keyDeck: [],
@@ -659,7 +767,7 @@ function newRun(o) {
   layout();
 }
 const mult = () => Math.min(4, 1 + Math.floor(G.streak / 8));
-const needsHold = () => G.style === 'rhythm' || (G.style === 'midi' && !!DIFFS[G.diff].hold);
+const needsHold = () => G.style === 'rhythm' || ((G.style === 'midi' || (G.style === 'live' && !G.inst.perc)) && !!DIFFS[G.diff].hold);
 /* Every level after the first opens with a one-bar count-in at the new tempo: "1 2 3 4".
    Practice keeps one tempo, so it has no count-in bar. */
 const countBars = () => G.mode === 'practice' ? 0 : 1;
@@ -701,8 +809,8 @@ function beatAt(ms) {
 function reanchor(b, ms) { G.aB = b; G.aMs = ms; G.nextClick = null; }
 
 /* ---------- writing the music, one bar at a time ---------- */
-const isKeyChangeBar = k => G.diff === 'expert' && G.style !== 'rhythm' && levelOfBar(k) >= 2 && k === firstBar(levelOfBar(k));
-const keyedBar = k => G.diff === 'expert' && G.style !== 'rhythm' && levelOfBar(k) >= 2;
+const isKeyChangeBar = k => G.diff === 'expert' && !rhythmView() && levelOfBar(k) >= 2 && k === firstBar(levelOfBar(k));
+const keyedBar = k => G.diff === 'expert' && !rhythmView() && levelOfBar(k) >= 2;
 // Expert deals keys from a shuffled deck: every key once before any repeats, never the same key twice in a row
 function levelKey(L) {
   if (G.levelKeys[L]) return G.levelKeys[L];
@@ -715,9 +823,10 @@ function levelKey(L) {
   }
   return (G.levelKeys[L] = G.keyDeck.pop());
 }
-const barKey = k => keyedBar(k) ? levelKey(levelOfBar(k)) : 'C';
-const maxSig = () => G.diff === 'expert' && G.style !== 'rhythm' ? 5 : 0;
-const rangeOf = () => DIFFS[G.diff].range[G.clef];
+// Live parts sit in the instrument's home key (concert B♭ for band, D for strings); other styles read in C
+const barKey = k => keyedBar(k) ? levelKey(levelOfBar(k)) : isLive() && !G.inst.perc ? G.inst.home : 'C';
+const maxSig = () => G.diff === 'expert' && !rhythmView() ? 5 : isLive() && !G.inst.perc ? Math.abs(G.inst.sig) : 0;
+const rangeOf = () => isLive() && !G.inst.perc ? liveRange(G.inst, G.diff) : DIFFS[G.diff].range[G.clef];
 
 function pick(weights) {
   const tot = weights.reduce((s, [, w]) => s + w, 0);
@@ -796,10 +905,10 @@ function genBar(k) {
     const p = nextP(), dia = BOTTOM[G.clef] + p;
     // the music is spaced by time, so a ♯ or ♭ only fits where the note before it is far enough back
     const room = (n.b - G.prevB) * minPpb() >= 3.1;
-    let acc = 0, show = null;
-    if (keyed) acc = keyAccFor(key, li(dia));
+    let acc = key && key.sig ? keyAccFor(key, li(dia)) : 0, show = null;
+    if (keyed) { /* Expert: the key signature alone */ }
     else if (dia in accState) acc = accState[dia];
-    else if (D.acc && G.style !== 'rhythm' && room && Math.random() < .13) {
+    else if (D.acc && !rhythmView() && acc === 0 && room && Math.random() < .13) {
       const opts = []; if (SHARP_OK[li(dia)]) opts.push(1); if (FLAT_OK[li(dia)]) opts.push(-1);
       if (opts.length) { acc = opts[Math.floor(Math.random() * opts.length)]; show = acc; accState[dia] = acc; }
     }
@@ -965,6 +1074,7 @@ function scheduleClicks(now) {
     const word = inCount ? countWord(G.nextClick) : null;
     // count-in bars always click, whatever the metronome setting: only on the counted beats
     const want = inCount ? word != null : settings.met === 'on' || counting;
+    if (want) { G.clickTimes = (G.clickTimes || []).filter(t => t > now - 1000); G.clickTimes.push(ms); }
     if (want && ms >= now - 20) click(actx.currentTime + Math.max(0, (ms - now) / 1000), inCount ? word === 1 : ((G.nextClick % 4) + 4) % 4 === 0);
     G.nextClick++;
   }
@@ -975,7 +1085,7 @@ const stage = $('stage'), cv = $('cv'), ctx = cv.getContext('2d');
 let W = 800, H = 400, g = 14, ppb = 80, PL = 160, skyBot = 200, top8 = 250, panelEnd = 100;
 const yOf = p => top8 + (8 - p) * g / 2;
 const xOf = b => PL + (b - G.v) * ppb;
-const rhythmView = () => G.style === 'rhythm';
+const rhythmView = () => G.style === 'rhythm' || (G.style === 'live' && !!G.inst && !!G.inst.perc);
 const shownP = p => rhythmView() ? 4 : p;
 // the narrowest spacing a run can get, in staff spaces per beat: sixteenths and triplets need the most room
 function minPpb() {
@@ -998,8 +1108,8 @@ function layout() {
   ppb = Math.max(minPpb() * g, Math.min((W - PL) / 6.5, 9 * g));   // Expert's sixteenths need room between noteheads
 }
 function roofY(p) {
-  const [lo, hi] = G.style === 'rhythm' ? [0, 2] : rangeOf(), span = skyBot - 8 * g;
-  const k = G.style === 'rhythm' ? .35 : (p - lo) / Math.max(1, hi - lo);
+  const [lo, hi] = rhythmView() ? [0, 2] : rangeOf(), span = skyBot - 8 * g;
+  const k = rhythmView() ? .35 : (p - lo) / Math.max(1, hi - lo);
   return skyBot - 2.4 * g - k * span;
 }
 const hash = (a, b) => { let h = (a * 374761393 + b * 668265263) | 0; h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
@@ -1159,6 +1269,7 @@ function drawPanel() {
   } else {
     ctx.font = `${4 * g}px ${F.music}`; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
     ctx.fillText(GLYPH[G.clef], .95 * g, yOf(0) - CLEF_LIFT[G.clef] * g);   // Noto Music: 1em = staff height, baseline on the bottom line
+    if (G.clef === 'treble8') { ctx.font = `700 ${g * 1.1}px Georgia, serif`; ctx.textAlign = 'center'; ctx.fillText('8', 2.05 * g, yOf(-3.4)); }   // guitar and tenor voice: read an octave lower
     ctx.strokeStyle = C.chalk; ctx.globalAlpha = .55; ctx.lineWidth = Math.max(1, g * .07);
     ctx.beginPath(); ctx.moveTo(.6 * g, yOf(8)); ctx.lineTo(.6 * g, yOf(0)); ctx.stroke(); ctx.globalAlpha = .95;
     const bar = G.bars.find(b => b.k === Math.max(0, Math.floor(G.v / 4)));
@@ -1289,7 +1400,7 @@ function drawNotes() {
 function drawGhost(x, a) {
   const key = KEY_BY_ID[a.note.bar.key], flat = key && key.sig < 0;
   let { d, acc } = spellMidi(a.played, flat);
-  if (!DIFFS[G.diff].exact && G.style === 'midi') { while (d - a.d > 3) d -= 7; while (a.d - d > 3) d += 7; }
+  if ((!DIFFS[G.diff].exact && G.style === 'midi') || liveVoice()) { while (d - a.d > 3) d -= 7; while (a.d - d > 3) d += 7; }
   if (G.style === 'keys') { d = a.d + ((li(d) - li(a.d) + 10) % 7) - 3; if (Math.abs(d - a.d) > 3) d -= 7 * Math.sign(d - a.d); }
   const p = d - BOTTOM[G.clef], y = yOf(p), gx = x + .35 * g;
   const k = ctx.globalAlpha; ctx.globalAlpha = k * .9;
@@ -1367,13 +1478,15 @@ function draw() {
 }
 
 /* ---------- judging ---------- */
-const windowBeats = b => .2 * bpmAt(b) / 60;
+// instruments take a moment to speak, so Live timing is a little more forgiving than keys
+const slack = () => isLive() ? 1.3 : 1;
+const windowBeats = b => .2 * slack() * bpmAt(b) / 60;
 function catOf(a) { return a.tied ? 'tie' : a.note.tri ? 't' : ({ .25: 's', .5: 'e', .75: 'de', 1: 'q', 1.5: 'dq', 2: 'h', 3: 'dh', 4: 'w' })[a.note.d] || 'q'; }
 function tally(a, ok) {
   const s = G.stats, c = catOf(a);
   s.attacks++; if (ok) s.hits++;
   (s.cats[c] = s.cats[c] || { n: 0, ok: 0 }).n++; if (ok) s.cats[c].ok++;
-  if (!ok && G.style !== 'rhythm') { const nm = nameOf(a.d, a.acc, DIFFS[G.diff].exact && G.style === 'midi'); s.pitches[nm] = (s.pitches[nm] || 0) + 1; (s.pitchPos = s.pitchPos || {})[nm] = a.p; }
+  if (!ok && !rhythmView()) { const nm = nameOf(a.d, a.acc, DIFFS[G.diff].exact && G.style === 'midi'); s.pitches[nm] = (s.pitches[nm] || 0) + 1; (s.pitchPos = s.pitchPos || {})[nm] = a.p; }
   logAnswer(a, ok);
 }
 function breakStreak() { G.streak = 0; }
@@ -1384,7 +1497,7 @@ function press(src, pitch, ts) {
   G.down.add(src);
   if (G.style === 'rhythm') startHoldTone(src);
   else if (G.style === 'keys' && pitch != null) tone(midiFreq(60 + pitch), .35, 'triangle', .12);
-  const tt = beatAt(ts - (latency || 0));
+  const tt = beatAt(ts - ((isLive() ? liveLatency : latency) || 0));
   if (tt < -.5 || (G.freeze != null && tt < G.freeze - .5)) return;      // count-in
   const wb = windowBeats(tt);
   let best = null;
@@ -1394,19 +1507,21 @@ function press(src, pitch, ts) {
     if (!best || Math.abs(tt - a.b) < Math.abs(tt - best.b)) best = a;
   }
   if (!best) {
-    if (tt >= 0 && !isCountBar(Math.floor(tt / 4))) { G.extras.push(tt); G.stats.extra++; breakStreak(); G.ouch = G.v; pop(G.style === 'rhythm' ? 'Extra tap' : 'Extra note', C.miss); }
+    if (tt >= 0 && !isCountBar(Math.floor(tt / 4))) { G.extras.push(tt); G.stats.extra++; breakStreak(); G.ouch = G.v; pop(rhythmView() ? 'Extra tap' : 'Extra note', C.miss); }
     return;
   }
   const ms = (tt - best.b) * 60000 / bpmAt(best.b), am = Math.abs(ms);
   let ok = true;
   if (G.style === 'midi') ok = DIFFS[G.diff].exact ? pitch === best.midi : pc(pitch) === pc(best.midi);
+  else if (isLive() && !rhythmView()) ok = pitch != null && (G.inst.voice ? pc(pitch) === pc(best.midi) : pitch === best.midi);
   else if (G.style === 'keys') ok = pc(pitch) === pc(best.midi);
   if (!ok) {
     best.j = 'W'; best.played = pitch; G.score += WRONG_PTS; breakStreak();
     pop('Wrong note', C.miss); tally(best, false); flashLetter(pitch, false);
     return;
   }
-  best.j = am <= 60 ? 'P' : am <= 120 ? 'G' : ms < 0 ? 'E' : 'L';
+  const sl = slack();
+  best.j = am <= 60 * sl ? 'P' : am <= 120 * sl ? 'G' : ms < 0 ? 'E' : 'L';
   best.ms = ms; G.stats.offsets.push(ms);
   G.streak++; G.bestStreak = Math.max(G.bestStreak, G.streak);
   G.score += PTS[best.j] * mult();
@@ -1418,7 +1533,7 @@ function release(src, ts) {
   if (![...G.down].some(k => k === 'pad' || k.startsWith('midi'))) $('hold-pad').classList.remove('down');
   const a = G.held.get(src); if (!a) return;
   G.held.delete(src);
-  finishHold(a, beatAt(ts - (latency || 0)));
+  finishHold(a, beatAt(ts - ((isLive() ? liveLatency : latency) || 0)));
 }
 function finishHold(a, tt) {
   a.relAt = tt;
@@ -1513,7 +1628,7 @@ function goTo(v, then) {
   if (document.startViewTransition && !reduceMotion) { const t = document.startViewTransition(apply); t.ready?.catch(() => {}); t.finished?.catch(() => {}); } else apply();
 }
 const customCfg = () => customOK() ? { tokens: settings.custom.slice(), ties: !!settings.customTies } : null;
-function startDemo() { newRun({ demo: true, style: settings.style, diff: settings.diff, clef: settings.clef, mode: 'levels', custom: customCfg() }); }
+function startDemo() { newRun({ demo: true, style: settings.style, diff: settings.diff, clef: settings.clef, inst: settings.instrument, mode: 'levels', custom: customCfg() }); }
 let ovActions = [];
 function showOverlay(tag, title, text, buttons, keys) {
   $('ov-tag').textContent = tag; $('ov-title').textContent = title; $('ov-text').textContent = text; $('ov-keys').textContent = keys || '';
@@ -1528,8 +1643,11 @@ let lastConfig = null;
 function launch(drill) {
   ensureAudio();
   setTimeout(() => soundHint(true), 600);   // if the browser still has the sound stopped (or Sound is off), say so
-  if (latency == null && !skipCalib) { openCal(() => launch(drill)); return; }
-  const cfg = drill ? { ...lastConfig, mode: 'practice', practiceBpm: DIFFS[lastConfig.diff].bpm, drill } : { style: settings.style, diff: settings.diff, clef: settings.clef, mode: settings.mode, practiceBpm: settings.practiceBpm, custom: customCfg() };
+  if (settings.style === 'live' && !MIC.on) { MIC.inst = instNow(); micStart().then(ok => { if (ok) launch(drill); else $('live-set').scrollIntoView({ block: 'center' }); }); return; }
+  if (settings.style === 'live' && !tunedFor(instNow())) { openTune(() => launch(drill)); return; }
+  if (settings.style === 'live') { MIC.inst = instNow(); MIC.tune = TUNE.done[MIC.inst.id] || 0; micConfig(); }
+  if (curLat() == null && !skipCalib) { openCal(() => launch(drill)); return; }
+  const cfg = drill ? { ...lastConfig, mode: 'practice', practiceBpm: DIFFS[lastConfig.diff].bpm, drill } : { style: settings.style, diff: settings.diff, clef: settings.clef, inst: settings.instrument, mode: settings.mode, practiceBpm: settings.practiceBpm, custom: customCfg() };
   lastConfig = { ...cfg, drill: null };
   goTo('game', () => startGame(cfg));
 }
@@ -1588,7 +1706,8 @@ function endGame(byChoice) {
   $('res-tendency').innerHTML = tendencyText(s.offsets);
   renderTrouble();
   $('results').hidden = false;
-  lastRun = run.practice ? null : run;
+  lastRun = run.practice || (run.style === 'live' && !LIVE_BOARD) ? null : run;
+  if (run.style === 'live' && !LIVE_BOARD && !run.practice) $('res-tendency').innerHTML += ' <span class="dim">Live scores join the leaderboard once it is updated for instruments.</span>';
   syncSaveBox(true);
   logRun(run);
   const title = byChoice ? (run.practice ? 'Practice done' : 'Run complete') : 'Lights out';
@@ -1610,7 +1729,7 @@ function renderTrouble() {
   cats.forEach(([c, v]) => chip(CAT_TITLE[c], Math.round(100 * v.ok / v.n) + '%'));
   pitches.forEach(([nm, n]) => chip(nm, n + ' missed'));
   if (s.early) chip('Let go early', String(s.early));
-  if (s.extra) chip(G.style === 'rhythm' ? 'Extra taps' : 'Extra notes', String(s.extra));
+  if (s.extra) chip(rhythmView() ? 'Extra taps' : 'Extra notes', String(s.extra));
   if (!box.children.length) { const p = document.createElement('p'); p.className = 'muted'; p.textContent = 'No trouble spots. Clean running!'; box.append(p); }
   const tokens = new Set(cats.flatMap(([c]) => CAT_TOKENS[c]));
   if (s.extra >= 2) { tokens.add('qr'); tokens.add('hr'); }
@@ -1627,7 +1746,9 @@ function syncPad() {
   const accRows = st === 'keys' && (G.diff === 'hard' || G.diff === 'expert');
   $('sharp-row').hidden = $('flat-row').hidden = !accRows;
   const holdText = needsHold() ? ' Hold each note for its full length.' : '';
-  $('hint').innerHTML = st === 'rhythm' ? '<b>Hold the space bar</b>, any key on your MIDI keyboard, or the pad as each note reaches the pink line, and let go when it ends. Keep still during rests.'
+  $('live-hud').hidden = st !== 'live';
+  $('hint').innerHTML = st === 'live' ? (G.inst.perc ? '<b>Hit the drum</b> as each note reaches the pink line. Keep still during rests.' : `<b>Play each note on your ${esc(G.inst.name.toLowerCase())}</b> as it reaches the pink line${G.inst.voice ? ' (any octave)' : ''}.${holdText}`) + (MIC.on ? '' : ' <b>Turn on the microphone</b> on the settings page first.')
+    : st === 'rhythm' ? '<b>Hold the space bar</b>, any key on your MIDI keyboard, or the pad as each note reaches the pink line, and let go when it ends. Keep still during rests.'
     : st === 'keys' ? '<b>Type the letter</b> as each note reaches the line. <kbd>Shift</kbd> for ♯, <kbd>Option</kbd>/<kbd>Alt</kbd> for ♭.'
     : (midiState === 'ready' ? '<b>Play each note</b> as it reaches the pink line' + (DIFFS[G.diff].exact ? ', in the exact octave.' : ', in any octave.') : '<b>Connect your MIDI keyboard</b> with the button at the top, then play each note as it reaches the line.') + holdText;
 }
@@ -1660,7 +1781,9 @@ const cal = { on: false, clicks: [], taps: [], then: null, timer: null };
 function openCal(then) {
   cal.then = then || null;
   $('cal-dots').innerHTML = Array.from({ length: CAL_N }, (_, i) => `<i class="${i < CAL_LISTEN ? 'listen' : ''}"></i>`).join('');
-  $('cal-result').textContent = latency != null ? `Current delay: ${Math.round(latency)} ms.` : '';
+  $('cal-result').textContent = curLat() != null ? `Current delay: ${Math.round(curLat())} ms.` : '';
+  $('c-help').textContent = calLive() ? 'Listen to the first 4 clicks, then play a short note on your instrument (or sing) right on each of the next 12. With headphones on, this measures the delay through your microphone so the timing is fair.' : 'Listen to the first 4 clicks, then tap along with the next 12, right on each click. Use the space bar, the pad below or any key on your MIDI keyboard. This measures the delay in your speakers and keyboard so the game\'s timing is fair.';
+  if (calLive() && !MIC.on) { MIC.inst = instNow(); micStart(); }
   $('cal-start').textContent = 'Start'; $('cal-start').disabled = false;
   $('cal-skip').textContent = then ? 'Skip for now' : 'Close';
   $('calib').hidden = false;
@@ -1697,21 +1820,21 @@ function finishCal() {
   cal.on = false; $('cal-start').disabled = false; $('cal-start').textContent = 'Try again';
   if (cal.taps.length < 6) { $('cal-result').textContent = 'Not enough taps landed near the clicks. Press Try again.'; return; }
   const s = cal.taps.slice().sort((a, b) => a - b), med = s[Math.floor(s.length / 2)];
-  latency = Math.round(Math.max(-30, Math.min(350, med)));
-  store.set('rooftop:latency', latency);
-  $('cal-result').innerHTML = `Delay on this computer: <b>${latency} ms</b>. Saved.`;
+  const v = Math.round(Math.max(-30, Math.min(calLive() ? 450 : 350, med)));
+  if (calLive()) { liveLatency = v; store.set('rooftop:latency:live', v); } else { latency = v; store.set('rooftop:latency', v); }
+  $('cal-result').innerHTML = `Delay on this computer${calLive() ? ' (microphone)' : ''}: <b>${v} ms</b>. Saved.`;
   $('cal-skip').textContent = cal.then ? 'Start running' : 'Done';
   syncCalib();
 }
 function closeCal() {
   cal.on = false; $('calib').hidden = true;
   const then = cal.then; cal.then = null;
-  if (then) { if (latency == null) skipCalib = true; then(); }
+  if (then) { if (curLat() == null) skipCalib = true; then(); }
 }
 $('cal-start').addEventListener('click', startCal);
 $('cal-skip').addEventListener('click', closeCal);
 $('cal-pad').addEventListener('pointerdown', e => { e.preventDefault(); calTap(e.timeStamp); });
-function syncCalib() { $('calib-text').innerHTML = latency != null ? `Delay on this computer: <b>${latency} ms</b>` : 'Not calibrated on this computer yet.'; $('calib-btn').textContent = latency != null ? 'Recalibrate' : 'Calibrate'; }
+function syncCalib() { const v = curLat(), w = calLive() ? ' through the microphone' : ''; $('calib-text').innerHTML = v != null ? `Delay on this computer${w}: <b>${v} ms</b>` : `Not calibrated${w} on this computer yet.`; $('calib-btn').textContent = v != null ? 'Recalibrate' : 'Calibrate'; }
 $('calib-btn').addEventListener('click', () => openCal(null));
 
 /* ---------- students, classes and leaderboards (Firebase) ----------
@@ -1724,6 +1847,7 @@ const FIREBASE = {
   appId: '1:956677028482:web:c3ec72a279e61b6f6c929b',
 };
 const SCORES = 'sight_scores';
+const LIVE_BOARD = false;   // turn on once the shared Firestore rules accept style 'live' and an instrument
 let fbP = null;
 function fb() {
   const SDK = 'https://www.gstatic.com/firebasejs/10.12.2/';
@@ -1967,7 +2091,7 @@ function renderAssignment() {
 function useAssignment() {
   const a = classAssign; if (!a) return;
   if (DIFFS[a.level]) settings.diff = a.level;
-  if (STYLE_TITLE[a.style]) settings.style = a.style;
+  if (STYLE_TITLE[a.style]) settings.style = a.style === 'keys' ? 'midi' : a.style;
   if (a.clef === 'treble' || a.clef === 'bass') settings.clef = a.clef;
   if (MODE_TITLE[a.mode]) settings.mode = a.mode;
   store.set('rooftop:settings', settings); refreshSetup(); startDemo();
@@ -2178,10 +2302,10 @@ function tdStudentDetail(st) {
 }
 function tdCsv(studs) {
   const cls = tdClass(), q = v => `"${String(v).replace(/"/g, '""')}"`;
-  const head = ['Student', 'Range', 'Minutes', 'Notes on time', 'Notes played', 'Accuracy %', 'MIDI accuracy %', 'Computer keys accuracy %', 'Rhythm only accuracy %', 'Runs', 'Best score', 'Best level', 'Trouble spots'];
+  const head = ['Student', 'Range', 'Minutes', 'Notes on time', 'Notes played', 'Accuracy %', 'MIDI accuracy %', 'Live accuracy %', 'Rhythm only accuracy %', 'Runs', 'Best score', 'Best level', 'Trouble spots'];
   const pc2 = (st, k) => st.byGame[k] ? pctOf(st.byGame[k].c, st.byGame[k].n) : '';
   const lines = [head.map(q).join(',')].concat(studs.map(st => [st.student, rangeLabel(), st.minutes, st.correct, st.answers, pctOf(st.correct, st.answers),
-    pc2(st, 'midi'), pc2(st, 'keys'), pc2(st, 'rhythm'), st.games, st.best || '', st.level || '', st.trouble.map(([lab, v]) => `${lab} x${v.w}`).join('; ')].map(q).join(',')));
+    pc2(st, 'midi'), pc2(st, 'live'), pc2(st, 'rhythm'), st.games, st.best || '', st.level || '', st.trouble.map(([lab, v]) => `${lab} x${v.w}`).join('; ')].map(q).join(',')));
   const link = document.createElement('a');
   link.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' }));
   link.download = `rooftop-runner-${(cls ? cls.name : 'class').replace(/[^A-Za-z0-9]+/g, '-')}-${TD.range === 'date' ? TD.date : TD.range}.csv`;
@@ -2196,7 +2320,7 @@ function tdAssign() {
     <p class="dim" style="margin:0">Choose what <b>${esc(cls.name)}</b> should practice. Students in this class see a banner on the start page with a <b>Use these settings</b> button and their progress toward today's goal. It stays until you change or clear it.</p>
     <div class="td-form" id="as-form">
       <label class="wide">Difficulty${seg('as-level', [['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard'], ['expert', 'Expert']], a.level)}</label>
-      <label class="wide">Play style${seg('as-style', [['midi', 'MIDI keyboard'], ['keys', 'Computer keys'], ['rhythm', 'Rhythm only']], a.style)}</label>
+      <label class="wide">Play style${seg('as-style', [['midi', 'MIDI keyboard'], ['rhythm', 'Rhythm only'], ['live', 'Live (microphone)']], a.style)}</label>
       <label class="wide">Clef${seg('as-clef', [['treble', 'Treble'], ['bass', 'Bass']], a.clef)}</label>
       <label class="wide">Mode${seg('as-mode', [['levels', 'Levels'], ['practice', 'Practice']], a.mode)}</label>
       <label>Goal: notes on time per day<input id="as-goal" type="number" min="0" max="2000" value="${a.goal ?? 60}"></label>
@@ -2320,6 +2444,300 @@ $('td-back').onclick = () => { clearInterval(TD.timer); goTo('splash', startDemo
 $('td-signout').onclick = async () => { try { const { auth, authMod } = await fbAuth(); await authMod.signOut(auth); } catch {} TD.email = null; clearInterval(TD.timer); tdStart(); };
 $('teacher-btn').addEventListener('click', openTeacher);
 
+
+/* ---------- Live: play a real instrument (or sing) into the microphone ----------
+   The staff shows the student's written part. The mic hears concert pitch, and we convert it to written pitch
+   (written = concert − trans) before scoring. trans = semitones from written to sounding. easy = the first five
+   written notes from a beginning method book; sig = the written key signature those notes use (+sharps / −flats). */
+const LIVE_GROUPS = [
+  ['B♭ instruments', 'B♭', [
+    ['clarinet', 'Clarinet', 'treble', -2, [60, 62, 64, 65, 67], 0],
+    ['trumpet', 'Trumpet / Cornet', 'treble', -2, [60, 62, 64, 65, 67], 0],
+    ['tenor-sax', 'Tenor Sax', 'treble', -14, [60, 62, 64, 65, 67], 0],
+    ['baritone-tc', 'Baritone TC', 'treble', -14, [60, 62, 64, 65, 67], 0],
+    ['bass-clarinet', 'Bass Clarinet', 'treble', -14, [60, 62, 64, 65, 67], 0],
+  ]],
+  ['E♭ instruments', 'E♭', [
+    ['alto-sax', 'Alto Sax', 'treble', -9, [67, 69, 71, 72, 74], 1],
+    ['bari-sax', 'Bari Sax', 'treble', -21, [67, 69, 71, 72, 74], 1],
+  ]],
+  ['F instrument', 'F', [['horn', 'French Horn', 'treble', -7, [65, 67, 69, 70, 72], -1]]],
+  ['C instruments · treble clef', 'C', [
+    ['flute', 'Flute', 'treble', 0, [70, 72, 74, 75, 77], -2],
+    ['oboe', 'Oboe', 'treble', 0, [70, 72, 74, 75, 77], -2],
+    ['bells', 'Bells', 'treble', 24, [70, 72, 74, 75, 77], -2],
+    ['mallets', 'Marimba / Xylophone', 'treble', 0, [70, 72, 74, 75, 77], -2],
+  ]],
+  ['C instruments · bass clef', 'C', [
+    ['trombone', 'Trombone', 'bass', 0, [46, 48, 50, 51, 53], -2],
+    ['euphonium', 'Euphonium / Baritone BC', 'bass', 0, [46, 48, 50, 51, 53], -2],
+    ['bassoon', 'Bassoon', 'bass', 0, [46, 48, 50, 51, 53], -2],
+    ['tuba', 'Tuba', 'bass', 0, [34, 36, 38, 39, 41], -2],
+  ]],
+  ['Strings', '', [
+    ['violin', 'Violin', 'treble', 0, [62, 64, 66, 67, 69], 2],
+    ['viola', 'Viola', 'alto', 0, [62, 64, 66, 67, 69], 2],
+    ['cello', 'Cello', 'bass', 0, [50, 52, 54, 55, 57], 2],
+    ['string-bass', 'String Bass', 'bass', -12, [50, 52, 54, 55, 57], 2],
+  ]],
+  ['Keyboard & guitar', '', [
+    ['piano', 'Piano', 'treble', 0, [60, 62, 64, 65, 67], 0],
+    ['guitar', 'Guitar', 'treble8', -12, [60, 62, 64, 65, 67], 0],
+    ['electric-bass', 'Electric Bass', 'bass', -12, [43, 45, 47, 48, 50], 0],
+  ]],
+  ['Voice', '', [
+    ['soprano', 'Soprano', 'treble', 0, [60, 62, 64, 65, 67], 0, { voice: true }],
+    ['alto-voice', 'Alto', 'treble', 0, [60, 62, 64, 65, 67], 0, { voice: true }],
+    ['tenor-voice', 'Tenor', 'treble8', -12, [60, 62, 64, 65, 67], 0, { voice: true }],
+    ['bass-voice', 'Bass', 'bass', 0, [48, 50, 52, 53, 55], 0, { voice: true }],
+  ]],
+  ['Percussion', '', [['snare', 'Snare Drum', 'treble', 0, [], 0, { perc: true }]]],
+  ['Not listed?', '', [
+    ['other-bb', 'Other B♭ instrument', 'treble', -2, [60, 62, 64, 65, 67], 0, { other: true }],
+    ['other-eb', 'Other E♭ instrument', 'treble', -9, [67, 69, 71, 72, 74], 1, { other: true }],
+    ['other-f', 'Other F instrument', 'treble', -7, [65, 67, 69, 70, 72], -1, { other: true }],
+    ['other-ct', 'Other C · treble', 'treble', 0, [70, 72, 74, 75, 77], -2, { other: true }],
+    ['other-cb', 'Other C · bass', 'bass', 0, [46, 48, 50, 51, 53], -2, { other: true }],
+  ]],
+];
+const SIG_KEY = { 0: 'C', 1: 'G', 2: 'D', '-1': 'F', '-2': 'Bb' };
+const INSTR = {};
+for (const [, , list] of LIVE_GROUPS) for (const [id, name, clef, trans, easy, sig, extra] of list) INSTR[id] = { id, name, clef, trans, easy, sig, home: SIG_KEY[sig], ...(extra || {}) };
+const INTERVAL_TEXT = { 0: 'as written', 24: 'two octaves higher than written', '-2': 'a major 2nd lower than written', '-7': 'a perfect 5th lower than written', '-9': 'a major 6th lower than written', '-12': 'an octave lower than written', '-14': 'a major 9th lower than written', '-21': 'an octave and a major 6th lower than written' };
+const instNow = () => INSTR[settings.instrument] || INSTR['alto-sax'];
+// staff positions of an instrument's Easy notes in its clef, spelled in its home key
+function easyRange(inst) {
+  const flat = inst.sig < 0, ps = inst.easy.map(m => spellMidi(m, flat).d - BOTTOM[inst.clef]);
+  return [Math.min(...ps), Math.max(...ps)];
+}
+// the written range grows with difficulty: Easy is the five method-book notes, then wider, with ledger lines on Hard
+function liveRange(inst, diff) {
+  const [lo, hi] = easyRange(inst);
+  return diff === 'easy' ? [lo, hi] : diff === 'medium' ? [lo - 2, hi + 4] : [lo - 3, hi + 7];
+}
+// pitches the mic should listen for: the written range, as concert pitch, with a little room either side
+function liveHz(inst) {
+  const [lo, hi] = liveRange(inst, 'expert'), b = BOTTOM[inst.clef];
+  const toMidi = p => midiOf(b + p, 0) + inst.trans;
+  return { minHz: midiFreq(toMidi(lo) - 3), maxHz: midiFreq(toMidi(hi) + 4) };
+}
+const isLive = () => G.style === 'live';
+const liveVoice = () => isLive() && G.inst && G.inst.voice;
+
+/* ---------- the listening engine: level, pitch (YIN) and note starts ---------- */
+const MIC = { on: false, stream: null, src: null, an: null, buf: null, timer: 0, inst: null, sounding: null, cand: null, candN: 0, candAt: 0, quiet: 0, quietAt: 0, lastHit: 0, level: 0, heard: null, cents: 0, prevRms: 0, err: '' };
+const micGate = () => Math.pow(10, (-28 - .42 * settings.liveSens) / 20);    // sensitivity 0–100 → gate from −28 dB to −70 dB
+async function micStart() {
+  if (MIC.on) return true;
+  ensureAudio();
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { MIC.err = 'This browser has no microphone access. Use Chrome or Edge.'; syncMicUI(); return false; }
+  try {
+    MIC.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+  } catch (e) { MIC.err = e && e.name === 'NotAllowedError' ? 'The microphone is blocked. Click the icon left of the web address and allow the microphone, then try again.' : "Couldn't open the microphone. Check that one is plugged in."; syncMicUI(); return false; }
+  MIC.src = actx.createMediaStreamSource(MIC.stream);
+  MIC.an = actx.createAnalyser(); MIC.an.smoothingTimeConstant = 0;
+  MIC.src.connect(MIC.an);
+  micConfig();
+  MIC.on = true; MIC.err = '';
+  MIC.timer = setInterval(micTick, 14);
+  syncMicUI();
+  return true;
+}
+// low instruments (tuba, string and electric bass) need a longer listening window to hear their slow vibrations
+function micConfig() {
+  if (!MIC.an) return;
+  const size = liveHz(MIC.inst || instNow()).minHz < 70 ? 4096 : 2048;
+  if (MIC.an.fftSize !== size || !MIC.buf) { MIC.an.fftSize = size; MIC.buf = new Float32Array(size); }
+}
+function micStop() {
+  clearInterval(MIC.timer); MIC.timer = 0;
+  if (MIC.sounding != null) micNoteOff(performance.now());
+  try { MIC.src && MIC.src.disconnect(); } catch {}
+  if (MIC.stream) MIC.stream.getTracks().forEach(t => t.stop());
+  Object.assign(MIC, { on: false, stream: null, src: null, an: null, heard: null, level: 0 });
+  syncMicUI();
+}
+// YIN pitch detection (de Cheveigné & Kawahara), searching only the instrument's own range; low instruments are halved in rate first
+function yin(x, sr, minHz, maxHz) {
+  let data = x, rate = sr;
+  if (maxHz < 900) { const h = new Float32Array(x.length >> 1); for (let i = 0; i < h.length; i++) h[i] = (x[2 * i] + x[2 * i + 1]) * .5; data = h; rate = sr / 2; }
+  const W = data.length >> 1, tMin = Math.max(2, Math.floor(rate / maxHz)), tMax = Math.min(W - 1, Math.ceil(rate / minHz));
+  if (tMax <= tMin + 2) return null;
+  const d = new Float32Array(tMax + 2);
+  for (let t = 1; t <= tMax + 1; t++) { let s = 0; for (let j = 0; j < W; j++) { const v = data[j] - data[j + t]; s += v * v; } d[t] = s; }
+  let run = 0; const c = new Float32Array(tMax + 2); c[0] = 1;
+  for (let t = 1; t <= tMax + 1; t++) { run += d[t]; c[t] = run ? d[t] * t / run : 1; }
+  let tau = -1;
+  for (let t = tMin; t <= tMax; t++) if (c[t] < .15) { while (t + 1 <= tMax && c[t + 1] < c[t]) t++; tau = t; break; }
+  if (tau < 0) { let best = tMin; for (let t = tMin; t <= tMax; t++) if (c[t] < c[best]) best = t; if (c[best] > .3) return null; tau = best; }
+  const a = c[tau - 1], b = c[tau], e = c[tau + 1], den = a - 2 * b + e, shift = den ? (a - e) / (2 * den) : 0;
+  return { hz: rate / (tau + shift), clarity: 1 - b };
+}
+function micTick() {
+  if (!MIC.on || !MIC.an) return;
+  MIC.an.getFloatTimeDomainData(MIC.buf);
+  const now = performance.now(), at = now - (MIC.buf.length / actx.sampleRate) * 500;   // the window's middle, roughly when the sound happened
+  let sum = 0; for (let i = 0; i < MIC.buf.length; i++) sum += MIC.buf[i] * MIC.buf[i];
+  const rms = Math.sqrt(sum / MIC.buf.length), gate = micGate();
+  MIC.level = Math.min(1, rms / (gate * 8));
+  const inst = MIC.inst || instNow();
+  if (inst.perc) {
+    // snare: a sudden jump in level is a hit
+    if (TUNE.on) { tuneTick(rms, null); MIC.prevRms = rms; $('t-meter').style.width = Math.round(Math.min(1, rms / (gate * 8)) * 100) + '%'; return; }
+    if (rms > gate * 1.5 && rms > MIC.prevRms * 2.2 && now - MIC.lastHit > 90) { MIC.lastHit = now; MIC.heard = 'HIT'; micEvent('on', null, at); micEvent('off', null, at + 1); }
+    MIC.prevRms = rms * .6 + MIC.prevRms * .4; syncMicMeter(); return;
+  }
+  let cand = null;
+  if (rms > gate || (TUNE.on && rms > 1e-4)) {          // while tuning, listen below the gate too
+    const { minHz, maxHz } = liveHz(inst), r = yin(MIC.buf, actx.sampleRate, minHz, maxHz);
+    if (r && r.clarity > .75) { const mf = 69 + 12 * Math.log2(r.hz / 440) - (MIC.tune || 0) / 100; cand = Math.round(mf); MIC.cents = Math.round((mf - cand) * 100); MIC.mf = mf + (MIC.tune || 0) / 100; }
+  }
+  if (TUNE.on) { tuneTick(rms, cand == null ? null : MIC.mf); MIC.level = Math.min(1, rms / (gate * 8)); $('t-meter').style.width = Math.round(MIC.level * 100) + '%'; return; }
+  // the metronome's own clicks (D6 and A6) can leak into the mic; ignore them right after a click
+  if (cand != null && (cand === 86 || cand === 93) && G.clickTimes && G.clickTimes.some(t => Math.abs(now - t) < 110)) cand = null;
+  if (cand != null) {
+    MIC.quiet = 0;
+    if (cand === MIC.cand) MIC.candN++; else { MIC.cand = cand; MIC.candN = 1; MIC.candAt = at; }
+    MIC.heard = cand;
+    if (MIC.sounding == null && MIC.candN >= 3) micNoteOn(cand, MIC.candAt);
+    else if (MIC.sounding != null && cand !== MIC.sounding && MIC.candN >= 4) { micNoteOff(MIC.candAt); micNoteOn(cand, MIC.candAt); }   // a slur to a new note
+  } else {
+    if (!MIC.quiet) MIC.quietAt = at;
+    MIC.quiet++; MIC.cand = null; MIC.candN = 0;
+    if (MIC.quiet >= 3) { MIC.heard = null; if (MIC.sounding != null) micNoteOff(MIC.quietAt); }
+  }
+  syncMicMeter();
+}
+function micNoteOn(concert, at) { MIC.sounding = concert; micEvent('on', concert, at); }
+function micNoteOff(at) { const c = MIC.sounding; MIC.sounding = null; micEvent('off', c, at); }
+function micEvent(kind, concert, at) {
+  if (cal.on) { if (kind === 'on') calTap(at); return; }
+  if (view() !== 'game' || !isLive()) return;
+  const written = concert == null ? null : concert - G.inst.trans;
+  if (kind === 'on') press('mic', written, at); else release('mic', at);
+}
+// what the student sees: the written note they played, how far off pitch, and the level
+function syncMicMeter() {
+  const inst = MIC.inst || instNow(), w = MIC.heard === 'HIT' ? 'HIT' : MIC.heard == null ? '—' : nameOf(spellMidi(MIC.heard - inst.trans, inst.sig < 0).d, spellMidi(MIC.heard - inst.trans, inst.sig < 0).acc, !inst.voice);
+  const needle = MIC.heard == null || MIC.heard === 'HIT' ? 50 : 50 + Math.max(-50, Math.min(50, MIC.cents)) * .8;
+  for (const pre of ['mic', 'lh']) {
+    const h = $(pre + '-heard'); if (!h) continue;
+    h.textContent = w;
+    $(pre + '-meter').style.width = Math.round(MIC.level * 100) + '%';
+    $(pre + '-needle').style.left = needle + '%';
+    const c = $(pre + '-cents'); if (c) c.textContent = MIC.heard == null || MIC.heard === 'HIT' ? '' : `${MIC.cents > 0 ? '+' : ''}${MIC.cents}¢ · concert ${nameOf(spellMidi(MIC.heard, true).d, spellMidi(MIC.heard, true).acc, true)}`;
+  }
+}
+function syncMicUI() {
+  $('mic-btn').textContent = MIC.on ? 'Turn microphone off' : 'Turn on microphone';
+  $('mic-btn').setAttribute('aria-pressed', String(MIC.on));
+  $('mic-err').textContent = MIC.err;
+  $('mic-live').hidden = !MIC.on;
+  syncMicMeter();
+}
+
+/* ---------- Live setup: the instrument picker and "your part" ---------- */
+function buildInstPicker() {
+  $('inst-pick').innerHTML = LIVE_GROUPS.map(([title, key, list]) => `<div class="igrp"><h4>${title}${key ? ` <em>${key}</em>` : ''}</h4><div class="ichips">${list.map(([id, name, , , , , x]) => `<button type="button" data-inst="${id}" class="${x && x.other ? 'other' : ''}" aria-pressed="false">${name}</button>`).join('')}</div></div>`).join('');
+  $('inst-pick').addEventListener('click', e => {
+    const b = e.target.closest('button[data-inst]'); if (!b) return;
+    settings.instrument = b.dataset.inst; store.set('rooftop:settings', settings);
+    MIC.inst = instNow(); MIC.tune = TUNE.done[MIC.inst.id] || 0; micConfig(); syncInstUI(); syncTuneLine(); startDemo(); refreshSetup();
+  });
+}
+function syncInstUI() {
+  const inst = instNow();
+  for (const b of $('inst-pick').querySelectorAll('button[data-inst]')) b.setAttribute('aria-pressed', String(b.dataset.inst === inst.id));
+  const flat = inst.sig < 0, notes = inst.easy.map(m => { const s = spellMidi(m, flat); return nameOf(s.d, s.acc, false); }).join(' ');
+  $('inst-part').innerHTML = inst.perc ? `<b>Snare Drum</b> · reads rhythms on one line · any strong hit counts`
+    : `<b>${esc(inst.name)}</b> · ${inst.voice ? 'voice, any octave counts' : (inst.home && inst.trans === 0 ? 'C instrument' : `${({ '-2': 'B♭', '-14': 'B♭', '-9': 'E♭', '-21': 'E♭', '-7': 'F' })[inst.trans] || 'C'} instrument`)} · ${({ treble: 'treble clef', bass: 'bass clef', alto: 'alto clef', treble8: 'treble clef, an octave lower' })[inst.clef]} · sounds ${INTERVAL_TEXT[inst.trans] || 'as written'} · Easy: ${notes} in ${keyName(inst.home)} major`;
+}
+
+/* ---------- tune up: required before a Live run ----------
+   1) a moment of quiet measures the room, 2) the tuning note measures how sharp or flat the instrument is and how loud
+   the student plays. The pitch offset corrects every note the mic hears, and the gate is set between room noise and
+   playing level, so the game deciphers pitch more reliably. */
+const TUNE_NOTE = { violin: 69, viola: 69, cello: 57, 'string-bass': 45, guitar: 57, 'electric-bass': 45 };   // strings tune to A; band to concert B♭ (the first Easy note)
+const tuneWritten = inst => TUNE_NOTE[inst.id] ?? inst.easy[0];
+const TUNE = { on: false, phase: '', t0: 0, noise: [], play: [], cents: [], hits: [], then: null, done: {} };
+const tunedFor = inst => TUNE.done[inst.id] != null;
+function openTune(then) {
+  const inst = instNow(); TUNE.then = then || null; MIC.inst = inst;
+  const w = tuneWritten(inst), flat = inst.sig < 0, wn = nameOf(spellMidi(w, flat).d, spellMidi(w, flat).acc, false), cn = nameOf(spellMidi(w + inst.trans, true).d, spellMidi(w + inst.trans, true).acc, false);
+  $('t-title').textContent = `Tune up · ${inst.name}`;
+  $('t-help').textContent = inst.perc ? 'First stay quiet for a moment, then play three hits on your snare at your normal volume.'
+    : inst.voice ? `First stay quiet for a moment. Then sing and hold a steady ${wn} for about two seconds.`
+    : `First stay quiet for a moment. Then play and hold your tuning note for about two seconds, at your normal playing volume. Adjust your instrument until the needle sits in the green.`;
+  $('t-target').innerHTML = inst.perc ? 'Target: <b>three hits</b>' : `Tuning note: <b>${wn}</b>${inst.trans ? ` (concert ${cn})` : ''}`;
+  $('t-heard').textContent = '—'; $('t-heard').classList.remove('in'); $('t-needle').style.left = '50%'; $('t-status').textContent = '';
+  for (const id of ['t-s1', 't-s2', 't-s3']) $(id).className = '';
+  $('t-s2').textContent = inst.perc ? 'Play three hits' : 'Play your tuning note';
+  $('t-start').textContent = 'Start'; $('t-start').disabled = false; $('t-start').onclick = startTune;
+  $('tune').hidden = false;
+  setTimeout(() => $('t-start').focus(), 30);
+}
+async function startTune() {
+  if (!MIC.on) { const ok = await micStart(); if (!ok) { $('t-status').textContent = MIC.err; return; } }
+  micConfig();
+  Object.assign(TUNE, { on: true, phase: 'quiet', t0: performance.now(), noise: [], play: [], cents: [], hits: [] });
+  $('t-start').disabled = true; $('t-s1').className = 'now'; $('t-status').textContent = 'Shh… listening to the room.';
+}
+// called from micTick with this frame's level and pitch (in fractional MIDI, concert)
+function tuneTick(rms, mf) {
+  if (!TUNE.on) return;
+  const inst = MIC.inst || instNow(), now = performance.now();
+  if (TUNE.phase === 'quiet') {
+    TUNE.noise.push(rms);
+    if (now - TUNE.t0 > 1500) { TUNE.phase = 'play'; TUNE.t0 = now; $('t-s1').className = 'done'; $('t-s2').className = 'now'; $('t-status').textContent = inst.perc ? 'Now play three hits.' : 'Now play and hold your tuning note.'; }
+    return;
+  }
+  const noise = median(TUNE.noise), floor = Math.max(noise * 3, 1e-4);
+  if (inst.perc) {
+    if (rms > floor * 2 && rms > (TUNE.last || 0) * 2 && now - (TUNE.lastHit || 0) > 150) { TUNE.hits.push(rms); TUNE.lastHit = now; $('t-heard').textContent = '●'.repeat(TUNE.hits.length); }
+    TUNE.last = rms;
+    if (TUNE.hits.length >= 3) finishTune(0, median(TUNE.hits), noise);
+    return;
+  }
+  if (rms > floor && mf != null) {
+    const target = tuneWritten(inst) + inst.trans;
+    let off = (mf - target) % 12; if (off > 6) off -= 12; if (off < -6) off += 12;     // any octave of the tuning note counts
+    const cents = Math.round(off * 100);
+    $('t-heard').textContent = nameOf(spellMidi(Math.round(mf) - inst.trans, inst.sig < 0).d, spellMidi(Math.round(mf) - inst.trans, inst.sig < 0).acc, false);
+    if (Math.abs(cents) <= 60) {
+      TUNE.cents.push(cents); TUNE.play.push(rms);
+      $('t-needle').style.left = (50 + Math.max(-50, Math.min(50, cents))) + '%';
+      $('t-heard').classList.toggle('in', Math.abs(cents) <= 10);
+      $('t-status').innerHTML = Math.abs(cents) <= 10 ? '<b>In tune.</b> Keep holding…' : `<span class="warn">${Math.abs(cents)}¢ ${cents < 0 ? 'flat' : 'sharp'}</span>: ${cents < 0 ? 'push in or play a little higher' : 'pull out or play a little lower'}. Keep holding…`;
+      if (TUNE.cents.length >= 90) finishTune(median(TUNE.cents.slice(-60)), median(TUNE.play), noise);   // about 1.3 seconds of steady tone
+    } else { $('t-needle').style.left = (cents < 0 ? 0 : 100) + '%'; $('t-status').innerHTML = `<span class="warn">That's not your tuning note.</span> Play ${$('t-target').querySelector('b').textContent}.`; }
+  }
+}
+function median(a) { if (!a.length) return 0; const s = a.slice().sort((x, y) => x - y); return s[s.length >> 1]; }
+function finishTune(cents, play, noise) {
+  const inst = MIC.inst || instNow();
+  TUNE.on = false; TUNE.done[inst.id] = cents; MIC.tune = cents;
+  // set the gate between the room and the student's playing, and show it on the sensitivity slider
+  const gate = Math.min(play * .35, Math.max(noise * 3, Math.sqrt(Math.max(noise, 1e-5) * play)));
+  settings.liveSens = Math.round(Math.max(0, Math.min(100, (-28 - 20 * Math.log10(Math.max(gate, 1e-6))) / .42)));
+  store.set('rooftop:settings', settings); $('live-sens').value = settings.liveSens; $('live-sens-out').textContent = settings.liveSens;
+  $('t-s2').className = 'done'; $('t-s3').className = 'done';
+  $('t-status').innerHTML = inst.perc ? '<b>Ready.</b> The mic is set for your drum and this room.'
+    : Math.abs(cents) <= 10 ? '<b>Nicely in tune.</b> The mic is set for your instrument and this room.'
+    : `<b>Ready.</b> You're ${Math.abs(Math.round(cents))}¢ ${cents < 0 ? 'flat' : 'sharp'}; the game will allow for that, but try to tune closer next time.`;
+  $('t-start').disabled = false; $('t-start').textContent = TUNE.then ? 'Start running' : 'Done';
+  $('t-start').onclick = () => { $('tune').hidden = true; const then = TUNE.then; TUNE.then = null; if (then) then(); };
+  syncTuneLine();
+}
+$('t-close').addEventListener('click', () => { TUNE.on = false; TUNE.then = null; $('tune').hidden = true; });
+function syncTuneLine() {
+  const inst = instNow(), c = TUNE.done[inst.id];
+  $('tune-line').innerHTML = c == null ? 'Not tuned yet. You tune up before your first Live run.' : `Tuned: <b>${inst.perc ? 'ready' : Math.abs(c) <= 10 ? 'in tune' : `${Math.abs(Math.round(c))}¢ ${c < 0 ? 'flat' : 'sharp'}`}</b>`;
+}
+$('tune-btn').addEventListener('click', () => { MIC.inst = instNow(); openTune(null); });
+
+$('mic-btn').addEventListener('click', () => { if (MIC.on) micStop(); else { MIC.inst = instNow(); micStart(); } });
+$('live-sens').addEventListener('input', e => { settings.liveSens = +e.target.value; $('live-sens-out').textContent = settings.liveSens; store.set('rooftop:settings', settings); });
+
 /* ---------- MIDI keyboard input (Web MIDI: note-on and note-off) ---------- */
 let midiAccess = null, midiState = 'off', midiNames = [], midiPlaying = '';
 // virtual and helper ports (the Mac's IAC bus, network sessions, a keyboard's DAW-control port) go last, so a real keyboard is named first
@@ -2399,7 +2817,7 @@ function syncStyleNote() {
     ? `<b>${(midiPlaying ? [midiPlaying] : midiNames).map(n => n.replace(/[<>&]/g, '')).join(', ')}</b> ${midiPlaying || midiNames.length === 1 ? 'is' : 'are'} connected${midiPlaying ? '' : '. Play a key and the button shows which one you\'re using'}.`
     + ` Play each note ${DIFFS[settings.diff].exact ? 'in the exact octave' : 'in any octave'}${DIFFS[settings.diff].hold ? ', and hold it for its full length' : ''}.`
     : MIDI_TEXT[midiState][1] || MIDI_TEXT.off[1];
-  else if (settings.style === 'keys') el.innerHTML = 'Type <b>C D E F G A B</b> as each note reaches the line, or tap the letters on screen. Any octave counts.';
+  else if (settings.style === 'live') { const i = instNow(); el.innerHTML = i.perc ? 'Hit the snare as each note reaches the line. Any strong hit counts.' : `Play your <b>${esc(i.name.toLowerCase())}</b> into the microphone as each note reaches the line${i.voice ? ' (any octave)' : ', in the written octave'}${DIFFS[settings.diff].hold ? ', and hold it for its full length' : ''}. The staff shows your written part.`; }
   else el.innerHTML = 'Every note sits on one line. <b>Hold the space bar</b> or <b>any key on your MIDI keyboard</b> for each note\'s full length, or use the tap pad on a touch screen.';
 }
 function refreshSetup() {
@@ -2414,7 +2832,10 @@ function refreshSetup() {
   $('practice-bpm').value = settings.practiceBpm; $('practice-bpm-out').textContent = settings.practiceBpm;
   $('met-vol').value = settings.metVol; $('met-vol-out').textContent = settings.metVol;
   $('practice-row').hidden = settings.mode !== 'practice';
-  $('clef-set').hidden = settings.style === 'rhythm';
+  $('clef-set').hidden = settings.style === 'rhythm' || settings.style === 'live';
+  $('live-set').hidden = settings.style !== 'live';
+  $('live-sens').value = settings.liveSens; $('live-sens-out').textContent = settings.liveSens;
+  if (settings.style === 'live') syncInstUI(); else if (MIC.on) micStop();
   $('setup-best').textContent = store.get(bestKey(settings), 0).toLocaleString();
   $('start-btn').textContent = settings.mode === 'practice' ? 'Start practice' : 'Start running';
   $('start-btn').disabled = settings.customOn && !customOK();
@@ -2530,6 +2951,7 @@ addEventListener('keydown', e => {
   if (e.target.matches && e.target.matches('input[type="text"]')) return;
   if (!$('welcome').hidden) return;
   if (view() === 'teacher') return;                              // the dashboard has its own fields; no game shortcuts there
+  if (!$('tune').hidden) return;
   if (!$('calib').hidden) {
     if (e.code === 'Space') { e.preventDefault(); if (!e.repeat) calTap(e.timeStamp); }
     if (e.code === 'Escape') closeCal();
@@ -2566,11 +2988,12 @@ new ResizeObserver(() => { if (Math.abs(stage.clientWidth - W) > 1) layout(); })
 function boot() {
   Object.assign(settings, store.get('rooftop:settings', {}));
   if (!DIFFS[settings.diff]) settings.diff = 'easy';
-  if (!['midi', 'keys', 'rhythm'].includes(settings.style)) settings.style = 'midi';
+  if (!['midi', 'rhythm', 'live'].includes(settings.style)) settings.style = 'midi';   // Computer keys was retired
+  if (!INSTR[settings.instrument]) settings.instrument = 'alto-sax';
   if (!['treble', 'bass'].includes(settings.clef)) settings.clef = 'treble';
   if (!Array.isArray(settings.custom)) settings.custom = [];
   settings.custom = settings.custom.filter(tk => TOKENS[tk]);
-  buildLetters(); buildPicker(); syncPicker(); refreshSetup(); syncSound();
+  buildLetters(); buildPicker(); buildInstPicker(); syncPicker(); refreshSetup(); syncSound(); syncMicUI(); syncTuneLine();
   document.fonts?.load(`40px "Noto Music"`, '\u{1D11E}\u{1D122}♯♭♮').catch(() => {});
   startDemo();
   requestAnimationFrame(frame);
@@ -2579,7 +3002,7 @@ function boot() {
   if (store.get('rooftop:midi', 0)) connectMidi();
 }
 boot();
-if (location.hostname === 'localhost') { window.__G = G; window.__audio = () => ({ actx, settings, holdTones, keyVoices, click, tone }); window.__step = () => { const raf = window.requestAnimationFrame; window.requestAnimationFrame = () => 0; try { frame(); } finally { window.requestAnimationFrame = raf; } }; }   // for local testing only
+if (location.hostname === 'localhost') { window.__G = G; window.__audio = () => ({ actx, settings, holdTones, keyVoices, click, tone, MIC, micTick, INSTR, TUNE }); window.__step = () => { const raf = window.requestAnimationFrame; window.requestAnimationFrame = () => 0; try { frame(); } finally { window.requestAnimationFrame = raf; } }; }   // for local testing only
 })();
 </script>
 </body>
