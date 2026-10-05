@@ -660,9 +660,9 @@ function newRun(o) {
 }
 const mult = () => Math.min(4, 1 + Math.floor(G.streak / 8));
 const needsHold = () => G.style === 'rhythm' || (G.style === 'midi' && !!DIFFS[G.diff].hold);
-/* Every level after the first opens with a two-bar count-in at the new tempo: "1 – 2" on beats 1 and 3, then "1 2 3 4".
-   Practice keeps one tempo, so it has no count-in bars. */
-const countBars = () => G.mode === 'practice' ? 0 : 2;
+/* Every level after the first opens with a one-bar count-in at the new tempo: "1 2 3 4".
+   Practice keeps one tempo, so it has no count-in bar. */
+const countBars = () => G.mode === 'practice' ? 0 : 1;
 const firstBar = L => L <= 0 ? 0 : LEVEL_BARS + (L - 1) * (LEVEL_BARS + countBars());
 const levelOfBar = k => k < LEVEL_BARS ? 0 : 1 + Math.floor((k - LEVEL_BARS) / (LEVEL_BARS + countBars()));
 const levelOf = b => b < 0 ? 0 : levelOfBar(Math.floor(b / 4));
@@ -673,7 +673,7 @@ const musicBarIdx = k => { const L = levelOfBar(k); return k - firstBar(L) - (L 
 function countWord(b) {
   const k = Math.floor(b / 4), i = countIdx(k), j = ((Math.floor(b) % 4) + 4) % 4;
   if (k < 0 || i < 0) return null;
-  return i === 0 ? (j === 0 ? 1 : j === 2 ? 2 : null) : j + 1;
+  return j + 1;
 }
 const NUM_WORDS = ['ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'TEN', 'ELEVEN', 'TWELVE', 'THIRTEEN', 'FOURTEEN', 'FIFTEEN', 'SIXTEEN', 'SEVENTEEN', 'EIGHTEEN', 'NINETEEN', 'TWENTY'];
 const levelWord = n => NUM_WORDS[n] || String(n);
@@ -1311,7 +1311,7 @@ function drawBeatCounter() {
   const counting = G.t < 0 || (G.freeze != null && G.t < G.freeze);
   const bar = Math.floor(Math.max(0, G.v) / 4);
   const inCount = isCountBar(bar) && !G.demo;
-  let label = counting ? 'Count-in: get ready' : inCount ? 'Count-in: 1 – 2 – 1 2 3 4' : G.mode === 'practice' ? `Bar ${bar + 1}` + (G.loop ? ` · repeating · clean runs ${G.clean}` : '') : `Bar ${musicBarIdx(bar) + 1} of ${LEVEL_BARS}`;
+  let label = counting ? 'Count-in: get ready' : inCount ? 'Count-in: 1 2 3 4' : G.mode === 'practice' ? `Bar ${bar + 1}` + (G.loop ? ` · repeating · clean runs ${G.clean}` : '') : `Bar ${musicBarIdx(bar) + 1} of ${LEVEL_BARS}`;
   if (G.style === 'rhythm' && !G.demo) label += ` · ${chordNow().name} chord`;
   if (G.demo) label = 'Demo · press Start running';
   ctx.font = `600 ${g * .95}px ${F.ui}`; ctx.textAlign = 'left'; ctx.fillStyle = counting || inCount ? C.amber : C.haze;
@@ -1468,7 +1468,7 @@ function levelTick() {
     const bits = [G.mode === 'practice' ? hoodOf(L) : `${hoodOf(L)} · ${bpm} BPM`];
     if (isKeyChangeBar(firstBar(L))) bits.push(`Key of ${keyName(levelKey(L))} major`);
     if (G.style === 'rhythm') bits.push(`new chord: ${chordFor(L).name}`);
-    if (countBars()) bits.push('count: 1 – 2 – 1 2 3 4');
+    if (countBars()) bits.push('count: 1 2 3 4');
     G.banner = { at: G.v, dur: countBars() ? countBars() * 4 : 4, text: `LEVEL ${levelWord(L + 1)}`, sub: bits.join(' · ') };
   }
   G.topBpm = Math.max(G.topBpm, bpmAt(Math.max(0, G.v)));
