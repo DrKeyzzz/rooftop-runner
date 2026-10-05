@@ -2063,10 +2063,49 @@ const displayName = p => `${p.first.charAt(0).toUpperCase()}${p.first.slice(1)} 
 const cleanCode = v => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 function updateWho() {
   const p = getProfile();
-  $('who-btn').textContent = p ? `👤 ${displayName(p)}${p.classCode ? ' · ' + p.className : ''}` : isGuest() ? '👤 Guest (sign in)' : '👤 Sign in';
+  $('who-btn').textContent = p ? `${iconOf(p) || '👤'} ${displayName(p)}${p.classCode ? ' · ' + p.className : ''}` : isGuest() ? '👤 Guest (sign in)' : '👤 Sign in';
+}
+// ---------- player icons (shared by every game: saved with the sign-in, shown next to names on leaderboards) ----------
+const ICONS = ['🎹','🎸','🎺','🎷','🥁','🎻','🪕','🎤','🎧','🎼','🎵','🪘','🪗','⭐','🔥','🚀'];   // must match iconOk() in firestore.rules
+const iconOf = p => (p && ICONS.includes(p.icon) ? p.icon : '');
+let iconBox = null;
+function iconPicker() {
+  if (iconBox) return iconBox;
+  const before = document.querySelector('label[for="wCode"], label.w-code, label[for="w-code"]'); if (!before) return null;
+  const st = document.createElement('style');
+  st.textContent = '.icon-pick{display:flex;flex-direction:column;gap:6px;text-align:left}.icon-pick .ip-l{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.8}.icon-pick .ip-g{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}.icon-pick button{font-size:22px;line-height:1;padding:7px 0;border-radius:10px;background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.18);cursor:pointer;font-family:inherit}.icon-pick button:hover{border-color:rgba(255,255,255,.5)}.icon-pick button[aria-pressed="true"]{border-color:#ffc85c;background:rgba(255,200,92,.22);box-shadow:0 0 12px -2px #ffc85c}.nm-ic{margin-right:6px}';
+  document.head.appendChild(st);
+  iconBox = document.createElement('div'); iconBox.className = 'icon-pick';
+  iconBox.innerHTML = '<span class="ip-l">Pick your icon</span><div class="ip-g" role="group" aria-label="Your icon">' + ICONS.map(i => '<button type="button" data-icon="' + i + '" aria-pressed="false" aria-label="Icon ' + i + '">' + i + '</button>').join('') + '</div>';
+  before.parentNode.insertBefore(iconBox, before);
+  iconBox.addEventListener('click', e => { const b = e.target.closest('[data-icon]'); if (b) setPickedIcon(b.dataset.icon); });
+  return iconBox;
+}
+function setPickedIcon(ic) { const box = iconPicker(); if (!box) return; box.dataset.icon = ic || ''; box.querySelectorAll('[data-icon]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.icon === ic))); }
+// no pick = a random icon, so every name still stands out
+const pickedIcon = () => { const box = iconPicker(); return box && ICONS.includes(box.dataset.icon) ? box.dataset.icon : ICONS[Math.floor(Math.random() * ICONS.length)]; };
+
+// ---------- "practice this" links from My Report: ?focus=<skill> sets the game up for that skill ----------
+function focusToast(html) {
+  const d = document.createElement('div'); d.setAttribute('role', 'status');
+  d.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:300;max-width:min(560px,92vw);padding:12px 18px;border-radius:14px;background:#141d2c;color:#f1ece0;border:2px solid #ffc85c;box-shadow:0 10px 30px rgba(0,0,0,.5);font:600 16px/1.35 system-ui,sans-serif;text-align:center';
+  d.innerHTML = html; document.body.appendChild(d); setTimeout(() => d.remove(), 8000);
+}
+function applyFocusFromUrl() {
+  const q = new URLSearchParams(location.search), f = q.get('focus'); if (!f) return;
+  q.delete('focus'); history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
+  try { applyFocus(f); } catch (e) { console.warn('focus link:', e); }
+}
+function applyFocus(label) {
+  const cat = Object.keys(CAT_TITLE).find(k => CAT_TITLE[k] === String(label));
+  const all = PICK_GROUPS.flatMap(([, l]) => l), toks = cat ? (CAT_TOKENS[cat] || []).filter(tk => all.includes(tk)) : [];
+  if (!toks.length) { focusToast('Pick your difficulty and rhythms, then start a practice run!'); return; }
+  settings.custom = toks; pickRhythms(true);
+  focusToast(`🎯 Practice set up: only <b>${CAT_TITLE[cat]}</b> are in play. Press <b>Start practice</b>!`);
 }
 function showWelcome(keep) {
   const p = keep ? getProfile() : null;
+  setPickedIcon(p && p.icon);
   $('w-first').value = p ? p.first : ''; $('w-init').value = p ? p.init : ''; $('w-code').value = p ? p.classCode || '' : '';
   $('w-solo').checked = !!(p && !p.classCode); $('w-code').disabled = $('w-solo').checked; $('w-error').textContent = '';
   if (view() === 'game') pause(true);
@@ -2091,7 +2130,7 @@ async function submitWelcome(e) {
     } catch { err.textContent = "Couldn't check the code. Check your internet connection and try again."; return; }
     finally { $('w-go').disabled = false; $('w-go').textContent = 'Hit the roofs'; }
   }
-  setProfile({ first, init, classCode: solo ? '' : code, className, classOwner });
+  setProfile({ first, init, classCode: solo ? '' : code, className, classOwner, icon: pickedIcon() });
   $('welcome').hidden = true; updateWho(); syncSaveBox();
   classAssign = null; renderAssignment(); refreshClass();
 }
@@ -2238,7 +2277,7 @@ function renderBoard() {
     if (r.id && r.id === savedRunId) el.classList.add('mine');
     const rank = document.createElement('span'); rank.className = 'rank'; rank.textContent = i + 1;
     const who = document.createElement('span'); who.className = 'who';
-    const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = r.name || 'Player';
+    const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = (ICONS.includes(r.icon) ? r.icon + ' ' : '') + (r.name || 'Player');
     if (r.dev) { const t = document.createElement('span'); t.className = 'devtag'; t.title = 'Developer score'; t.textContent = 'DEV'; nm.append(' ', t); }
     const tags = document.createElement('span'); tags.className = 'tags';
     tags.textContent = [DIFFS[r.diff] ? DIFFS[r.diff].title : '', STYLE_TITLE[r.style] || '', r.instrument && INSTR[r.instrument] ? INSTR[r.instrument].name : CLEF_TITLE[r.clef] || ''].filter(Boolean).join(' · ');
@@ -2280,6 +2319,7 @@ async function saveRun() {
     const data = { name: displayName(p), score: r.score, hits: r.hits, acc: r.acc, level: r.level, bpm: r.bpm, diff: r.diff, style: r.style, clef: r.clef, created_at: fs.serverTimestamp() };
     if (r.instrument) data.instrument = r.instrument;
     if (p.classCode) data.class_code = p.classCode;
+    if (iconOf(p)) data.icon = iconOf(p);
     if (await devPost(data.name, fbAuth, async () => { const { auth, authMod } = await fbAuth(); return (await authMod.signInWithPopup(auth, new authMod.GoogleAuthProvider())).user.email; })) { data.dev = true; data.name = DEV_NAME; }
     const ref = await wait(fs.addDoc(fs.collection(db, SCORES), data));
     savedRunId = ref.id;
@@ -3450,6 +3490,7 @@ function boot() {
   requestAnimationFrame(frame);
   updateWho();
   if (!getProfile() && !isGuest()) showWelcome(false); else refreshClass();
+  applyFocusFromUrl();
   if (store.get('rooftop:midi', 0)) connectMidi();
 }
 boot();
