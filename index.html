@@ -827,7 +827,7 @@ const mult = () => Math.min(4, 1 + Math.floor(G.streak / 8));
 const needsHold = () => G.style === 'rhythm' || ((G.style === 'midi' || (G.style === 'live' && !G.inst.perc)) && !!DIFFS[G.diff].hold);
 /* Every level after the first opens with a one-bar count-in at the new tempo: "1 2 3 4".
    Practice keeps one tempo, so it has no count-in bar. */
-const countBars = () => G.mode === 'practice' ? 0 : 1;
+const countBars = () => 1;   // one count-in bar before every new level, in Levels and Practice alike
 const firstBar = L => L <= 0 ? 0 : LEVEL_BARS + (L - 1) * (LEVEL_BARS + countBars());
 const levelOfBar = k => k < LEVEL_BARS ? 0 : 1 + Math.floor((k - LEVEL_BARS) / (LEVEL_BARS + countBars()));
 const levelOf = b => b < 0 ? 0 : levelOfBar(Math.floor(b / 4));
