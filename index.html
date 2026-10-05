@@ -267,6 +267,10 @@ button.sm { font-size: 13px; padding: 5px 11px; }
 .adv-row .sw { display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer; }
 .adv-row .sw input { width: 20px; height: 20px; accent-color: var(--neon); }
 .rcount { font-weight: 700; color: var(--chalk); }
+.rslide { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--haze); }
+.rslide input { width: 100%; accent-color: var(--neon); }
+.rmarks { grid-column: 2; position: relative; height: 16px; margin-top: -6px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--amber); }
+.rmarks span { position: absolute; left: calc(8px + (100% - 16px) * var(--at) / 18); transform: translateX(-50%); white-space: nowrap; }
 .rcount small { color: var(--haze); font-weight: 600; }
 .rpick label { position: relative; }
 .rpick .only { margin-left: auto; flex: none; font: 700 11px var(--ui, system-ui); letter-spacing: .08em; text-transform: uppercase; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--edge); background: none; color: var(--haze); cursor: pointer; }
@@ -498,6 +502,13 @@ header:has(> .mtg-home) { flex-wrap: wrap; }
           <label class="sw" for="custom-ties"><input type="checkbox" id="custom-ties"> Include ties across the bar line</label>
           <button type="button" class="ghost sm" id="custom-reset">Reset to this difficulty</button>
           <button type="button" class="ghost sm" id="custom-clear">Clear all</button>
+        </div>
+        <div class="rslide">
+          <span>Easiest</span>
+          <input type="range" id="rslider" min="2" max="20" step="1" value="20" list="rslider-marks" aria-label="How many rhythms are in play, easiest first">
+          <span>Hardest</span>
+          <datalist id="rslider-marks"><option value="4"></option><option value="6"></option><option value="14"></option><option value="20"></option></datalist>
+          <div class="rmarks" aria-hidden="true"><span style="--at:2">Easy</span><span style="--at:4">Medium</span><span style="--at:12">Hard</span><span style="--at:18">Expert</span></div>
         </div>
         <div class="rpick" id="rpick"></div>
         <p class="adv-err" id="adv-err" role="alert"></p>
@@ -3264,7 +3275,7 @@ $('settings').addEventListener('input', e => {
   if (t.name === 'diff') { if (settings.customOn && sameSet(settings.custom, diffTokens(settings.diff))) settings.custom = diffTokens(t.value); settings.diff = t.value; syncPicker(); }
   if (t.name === 'style') settings.style = t.value;
   if (t.name === 'clef') settings.clef = t.value;
-  if (t.name === 'mode') { if (t.value === 'rhythms') { pickRhythms(true); $('adv').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); return; } settings.mode = t.value; if (settings.customOn) { pickRhythms(false); return; } }
+  if (t.name === 'mode') { if (t.value === 'rhythms') { pickRhythms(true, 'mode'); $('adv').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); return; } settings.mode = t.value; if (settings.customOn) { pickRhythms(false); return; } }
   if (t.name === 'met') settings.met = t.value;
   if (t.name === 'ksound') settings.keySound = t.value;
   if (t.id === 'practice-bpm') settings.practiceBpm = +t.value;
@@ -3351,15 +3362,20 @@ function buildPicker() {
 const customOK = () => settings.customOn && settings.custom.some(tk => !TOKENS[tk].rest);
 // "rhythms in play" starts as every rhythm the difficulty uses; students untick, add, or pick one with Only
 const diffTokens = diff => PICK_GROUPS.flatMap(([, l]) => l).filter(tk => tk in DIFFS[diff].w);
+// every rhythm from easiest to hardest; each difficulty's set is the start of this list (Easy 4, Medium 6, Hard 14, Expert 20)
+const RHYTHM_LADDER = ['w', 'h', 'q', 'qr', 'hr', 'e2', 'dh', 'dq', 're', 'tr', 's4', 'es', 'se', 'ds', 'ses', 'syn', 'edq', 'sds', 't16a', 't16b'];
+const ladderCount = list => { const n = list.length; return n && sameSet(list, RHYTHM_LADDER.slice(0, n)) ? n : 0; };
 const sameSet = (a, b) => a.length === b.length && a.every(tk => b.includes(tk));
-function pickRhythms(on) {
+function pickRhythms(on, from) {
+  if (on) { if (from === 'mode' && (!settings.customOn || !settings.custom.length)) settings.custom = diffTokens(settings.diff); settings.mode = 'practice'; $('adv').open = true; }
   settings.customOn = on;
-  if (on) { settings.mode = 'practice'; if (!settings.custom.length) settings.custom = diffTokens(settings.diff); $('adv').open = true; }
   store.set('rooftop:settings', settings); syncPicker(); refreshSetup(); startDemo();
 }
 function syncPicker() {
   const def = diffTokens(settings.diff), n = settings.custom.length;
-  $('rcount').innerHTML = `${n} rhythm${n === 1 ? '' : 's'} in play <small>${sameSet(settings.custom, def) ? `(all of ${DIFFS[settings.diff].title})` : '(your picks)'}</small>`;
+  const lad = ladderCount(settings.custom), top = lad ? PICK_TITLE[RHYTHM_LADDER[lad - 1]].toLowerCase() : '';
+  $('rcount').innerHTML = `${n} rhythm${n === 1 ? '' : 's'} in play <small>${sameSet(settings.custom, def) ? `(all of ${DIFFS[settings.diff].title})` : lad ? `(easiest up to ${top})` : '(your picks)'}</small>`;
+  $('rslider').value = lad || Math.max(2, ...settings.custom.map(tk => RHYTHM_LADDER.indexOf(tk) + 1));
   $('custom-ties').checked = !!settings.customTies;
   for (const box of $('rpick').querySelectorAll('input[data-tk]')) box.checked = settings.custom.includes(box.dataset.tk);
   $('adv-on').hidden = !settings.customOn;
@@ -3374,6 +3390,8 @@ $('rpick').addEventListener('click', e => {
   const b = e.target.closest('[data-only]'); if (!b) return;
   e.preventDefault(); settings.custom = [b.dataset.only]; pickRhythms(true);
 });
+// the slider works like the Rhythm Dictation Trainer's: slide up to bring in harder rhythms (it replaces hand-picked sets)
+$('rslider').addEventListener('input', e => { settings.custom = RHYTHM_LADDER.slice(0, +e.target.value); pickRhythms(true); });
 $('custom-reset').addEventListener('click', () => { settings.custom = diffTokens(settings.diff); pickRhythms(true); });
 $('custom-ties').addEventListener('change', e => { settings.customTies = e.target.checked; store.set('rooftop:settings', settings); startDemo(); });
 $('custom-clear').addEventListener('click', () => { settings.custom = []; pickRhythms(true); });
