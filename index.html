@@ -632,7 +632,7 @@ const CAT_TOKENS = { e: ['e2', 're', 'dq', 'es', 'se', 'ses'], q: ['q'], dq: ['d
 const STYLE_TITLE = { midi: 'MIDI', keys: 'Computer keys', rhythm: 'Rhythm only' };
 const CLEF_TITLE = { treble: 'Treble', bass: 'Bass', none: '' };
 const HOODS = ['Downtown', 'Old Town', 'Market Street', 'Harbor District', 'Theater Row', 'Uptown', 'Chinatown', 'Skyline Heights', 'Riverside', 'Arts District', 'Midtown', 'Neon Mile'];
-const LEVEL_BARS = 8, LEVEL_BEATS = 32, STEP_BPM = 4, MAX_BPM = 120;
+const LEVEL_BARS = 8, LEVEL_BEATS = 32, STEP_BPM = 5;   // no top speed: it keeps climbing as long as the student can hang on
 const PTS = { P: 100, G: 60, E: 25, L: 25 }, WRONG_PTS = 20, HOLD_BONUS = 40;
 const JTEXT = { P: 'Perfect', G: 'Good', E: 'Early', L: 'Late', W: 'Wrong note', M: 'Miss' };
 const jColor = j => j === 'P' ? C.perfect : j === 'G' ? C.cyan : j === 'E' || j === 'L' ? C.amber : C.miss;
@@ -680,7 +680,7 @@ const levelWord = n => NUM_WORDS[n] || String(n);
 const hoodOf = L => HOODS[L % HOODS.length];
 
 /* ---------- time: beats ↔ ms, with the tempo stepping up at each level ---------- */
-function bpmAt(b) { return G.mode === 'practice' ? G.practiceBpm : Math.min(MAX_BPM, G.startBpm + STEP_BPM * levelOf(b)); }
+function bpmAt(b) { return G.mode === 'practice' ? G.practiceBpm : G.startBpm + STEP_BPM * levelOf(b); }
 const nextBoundary = b => b < 0 ? 0 : firstBar(levelOf(b) + 1) * 4;
 function timeOf(b) {
   let x = G.aB, m = G.aMs;
@@ -1876,7 +1876,7 @@ async function saveRun() {
   try {
     const { fs, db } = await fb();
     const r = lastRun;
-    const data = { name: displayName(p), score: r.score, hits: r.hits, acc: r.acc, level: r.level, bpm: r.bpm, diff: r.diff, style: r.style, clef: r.clef, created_at: fs.serverTimestamp() };
+    const data = { name: displayName(p), score: r.score, hits: r.hits, acc: r.acc, level: r.level, bpm: Math.min(120, r.bpm), diff: r.diff, style: r.style, clef: r.clef, created_at: fs.serverTimestamp() };
     if (p.classCode) data.class_code = p.classCode;
     const ref = await wait(fs.addDoc(fs.collection(db, SCORES), data));
     savedRunId = ref.id;
