@@ -1876,7 +1876,7 @@ async function saveRun() {
   try {
     const { fs, db } = await fb();
     const r = lastRun;
-    const data = { name: displayName(p), score: r.score, hits: r.hits, acc: r.acc, level: r.level, bpm: Math.min(120, r.bpm), diff: r.diff, style: r.style, clef: r.clef, created_at: fs.serverTimestamp() };
+    const data = { name: displayName(p), score: r.score, hits: r.hits, acc: r.acc, level: r.level, bpm: r.bpm, diff: r.diff, style: r.style, clef: r.clef, created_at: fs.serverTimestamp() };
     if (p.classCode) data.class_code = p.classCode;
     const ref = await wait(fs.addDoc(fs.collection(db, SCORES), data));
     savedRunId = ref.id;
