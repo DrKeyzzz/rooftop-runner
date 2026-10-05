@@ -31,7 +31,7 @@
 html, body { background: var(--night); color: var(--chalk); }
 body { margin: 0; font-family: var(--f-ui); font-size: 16px; line-height: 1.45; }
 .wrap { max-width: 1100px; margin: 0 auto; padding-inline: 16px; padding-block: 18px 48px; display: flex; flex-direction: column; gap: 14px; }
-body:not([data-view="splash"]) .splash-only, body:not([data-view="game"]) .game-only, body:not([data-view="board"]) .board-only, body[data-view="board"] .stage { display: none !important; }
+body:not([data-view="splash"]) .splash-only, body:not([data-view="game"]) .game-only, body:not([data-view="board"]) .board-only, body[data-view="board"] .stage, body:not([data-view="teacher"]) .teacher-only, body[data-view="teacher"] .stage, body[data-view="game"] #teacher-btn { display: none !important; }
 
 header.top { display: flex; flex-wrap: wrap; align-items: end; gap: 12px 24px; }
 .brand { margin-right: auto; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
@@ -193,6 +193,60 @@ legend { padding: 0; margin-bottom: 6px; font-size: 12px; font-weight: 700; lett
 .cal-result b { color: var(--amber); }
 .cal-pad { padding: 20px; }
 
+
+/* ---------- teacher dashboard (same layout as the other games) ---------- */
+.teacher { gap: 16px; }
+.td-gate { display: flex; flex-direction: column; gap: 12px; max-width: 560px; }
+.td-gate p { margin: 0; color: var(--haze); }
+.td-gate form { display: flex; flex-direction: column; gap: 10px; }
+.td-gate label, .td-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--amber); }
+.td-gate input, .td-form input, .td-bar select, .td-sub select, .td-sub input, .td-new input { font: 600 15px var(--f-ui); color: var(--chalk); background: var(--night); border: 1px solid var(--edge); border-radius: 8px; padding: 8px 11px; min-width: 0; }
+.td-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.td-bar select { min-width: 220px; max-width: 100%; }
+.td-tabs { display: flex; flex-wrap: wrap; gap: 4px; }
+.td-tabs button { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--haze); background: var(--night); border-radius: 999px; padding: 7px 14px; }
+.td-tabs button[aria-pressed="true"] { color: var(--night); background: var(--chalk); border-color: var(--chalk); }
+.td-msg { margin: 0; min-height: 1.2em; font-size: 14px; color: var(--miss); }
+.td-msg.ok { color: var(--cyan); }
+.td-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.td-live { font-size: 12px; font-weight: 700; letter-spacing: .12em; color: var(--cyan); }
+.td-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+.td-tiles div { background: var(--night); border: 1px solid var(--edge); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+.td-tiles span { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--haze); }
+.td-tiles b { font-family: var(--f-display); font-weight: 400; font-size: 24px; font-variant-numeric: tabular-nums; }
+.td-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.td-grid > * { min-width: 0; }
+.td-sec { display: flex; flex-direction: column; gap: 8px; }
+.td-sec h4 { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--amber); }
+.hbar { display: grid; grid-template-columns: minmax(90px, 1fr) 2fr 44px; align-items: center; gap: 8px; font-size: 14px; }
+.hbar .tr { height: 10px; border-radius: 999px; background: var(--night); overflow: hidden; border: 1px solid var(--edge); }
+.hbar .tr i { display: block; height: 100%; }
+.hbar b { text-align: right; font-variant-numeric: tabular-nums; }
+.hi { background: var(--cyan); } .mid { background: var(--amber); } .lo { background: var(--miss); }
+.miss-row { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; border-bottom: 1px solid var(--edge); padding: 4px 0; }
+.miss-row small { color: var(--haze); }
+.td-table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.td-table th { text-align: left; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--haze); padding: 6px 8px; border-bottom: 1px solid var(--edge); white-space: nowrap; }
+.td-table th[data-sort] { cursor: pointer; } .td-table th.sorted { color: var(--amber); }
+.td-table td { padding: 8px; border-bottom: 1px solid var(--edge); vertical-align: top; }
+.td-table tr[data-sid] { cursor: pointer; } .td-table tr[data-sid]:hover td { background: var(--night); }
+.td-wrap { overflow-x: auto; }
+.chip { display: inline-block; font-weight: 700; padding: 1px 8px; border-radius: 999px; color: var(--night); }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--edge); margin-right: 6px; }
+.dot.on { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+.code-pill { font-weight: 700; letter-spacing: .14em; color: var(--amber); border: 1px solid var(--amber); border-radius: 6px; padding: 1px 8px; }
+button.sm { font-size: 13px; padding: 5px 11px; }
+.td-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.td-form .wide { grid-column: 1 / -1; }
+.td-new { display: flex; flex-wrap: wrap; gap: 8px; }
+.td-new input { flex: 1 1 220px; }
+.dim { color: var(--haze); }
+/* assignment banner for students */
+.assign { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 12px 14px; border: 1px solid var(--amber); border-radius: 12px; background: color-mix(in srgb, var(--amber) 10%, var(--night)); }
+.assign .a-t { font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+.assign .a-d { flex: 1 1 260px; font-size: 16px; min-width: 0; }
+.assign .a-d small { display: block; color: var(--haze); font-size: 14px; }
+
 @media (max-width: 560px) {
   .stat .v { font-size: 20px; }
   .letters button { font-size: 18px; }
@@ -220,6 +274,7 @@ legend { padding: 0; margin-bottom: 6px; font-size: 12px; font-weight: 700; lett
       <button class="iconbtn" id="midi-btn" type="button" data-state="off"><i></i><span id="midi-label">MIDI keyboard</span></button>
       <button class="iconbtn" id="board-btn" type="button">Leaderboard</button>
       <button class="iconbtn" id="sound-btn" type="button" aria-pressed="true">Sound on</button>
+      <button class="iconbtn" id="teacher-btn" type="button">Teacher Dashboard</button>
     </div>
   </header>
 
@@ -250,6 +305,7 @@ legend { padding: 0; margin-bottom: 6px; font-size: 12px; font-weight: 700; lett
   </div>
 
   <form class="setup splash-only" id="settings" onsubmit="return false">
+    <div class="assign" id="assign-banner" hidden></div>
     <div class="setup-grid">
       <fieldset class="tiles four">
         <legend>Difficulty</legend>
@@ -296,6 +352,13 @@ legend { padding: 0; margin-bottom: 6px; font-size: 12px; font-weight: 700; lett
             <label for="met-vol">Volume</label>
             <input type="range" id="met-vol" min="0" max="100" step="5" value="70">
             <output id="met-vol-out" for="met-vol">70</output>
+          </div>
+        </fieldset>
+        <fieldset id="ksound-set">
+          <legend>MIDI keyboard sound</legend>
+          <div class="seg">
+            <input type="radio" name="ksound" id="ksound-on" value="on" checked><label for="ksound-on">Play through the computer</label>
+            <input type="radio" name="ksound" id="ksound-off" value="off"><label for="ksound-off">Off (my keyboard has its own sound)</label>
           </div>
         </fieldset>
         <fieldset>
@@ -353,6 +416,24 @@ legend { padding: 0; margin-bottom: 6px; font-size: 12px; font-weight: 700; lett
       <button id="res-drill" type="button">Practice these</button>
       <button class="ghost" id="res-board" type="button">Leaderboard</button>
       <button class="ghost" id="res-home" type="button">Change settings</button>
+    </div>
+  </section>
+
+  <section class="card teacher teacher-only" id="teacher">
+    <div class="board-head">
+      <h2>Teacher Dashboard</h2>
+      <div class="row"><span class="dim" id="td-who"></span><button class="ghost sm" id="td-signout" type="button" hidden>Sign out</button><button class="ghost sm" id="td-back" type="button">Back to the city</button></div>
+    </div>
+    <div class="td-gate" id="td-gate"></div>
+    <div id="td-main" hidden>
+      <div class="td-bar">
+        <select id="td-class" aria-label="Class"></select>
+        <div class="td-tabs" id="td-tabs" role="group" aria-label="Dashboard sections">
+          <button type="button" data-tab="progress">Progress</button><button type="button" data-tab="assign">Assignment</button><button type="button" data-tab="classes">Classes</button><button type="button" data-tab="scores">Scores</button><button type="button" data-tab="admin" id="td-admin-tab" hidden>Admin</button>
+        </div>
+      </div>
+      <p class="td-msg" id="td-msg" role="alert"></p>
+      <div id="td-body"></div>
     </div>
   </section>
 
@@ -512,7 +593,7 @@ const jColor = j => j === 'P' ? C.perfect : j === 'G' ? C.cyan : j === 'E' || j 
 const isHit = j => j === 'P' || j === 'G' || j === 'E' || j === 'L';
 
 /* ---------- settings ---------- */
-const settings = { diff: 'easy', style: 'midi', clef: 'treble', mode: 'levels', practiceBpm: 60, met: 'on', metVol: 70, sound: true };
+const settings = { diff: 'easy', style: 'midi', clef: 'treble', mode: 'levels', practiceBpm: 60, met: 'on', metVol: 70, sound: true, keySound: 'on' };
 let latency = store.get('rooftop:latency', null);               // ms between a click and a tap on this computer
 let skipCalib = false;
 
@@ -764,6 +845,27 @@ function stopHoldTone(src) {
   const h = holdTones.get(src); if (!h) return;
   const t0 = actx.currentTime; h.v.gain.cancelScheduledValues(t0); h.v.gain.setValueAtTime(h.v.gain.value, t0); h.v.gain.exponentialRampToValueAtTime(.0005, t0 + .08);
   h.os.forEach(o => o.stop(t0 + .1)); holdTones.delete(src);
+}
+// MIDI keyboards without their own speakers: each key plays an electric-piano-like voice while it's held
+const keyVoices = new Map();
+function keyOn(m, vel) {
+  if (!actx || !settings.sound || settings.keySound === 'off') return;
+  keyOff(m);
+  const t0 = actx.currentTime, f = midiFreq(m), peak = .05 + .13 * (vel / 127);
+  const v = actx.createGain(), lp = actx.createBiquadFilter();
+  lp.type = 'lowpass'; lp.frequency.value = Math.min(9000, f * 6);
+  v.gain.setValueAtTime(0, t0); v.gain.linearRampToValueAtTime(peak, t0 + .006); v.gain.exponentialRampToValueAtTime(peak * .35, t0 + 1.2);
+  lp.connect(v).connect(actx.destination);
+  const a = actx.createOscillator(), b = actx.createOscillator(), bg = actx.createGain();
+  a.type = 'triangle'; a.frequency.value = f;
+  b.type = 'sine'; b.frequency.value = f * 2; bg.gain.value = .25;
+  a.connect(lp); b.connect(bg).connect(lp); a.start(t0); b.start(t0);
+  keyVoices.set(m, { v, os: [a, b] });
+}
+function keyOff(m) {
+  const k = keyVoices.get(m); if (!k) return;
+  const t0 = actx.currentTime; k.v.gain.cancelScheduledValues(t0); k.v.gain.setValueAtTime(Math.max(.0006, k.v.gain.value), t0); k.v.gain.exponentialRampToValueAtTime(.0005, t0 + .25);
+  k.os.forEach(o => o.stop(t0 + .3)); keyVoices.delete(m);
 }
 const sfx = {
   miss() { tone(110, .25, 'sine', .18); tone(82, .3, 'triangle', .08); },
@@ -1162,6 +1264,7 @@ function tally(a, ok) {
   s.attacks++; if (ok) s.hits++;
   (s.cats[c] = s.cats[c] || { n: 0, ok: 0 }).n++; if (ok) s.cats[c].ok++;
   if (!ok && G.style !== 'rhythm') { const nm = nameOf(a.d, a.acc, DIFFS[G.diff].exact && G.style === 'midi'); s.pitches[nm] = (s.pitches[nm] || 0) + 1; (s.pitchPos = s.pitchPos || {})[nm] = a.p; }
+  logAnswer(a, ok);
 }
 function breakStreak() { G.streak = 0; }
 function press(src, pitch, ts) {
@@ -1372,6 +1475,7 @@ function endGame(byChoice) {
   $('results').hidden = false;
   lastRun = run.practice ? null : run;
   syncSaveBox(true);
+  logRun(run);
   const title = byChoice ? (run.practice ? 'Practice done' : 'Run complete') : 'Lights out';
   showOverlay(run.practice ? 'Practice' : 'Game over', title, `${run.score.toLocaleString()} points · reached Level ${run.level}, ${hoodOf(L)}, at ${run.bpm} BPM.`,
     [['Run again', () => startGame(lastConfig)], ['See the report', () => { hideOverlay(); $('results').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' }); }]], 'Enter to run again');
@@ -1553,14 +1657,16 @@ async function submitWelcome(e) {
   }
   setProfile({ first, init, classCode: solo ? '' : code, className, classOwner });
   $('welcome').hidden = true; updateWho(); syncSaveBox();
+  classAssign = null; renderAssignment(); refreshClass();
 }
-function playAsGuest() { try { sessionStorage.setItem(GUEST_KEY, '1'); } catch {} $('welcome').hidden = true; updateWho(); syncSaveBox(); }
+function playAsGuest() { try { sessionStorage.setItem(GUEST_KEY, '1'); } catch {} $('welcome').hidden = true; updateWho(); syncSaveBox(); renderAssignment(); }
 async function refreshClass() {
   const p = getProfile(); if (!p || !p.classCode) return;
   try {
     const { fs, db } = await fb(), d = await wait(fs.getDoc(fs.doc(db, 'classes', p.classCode)));
     setProfile(d.exists() ? { ...p, className: d.data().name, classOwner: d.data().ownerEmail || '' } : { ...p, classCode: '', className: '', classOwner: '' });
-    updateWho();
+    classAssign = d.exists() ? d.data()[ASSIGN] || null : null;
+    updateWho(); renderAssignment();
   } catch {}
 }
 
@@ -1678,6 +1784,427 @@ function openBoard(run) {
   goTo('board', loadBoard);
 }
 
+
+/* ---------- practice tracking: one summary per student per day (only the class's teacher can read it) ---------- */
+const DAY_KEY = 'rooftop_day_v1';
+const dayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const sidOf = p => (p.first + p.init).toLowerCase().replace(/[^a-z]/g, '');
+const tracked = () => { const p = getProfile(); return p && p.classCode && p.classOwner ? p : null; };
+function readDay() {
+  const p = tracked(); if (!p) return null;
+  let d = null; try { d = JSON.parse(localStorage.getItem(DAY_KEY) || 'null'); } catch {}
+  if (!d || d.date !== dayKey() || d.sid !== sidOf(p) || d.code !== p.classCode)
+    d = { date: dayKey(), sid: sidOf(p), code: p.classCode, answers: 0, correct: 0, ms: 0, first: 0, last: 0, by_game: {}, missed: {}, runs: [], games: 0, best_score: 0, best_level: 0 };
+  return d;
+}
+function writeDay(d) { try { localStorage.setItem(DAY_KEY, JSON.stringify(d)); } catch {} }
+// every judged note counts once: "correct" means the right note on time. The teacher sees rhythms and letter names.
+function logAnswer(a, ok) {
+  if (G.demo) return;
+  const d = readDay(); if (!d) return;
+  const now = Date.now();
+  if (d.last && now - d.last <= 10 * 60000) d.ms += now - d.last;   // gaps over 10 minutes don't count as practice
+  d.first = d.first || now; d.last = now;
+  d.answers++; if (ok) d.correct++;
+  const gb = d.by_game[G.style] || (d.by_game[G.style] = [0, 0]); gb[1]++; if (ok) gb[0]++;
+  const labs = [CAT_TITLE[catOf(a)]];
+  if (G.style !== 'rhythm') { const n = nameOf(a.d, a.acc, true), key = a.note.bar.key; labs.push(key !== 'C' ? `${n} in ${keyName(key)}` : n); }
+  for (const lab of labs) { const m = d.missed[lab] || (d.missed[lab] = [0, 0]); m[1]++; if (!ok) m[0]++; }
+  writeDay(d); scheduleSync();
+}
+function logRun(run) {
+  const d = readDay(); if (!d) return;
+  d.games++; d.best_score = Math.max(d.best_score, run.score); d.best_level = Math.max(d.best_level, run.practice ? 0 : run.level);
+  d.runs.push({ s: run.score, a: run.acc, l: run.practice ? 0 : run.level, b: run.bpm, st: run.style, d: run.diff, m: run.practice ? 'practice' : 'levels', t: Date.now() });
+  d.runs = d.runs.slice(-20);
+  writeDay(d); syncProgress(); renderAssignment();
+}
+let syncTimer = 0;
+function scheduleSync() { clearTimeout(syncTimer); syncTimer = setTimeout(syncProgress, 2000); }
+async function syncProgress() {
+  clearTimeout(syncTimer);
+  const p = tracked(), d = readDay(); if (!p || !d || !d.answers) return;
+  const missed = Object.fromEntries(Object.entries(d.missed).filter(([, v]) => v[0]).sort((a, b) => b[1][0] - a[1][0]).slice(0, 15));
+  const data = { class_code: p.classCode, owner: p.classOwner, date: d.date, sid: d.sid, student: displayName(p),
+    answers: d.answers, correct: d.correct, minutes: Math.max(1, Math.round(d.ms / 60000)), first_at: d.first, last_at: d.last,
+    games: d.games, best_score: d.best_score, best_level: d.best_level, by_game: d.by_game, missed, runs: d.runs,
+    goal: (classAssign && classAssign.goal) || 0 };
+  try { const { fs, db } = await fb(); data.updated_at = fs.serverTimestamp(); await wait(fs.setDoc(fs.doc(db, 'rooftop_progress', `${p.classCode}_${d.date}_${d.sid}`), data)); }
+  catch (e) { console.warn('Progress sync failed:', e); }
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) syncProgress(); });
+
+/* ---------- assignment (set by the teacher, shown to the class) ---------- */
+let classAssign = null;
+const MODE_TITLE = { levels: 'Levels', practice: 'Practice' };
+const assignText = a => [DIFFS[a.level] ? DIFFS[a.level].title : 'Easy', STYLE_TITLE[a.style] || 'MIDI', a.style === 'rhythm' ? '' : CLEF_TITLE[a.clef] || 'Treble', MODE_TITLE[a.mode] || 'Levels'].filter(Boolean).join(' · ');
+function renderAssignment() {
+  const box = $('assign-banner'), a = classAssign;
+  if (!a || !tracked()) { box.hidden = true; return; }
+  const d = readDay(), done = d ? d.correct : 0, mins = d ? Math.round(d.ms / 60000) : 0;
+  const goals = [a.goal ? `${Math.min(done, a.goal)} / ${a.goal} notes on time today` : '', a.minutes ? `${Math.min(mins, a.minutes)} / ${a.minutes} minutes today` : ''].filter(Boolean).join(' · ');
+  box.innerHTML = '<span class="a-t">Assignment</span><span class="a-d"></span><button type="button" class="sm" id="assign-use">Use these settings</button>';
+  box.querySelector('.a-d').textContent = assignText(a);
+  if (goals || a.note) { const sm = document.createElement('small'); sm.textContent = [goals, a.note].filter(Boolean).join(' · '); box.querySelector('.a-d').appendChild(sm); }
+  box.querySelector('#assign-use').onclick = useAssignment;
+  box.hidden = false;
+}
+function useAssignment() {
+  const a = classAssign; if (!a) return;
+  if (DIFFS[a.level]) settings.diff = a.level;
+  if (STYLE_TITLE[a.style]) settings.style = a.style;
+  if (a.clef === 'treble' || a.clef === 'bass') settings.clef = a.clef;
+  if (MODE_TITLE[a.mode]) settings.mode = a.mode;
+  store.set('rooftop:settings', settings); refreshSetup(); startDemo();
+}
+
+/* ---------- teacher dashboard (same teachers, classes and approvals as the other games) ---------- */
+const TEACHER_EMAILS = ['milnesda@eht.k12.nj.us'], ADMIN_EMAILS = ['milnesda@eht.k12.nj.us'];   // must match firestore.rules
+const PROGRESS = 'rooftop_progress', ASSIGN = 'rooftop_assignment', GAME_NAME = 'Rooftop Runner';
+let fbAuthP = null;
+function fbAuth() {
+  const SDK = 'https://www.gstatic.com/firebasejs/10.12.2/';
+  fbAuthP = fbAuthP || Promise.all([fb(), import(SDK + 'firebase-auth.js')])
+    .then(([f, authMod]) => ({ ...f, authMod, auth: authMod.getAuth(f.db.app) }))
+    .catch(e => { fbAuthP = null; throw e; });
+  return fbAuthP;
+}
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+function tdErr(e) {
+  const c = e && e.code;
+  if (c === 'permission-denied') return "That isn't allowed. Sign in with the Google account that owns this class.";
+  if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request') return 'Sign-in was cancelled.';
+  if (c === 'auth/popup-blocked') return 'Your browser blocked the sign-in window. Allow pop-ups for this site and try again.';
+  if (c === 'auth/unauthorized-domain') return 'Add this website to Firebase → Authentication → Settings → Authorized domains.';
+  if (e && e.message === 'timeout') return 'The database took too long to answer. Check your internet connection.';
+  return (e && e.message) || 'Something went wrong. Try again.';
+}
+async function run(fn) { const f = await fbAuth(); return wait(fn(f)); }
+const TD = { email: null, classes: [], code: null, tab: 'progress', range: 'today', date: dayKey(), docs: [], sort: { key: 'minutes', dir: -1 }, open: null, timer: 0, scope: null };
+const tdClass = () => TD.classes.find(c => c.code === TD.code);
+const pctOf = (c, n) => n ? Math.round(100 * c / n) : 0;
+const toneOf = x => x >= .85 ? 'hi' : x >= .65 ? 'mid' : 'lo';
+const daysAgo = n => { const d = new Date(); d.setDate(d.getDate() - n); return dayKey(d); };
+const fmtClock = t => new Date(t).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+const relTime = t => { const m = Math.round((Date.now() - t) / 60000); return m < 2 ? 'Active now' : m < 60 ? `${m} min ago` : fmtClock(t); };
+function tdMsg(text, ok) { const e = $('td-msg'); e.textContent = text || ''; e.className = 'td-msg' + (ok ? ' ok' : ''); if (ok) setTimeout(() => { if (e.textContent === text) e.textContent = ''; }, 3500); }
+
+function openTeacher() { if (view() === 'game') return; goTo('teacher', tdStart); }
+async function tdStart() {
+  $('td-main').hidden = true; $('td-signout').hidden = true; $('td-who').textContent = '';
+  $('td-gate').innerHTML = '<p>Loading…</p>';
+  try {
+    const { auth, authMod } = await fbAuth();
+    const user = await new Promise(res => { const off = authMod.onAuthStateChanged(auth, u => { off(); res(u); }); });
+    if (user && user.email) return tdSignedIn(String(user.email).toLowerCase());
+  } catch {}
+  tdGateSignIn();
+}
+function tdGateSignIn(msg) {
+  $('td-gate').hidden = false;
+  $('td-gate').innerHTML = `<p>Sign in with Google to see your classes' ${GAME_NAME} practice, set assignments and manage scores. Use the same Google account as your other music games.</p>
+    <p class="td-msg" id="tg-err"></p><div class="row"><button class="btn-go" type="button" id="tg-go">Sign in with Google</button></div>`;
+  if (msg) $('tg-err').textContent = msg;
+  $('tg-go').onclick = async () => {
+    try { const { auth, authMod } = await fbAuth(); const r = await authMod.signInWithPopup(auth, new authMod.GoogleAuthProvider()); tdSignedIn(String(r.user.email).toLowerCase()); }
+    catch (e) { $('tg-err').textContent = tdErr(e); }
+  };
+}
+async function isTeacherEmail(email) {
+  if (TEACHER_EMAILS.includes(email)) return true;
+  return run(async ({ fs, db }) => (await fs.getDoc(fs.doc(db, 'teachers', email))).exists());
+}
+async function tdSignedIn(email) {
+  $('td-who').textContent = `Signed in as ${email}`; $('td-signout').hidden = false;
+  let ok = false; try { ok = await isTeacherEmail(email); } catch (e) { return tdGateSignIn(tdErr(e)); }
+  if (!ok) return tdRequestScreen(email);
+  TD.email = email; $('td-gate').hidden = true; $('td-main').hidden = false;
+  $('td-admin-tab').hidden = !ADMIN_EMAILS.includes(email);
+  await tdLoadClasses(); tdRender();
+}
+// someone who isn't a teacher yet can ask for access; the admin approves it in the Admin tab of any game's dashboard
+async function tdRequestScreen(email) {
+  $('td-gate').hidden = false;
+  let req = null; try { req = await run(async ({ fs, db }) => { const d = await fs.getDoc(fs.doc(db, 'teacher_requests', email)); return d.exists() ? d.data() : null; }); } catch {}
+  if (req) {
+    $('td-gate').innerHTML = `<h4 class="td-sec">Request pending</h4><p>Your request for teacher access (${esc(email)}) is waiting for approval. Sign in again once it's approved.</p><p class="td-msg" id="tg-err"></p><div class="row"><button class="ghost" type="button" id="tg-cancel">Cancel request</button></div>`;
+    $('tg-cancel').onclick = async () => { try { await run(({ fs, db }) => fs.deleteDoc(fs.doc(db, 'teacher_requests', email))); tdRequestScreen(email); } catch (e) { $('tg-err').textContent = tdErr(e); } };
+    return;
+  }
+  $('td-gate').innerHTML = `<p><b>${esc(email)}</b> isn't a teacher account yet. Teachers can request access below. Students: ask your teacher for your class code instead.</p>
+    <form id="tg-form"><label>Your name<input id="tg-name" maxlength="60" placeholder="Ms. Rivera"></label><label>School<input id="tg-school" maxlength="80"></label>
+    <label>Note (optional)<input id="tg-note" maxlength="300" placeholder="What you teach"></label><p class="td-msg" id="tg-err"></p>
+    <div class="row"><button class="btn-go" type="submit">Request teacher access</button></div></form>`;
+  $('tg-form').onsubmit = async e => {
+    e.preventDefault();
+    const name = $('tg-name').value.trim(), school = $('tg-school').value.trim(), note = $('tg-note').value.trim();
+    if (name.length < 2) { $('tg-err').textContent = 'Type your name.'; return; }
+    try {
+      await run(({ fs, db }) => fs.setDoc(fs.doc(db, 'teacher_requests', email), { email, name, school, note, created_at: fs.serverTimestamp() }));
+      $('td-gate').innerHTML = `<p>Thanks, ${esc(name)}. You'll be able to open the Teacher Dashboard once your request is approved. Sign in again then.</p>`;
+    } catch (err) { $('tg-err').textContent = tdErr(err); }
+  };
+}
+async function tdLoadClasses() {
+  tdMsg('');
+  try { TD.classes = await run(async ({ fs, db }) => (await fs.getDocs(fs.query(fs.collection(db, 'classes'), fs.where('ownerEmail', '==', TD.email)))).docs.map(d => ({ code: d.id, ...d.data() })).sort((a, b) => String(a.name).localeCompare(String(b.name)))); }
+  catch (e) { TD.classes = []; tdMsg(tdErr(e)); }
+  if (!TD.classes.some(c => c.code === TD.code)) TD.code = TD.classes.length ? TD.classes[0].code : null;
+  $('td-class').innerHTML = TD.classes.length ? TD.classes.map(c => `<option value="${esc(c.code)}">${esc(c.name)} · ${esc(c.code)}</option>`).join('') : '<option value="">No classes yet</option>';
+  $('td-class').value = TD.code || '';
+}
+function tdRender() {
+  clearInterval(TD.timer);
+  if (!TD.code && (TD.tab === 'progress' || TD.tab === 'assign')) TD.tab = 'classes';
+  if (TD.tab === 'admin' && !ADMIN_EMAILS.includes(TD.email)) TD.tab = 'progress';
+  for (const b of $('td-tabs').children) b.setAttribute('aria-pressed', String(b.dataset.tab === TD.tab));
+  ({ progress: tdProgress, assign: tdAssign, classes: tdClasses, scores: tdScores, admin: tdAdmin })[TD.tab]();
+}
+
+// ----- Progress -----
+function mergeDocs(docs) {
+  const by = {};
+  const add = (into, k, c, n) => { const a = into[k] || (into[k] = { c: 0, n: 0 }); a.c += c; a.n += n; };
+  for (const d of docs) {
+    const s = by[d.sid] || (by[d.sid] = { sid: d.sid, student: d.student, answers: 0, correct: 0, minutes: 0, games: 0, best: 0, level: 0, first: Infinity, last: 0, byGame: {}, missed: {}, runs: [], days: 0 });
+    s.days++; s.student = d.student;
+    s.answers += d.answers || 0; s.correct += d.correct || 0; s.minutes += d.minutes || 0; s.games += d.games || 0;
+    s.best = Math.max(s.best, d.best_score || 0); s.level = Math.max(s.level, d.best_level || 0);
+    s.first = Math.min(s.first, d.first_at || Infinity); s.last = Math.max(s.last, d.last_at || 0);
+    for (const [k, v] of Object.entries(d.by_game || {})) add(s.byGame, k, v[0], v[1]);
+    for (const [k, v] of Object.entries(d.missed || {})) { const a = s.missed[k] || (s.missed[k] = { w: 0, n: 0 }); a.w += v[0]; a.n += v[1]; }
+    s.runs.push(...(d.runs || []));
+  }
+  return Object.values(by).map(s => { s.acc = s.answers ? s.correct / s.answers : 0; s.trouble = Object.entries(s.missed).sort((a, b) => b[1].w - a[1].w).slice(0, 3); return s; });
+}
+function rangeDocs() {
+  const r = TD.range, keep = r === 'today' ? d => d.date === dayKey() : r === 'yesterday' ? d => d.date === daysAgo(1) : r === 'week' ? d => d.date >= daysAgo(6) : r === 'all' ? () => true : d => d.date === TD.date;
+  return TD.docs.filter(keep);
+}
+const rangeLabel = () => ({ today: 'Today', yesterday: 'Yesterday', week: 'Last 7 days', all: 'All time' }[TD.range] || TD.date);
+const hbars = rows => rows.map(([label, v]) => `<div class="hbar"><span>${esc(label)}</span><span class="tr"><i class="${toneOf(v.c / v.n)}" style="width:${pctOf(v.c, v.n)}%"></i></span><b>${pctOf(v.c, v.n)}%</b></div>`).join('');
+const missRows = list => list.map(([lab, v]) => `<div class="miss-row"><span>${esc(lab)}</span><small>missed ${v.w} of ${v.n}${v.kids ? ` · ${v.kids} student${v.kids > 1 ? 's' : ''}` : ''}</small></div>`).join('');
+async function tdProgress(keep) {
+  const body = $('td-body');
+  if (!keep) body.innerHTML = '<p class="dim">Loading progress…</p>';
+  try { TD.docs = await run(async ({ fs, db }) => (await fs.getDocs(fs.query(fs.collection(db, PROGRESS), fs.where('owner', '==', TD.email), fs.where('class_code', '==', TD.code)))).docs.map(d => d.data())); tdMsg(''); }
+  catch (e) { tdMsg(tdErr(e)); TD.docs = []; }
+  const studs = mergeDocs(rangeDocs()), k = TD.sort.key, dir = TD.sort.dir;
+  studs.sort((a, b) => (k === 'student' ? String(a.student).localeCompare(String(b.student)) : (a[k] - b[k])) * dir);
+  const cls = tdClass(), a = cls && cls[ASSIGN];
+  const ans = studs.reduce((t, x) => t + x.answers, 0), cor = studs.reduce((t, x) => t + x.correct, 0), mins = studs.reduce((t, x) => t + x.minutes, 0);
+  const active = studs.filter(x => Date.now() - x.last < 2 * 60000).length;
+  const byGame = {}, missed = {};
+  for (const st of studs) {
+    for (const [g, v] of Object.entries(st.byGame)) { const x = byGame[g] || (byGame[g] = { c: 0, n: 0 }); x.c += v.c; x.n += v.n; }
+    for (const [lab, v] of Object.entries(st.missed)) { if (!v.w) continue; const x = missed[lab] || (missed[lab] = { w: 0, n: 0, kids: 0 }); x.w += v.w; x.n += v.n; x.kids++; }
+  }
+  const styleRows = Object.keys(STYLE_TITLE).filter(g => byGame[g]).map(g => [STYLE_TITLE[g], byGame[g]]);
+  const topMissed = Object.entries(missed).sort((x, y) => y[1].w - x[1].w).slice(0, 10);
+  const goal = a && a.goal;
+  const th = (key, label) => `<th data-sort="${key}" class="${TD.sort.key === key ? 'sorted' : ''}">${label}</th>`;
+  const rows = studs.map(st => `<tr data-sid="${esc(st.sid)}">
+      <td><span class="dot ${Date.now() - st.last < 2 * 60000 ? 'on' : ''}"></span><b>${esc(st.student)}</b></td>
+      <td>${st.minutes} min</td><td>${st.correct}${goal && TD.range === 'today' ? ` <span class="dim">/ ${goal}</span>` : ''}</td>
+      <td><span class="chip ${toneOf(st.acc)}">${pctOf(st.correct, st.answers)}%</span></td><td>${st.games}</td><td>${st.best || '<span class="dim">—</span>'}</td><td>${st.level || '<span class="dim">—</span>'}</td>
+      <td>${st.trouble.length ? st.trouble.map(([lab, v]) => `${esc(lab)} <span class="dim">×${v.w}</span>`).join(', ') : '<span class="dim">—</span>'}</td>
+      <td class="dim">${TD.range === 'today' ? relTime(st.last) : `${st.days} day${st.days > 1 ? 's' : ''}`}</td></tr>
+      ${TD.open === st.sid ? `<tr><td colspan="9">${tdStudentDetail(st)}</td></tr>` : ''}`).join('');
+  body.innerHTML = `
+    <div class="td-sub">
+      <select id="td-range" aria-label="Date range"><option value="today">Today</option><option value="yesterday">Yesterday</option><option value="week">Last 7 days</option><option value="all">All time</option><option value="date">Pick a date…</option></select>
+      <input type="date" id="td-date" value="${TD.date}" ${TD.range === 'date' ? '' : 'hidden'} aria-label="Date">
+      <button class="ghost sm" type="button" id="td-refresh">Refresh</button>
+      <button class="ghost sm" type="button" id="td-csv" ${studs.length ? '' : 'disabled'}>Export CSV</button>
+      ${TD.range === 'today' ? '<span class="td-live">● Live · updates every 30 seconds</span>' : ''}
+    </div>
+    ${a ? `<p class="dim" style="margin:0">Assignment: <b>${esc(assignText(a))}</b>${a.goal ? ` · ${a.goal} notes on time` : ''}${a.minutes ? ` · ${a.minutes} min` : ''}</p>` : ''}
+    <div class="td-tiles">
+      <div><span>Students</span><b>${studs.length}${TD.range === 'today' ? ` <small class="dim" style="font-size:12px">${active} active</small>` : ''}</b></div>
+      <div><span>Avg time</span><b>${studs.length ? Math.round(mins / studs.length) : 0} min</b></div>
+      <div><span>Notes on time</span><b>${cor}</b></div>
+      <div><span>Class accuracy</span><b>${ans ? pctOf(cor, ans) + '%' : '—'}</b></div>
+    </div>
+    ${studs.length ? `
+    <div class="td-grid">
+      <div class="td-sec"><h4>Accuracy by play style</h4>${hbars(styleRows)}</div>
+      <div class="td-sec"><h4>Most-missed rhythms and notes</h4>${topMissed.length ? missRows(topMissed) : '<p class="dim">No misses yet.</p>'}</div>
+    </div>
+    <div class="td-sec"><h4>Students <span class="dim" style="letter-spacing:0;text-transform:none">(click a name for details)</span></h4>
+      <div class="td-wrap"><table class="td-table"><thead><tr>${th('student', 'Student')}${th('minutes', 'Time')}${th('correct', 'On time')}${th('acc', 'Accuracy')}${th('games', 'Runs')}${th('best', 'Best score')}${th('level', 'Best level')}<th>Trouble spots</th><th>${TD.range === 'today' ? 'Last active' : 'Days'}</th></tr></thead><tbody>${rows}</tbody></table></div>
+    </div>` : `<p class="dim">No practice yet for ${esc(rangeLabel().toLowerCase())}. Students show up here as soon as they play signed in with class code <b>${esc(TD.code)}</b>.</p>`}`;
+  $('td-range').value = TD.range;
+  $('td-range').onchange = () => { TD.range = $('td-range').value; TD.open = null; tdProgress(); };
+  $('td-date').onchange = () => { TD.date = $('td-date').value; tdProgress(); };
+  $('td-refresh').onclick = () => tdProgress(true);
+  $('td-csv').onclick = () => tdCsv(studs);
+  body.querySelectorAll('[data-sort]').forEach(h => h.onclick = () => { const key = h.dataset.sort; TD.sort = { key, dir: TD.sort.key === key ? -TD.sort.dir : (key === 'student' ? 1 : -1) }; tdProgress(true); });
+  body.querySelectorAll('tr[data-sid]').forEach(r => r.onclick = () => { TD.open = TD.open === r.dataset.sid ? null : r.dataset.sid; tdProgress(true); });
+  const del = $('td-del-student');
+  if (del) del.onclick = async e => {
+    e.stopPropagation();
+    const st = studs.find(x => x.sid === TD.open);
+    if (!window.confirm(`Remove ${st.student}'s saved ${GAME_NAME} practice in ${cls.name}? Use this for test entries or a student who joined the wrong class.`)) return;
+    try { await run(async ({ fs, db }) => { const snap = await fs.getDocs(fs.query(fs.collection(db, PROGRESS), fs.where('owner', '==', TD.email), fs.where('class_code', '==', TD.code))); const b = fs.writeBatch(db); snap.docs.filter(d => d.data().sid === st.sid).forEach(d => b.delete(d.ref)); await b.commit(); }); TD.open = null; tdProgress(); }
+    catch (err) { tdMsg(tdErr(err)); }
+  };
+  if (TD.range === 'today') TD.timer = setInterval(() => { if (!document.hidden && TD.tab === 'progress' && view() === 'teacher') tdProgress(true); }, 30000);
+}
+function tdStudentDetail(st) {
+  const styleRows = Object.keys(STYLE_TITLE).filter(g => st.byGame[g]).map(g => [STYLE_TITLE[g], st.byGame[g]]);
+  const missed = Object.entries(st.missed).filter(([, v]) => v.w).sort((a, b) => b[1].w - a[1].w).slice(0, 10);
+  const runs = st.runs.slice(-6).reverse().map(r => `${r.s} pts (${r.a}% on time${r.l ? ` · level ${r.l}` : ''}${r.b ? ` · ${r.b} BPM` : ''} · ${DIFFS[r.d] ? DIFFS[r.d].title : ''} ${STYLE_TITLE[r.st] || ''} · ${MODE_TITLE[r.m] || ''})`).join('<br>');
+  return `<div class="td-sec" style="padding:4px 0">
+    <p style="margin:0"><b>${esc(st.student)}</b> · ${st.minutes} min · ${st.correct} notes on time of ${st.answers} · ${st.games} run${st.games === 1 ? '' : 's'}${st.first !== Infinity ? ` · ${fmtClock(st.first)}–${fmtClock(st.last)}` : ''}</p>
+    ${runs ? `<p class="dim" style="margin:0">Recent runs:<br>${runs}</p>` : ''}
+    <div class="td-grid"><div class="td-sec"><h4>By play style</h4>${hbars(styleRows)}</div><div class="td-sec"><h4>Most missed</h4>${missed.length ? missRows(missed) : '<p class="dim">No misses.</p>'}</div></div>
+    <div class="row"><button class="ghost sm" type="button" id="td-del-student">Remove this student's data</button></div>
+  </div>`;
+}
+function tdCsv(studs) {
+  const cls = tdClass(), q = v => `"${String(v).replace(/"/g, '""')}"`;
+  const head = ['Student', 'Range', 'Minutes', 'Notes on time', 'Notes played', 'Accuracy %', 'MIDI accuracy %', 'Computer keys accuracy %', 'Rhythm only accuracy %', 'Runs', 'Best score', 'Best level', 'Trouble spots'];
+  const pc2 = (st, k) => st.byGame[k] ? pctOf(st.byGame[k].c, st.byGame[k].n) : '';
+  const lines = [head.map(q).join(',')].concat(studs.map(st => [st.student, rangeLabel(), st.minutes, st.correct, st.answers, pctOf(st.correct, st.answers),
+    pc2(st, 'midi'), pc2(st, 'keys'), pc2(st, 'rhythm'), st.games, st.best || '', st.level || '', st.trouble.map(([lab, v]) => `${lab} x${v.w}`).join('; ')].map(q).join(',')));
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' }));
+  link.download = `rooftop-runner-${(cls ? cls.name : 'class').replace(/[^A-Za-z0-9]+/g, '-')}-${TD.range === 'date' ? TD.date : TD.range}.csv`;
+  document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(link.href), 4000);
+}
+
+// ----- Assignment -----
+function tdAssign() {
+  const cls = tdClass(), a = (cls && cls[ASSIGN]) || { level: 'easy', style: 'midi', clef: 'treble', mode: 'levels', goal: 60 };
+  const seg = (name, opts, cur) => `<div class="seg">${opts.map(([v, l]) => `<input type="radio" name="${name}" id="${name}-${v}" value="${v}"${v === cur ? ' checked' : ''}><label for="${name}-${v}">${l}</label>`).join('')}</div>`;
+  $('td-body').innerHTML = `
+    <p class="dim" style="margin:0">Choose what <b>${esc(cls.name)}</b> should practice. Students in this class see a banner on the start page with a <b>Use these settings</b> button and their progress toward today's goal. It stays until you change or clear it.</p>
+    <div class="td-form" id="as-form">
+      <label class="wide">Difficulty${seg('as-level', [['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard'], ['expert', 'Expert']], a.level)}</label>
+      <label class="wide">Play style${seg('as-style', [['midi', 'MIDI keyboard'], ['keys', 'Computer keys'], ['rhythm', 'Rhythm only']], a.style)}</label>
+      <label class="wide">Clef${seg('as-clef', [['treble', 'Treble'], ['bass', 'Bass']], a.clef)}</label>
+      <label class="wide">Mode${seg('as-mode', [['levels', 'Levels'], ['practice', 'Practice']], a.mode)}</label>
+      <label>Goal: notes on time per day<input id="as-goal" type="number" min="0" max="2000" value="${a.goal ?? 60}"></label>
+      <label>Goal: minutes per day<input id="as-min" type="number" min="0" max="240" value="${a.minutes || ''}" placeholder="optional"></label>
+      <label class="wide">Note to students<input id="as-note" maxlength="140" value="${esc(a.note || '')}" placeholder="optional, e.g. Hold the half notes for both beats"></label>
+    </div>
+    <div class="row"><button class="btn-go" type="button" id="as-save">Save assignment</button>${cls[ASSIGN] ? '<button class="ghost" type="button" id="as-clear">Clear assignment</button>' : ''}</div>`;
+  const val = n => ($('td-body').querySelector(`input[name="${n}"]:checked`) || {}).value;
+  $('as-save').onclick = async () => {
+    const assignment = { level: val('as-level'), style: val('as-style'), clef: val('as-clef'), mode: val('as-mode'), goal: Math.max(0, Math.min(2000, +$('as-goal').value || 0)), minutes: Math.max(0, Math.min(240, +$('as-min').value || 0)), note: $('as-note').value.trim().slice(0, 140), set_at: Date.now() };
+    try { await run(({ fs, db }) => fs.updateDoc(fs.doc(db, 'classes', TD.code), { [ASSIGN]: assignment })); cls[ASSIGN] = assignment; tdAssign(); tdMsg(`Assignment saved for ${cls.name}.`, true); }
+    catch (e) { tdMsg(tdErr(e)); }
+  };
+  const clr = $('as-clear');
+  if (clr) clr.onclick = async () => { try { await run(({ fs, db }) => fs.updateDoc(fs.doc(db, 'classes', TD.code), { [ASSIGN]: null })); cls[ASSIGN] = null; tdAssign(); tdMsg('Assignment cleared.', true); } catch (e) { tdMsg(tdErr(e)); } };
+}
+
+// ----- Classes (shared with the other games) -----
+const newCode = () => Array.from({ length: 5 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
+function tdClasses() {
+  const rows = TD.classes.map(c => `<tr><td><b>${esc(c.name)}</b></td><td><span class="code-pill">${esc(c.code)}</span></td><td class="dim">${c[ASSIGN] ? esc(assignText(c[ASSIGN])) : 'No assignment'}</td>
+    <td style="text-align:right;white-space:nowrap"><button class="ghost sm" type="button" data-rename="${esc(c.code)}">Rename</button> <button class="ghost sm" type="button" data-clear="${esc(c.code)}">Clear ${GAME_NAME} data</button></td></tr>`).join('');
+  $('td-body').innerHTML = `
+    <p class="dim" style="margin:0">These are the same classes and codes as your other music games. Students type the code on the welcome screen; their practice then shows up in <b>Progress</b> and their scores go on that class's leaderboard. To delete a class completely, use the Rhythm Trainer's dashboard.</p>
+    ${TD.classes.length ? `<div class="td-wrap"><table class="td-table"><thead><tr><th>Class</th><th>Code</th><th>${GAME_NAME} assignment</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : '<p><b>No classes yet.</b> Make your first one below.</p>'}
+    <form class="td-new" id="td-new"><input id="td-new-name" maxlength="40" placeholder="New class name, e.g. Period 3 Theory" aria-label="New class name"><input id="td-new-code" maxlength="7" style="flex:0 1 220px;text-transform:uppercase" placeholder="Code (optional)" aria-label="Class code (optional)"><button class="btn-go" type="submit">Create class</button></form>
+    <p class="dim" style="margin:0">Leave the code blank for a random one, or pick your own: 4–7 letters and numbers.</p>`;
+  $('td-new').onsubmit = async e => {
+    e.preventDefault();
+    const name = $('td-new-name').value.trim().replace(/\s+/g, ' '), custom = cleanCode($('td-new-code').value);
+    if (!name) { tdMsg('Type a class name first.'); return; }
+    if (custom && !/^[A-Z0-9]{4,7}$/.test(custom)) { tdMsg('A code needs 4–7 letters and numbers.'); return; }
+    try {
+      const code = await run(async ({ fs, db }) => {
+        for (let i = 0; i < 6; i++) {
+          const c = custom || newCode(), ref = fs.doc(db, 'classes', c);
+          if ((await fs.getDoc(ref)).exists()) { if (custom) throw new Error(`The code ${custom} is already taken. Try another.`); continue; }
+          await fs.setDoc(ref, { name, ownerEmail: TD.email, created_at: fs.serverTimestamp() });
+          return c;
+        }
+        throw new Error('Could not make a new code. Try again.');
+      });
+      TD.code = code; await tdLoadClasses(); tdRender(); tdMsg(`Created ${name}: code ${code}`, true);
+    } catch (err) { tdMsg(tdErr(err)); }
+  };
+  $('td-body').querySelectorAll('[data-rename]').forEach(b => b.onclick = async () => {
+    const c = TD.classes.find(x => x.code === b.dataset.rename), name = (window.prompt('New name for this class:', c.name) || '').trim();
+    if (!name || name === c.name) return;
+    try { await run(({ fs, db }) => fs.updateDoc(fs.doc(db, 'classes', c.code), { name: name.slice(0, 40) })); await tdLoadClasses(); tdRender(); } catch (err) { tdMsg(tdErr(err)); }
+  });
+  $('td-body').querySelectorAll('[data-clear]').forEach(b => b.onclick = async () => {
+    const c = TD.classes.find(x => x.code === b.dataset.clear);
+    if (!window.confirm(`Delete all ${GAME_NAME} practice and scores for ${c.name}? Use this at the start of a new marking period. The class code and the other games' data stay.`)) return;
+    try {
+      await run(async ({ fs, db }) => {
+        const a = await fs.getDocs(fs.query(fs.collection(db, SCORES), fs.where('class_code', '==', c.code)));
+        const p = await fs.getDocs(fs.query(fs.collection(db, PROGRESS), fs.where('owner', '==', TD.email), fs.where('class_code', '==', c.code)));
+        const docs = [...a.docs, ...p.docs];
+        for (let i = 0; i < docs.length; i += 400) { const w = fs.writeBatch(db); docs.slice(i, i + 400).forEach(d => w.delete(d.ref)); await w.commit(); }
+      });
+      tdMsg(`${c.name} cleared.`, true);
+    } catch (err) { tdMsg(tdErr(err)); }
+  });
+}
+
+// ----- Leaderboard scores -----
+async function tdScores() {
+  const admin = ADMIN_EMAILS.includes(TD.email);
+  const options = TD.classes.map(c => [c.code, c.name]).concat(admin ? [['__world', 'World (every score)']] : []);
+  if (!options.length) { $('td-body').innerHTML = `<p class="dim">Make a class first. Its ${GAME_NAME} scores show up here.</p>`; return; }
+  if (!options.some(([k]) => k === TD.scope)) TD.scope = TD.code || options[0][0];
+  const world = TD.scope === '__world';
+  $('td-body').innerHTML = '<p class="dim">Loading scores…</p>';
+  let list = [];
+  try {
+    list = await run(async ({ fs, db }) => { const col = fs.collection(db, SCORES); const q = world ? fs.query(col, fs.orderBy('score', 'desc'), fs.limit(400)) : fs.query(col, fs.where('class_code', '==', TD.scope)); return (await fs.getDocs(q)).docs.map(toRow); });
+    list.sort((a, b) => b.score - a.score);
+  } catch (e) { tdMsg(tdErr(e)); }
+  const rows = list.map((e, i) => `<tr><td>${i + 1}</td><td>${esc(e.name)}</td>${world ? `<td class="dim">${esc(e.class_code || '—')}</td>` : ''}<td>${Number(e.score).toLocaleString()}</td>
+    <td class="dim">${esc([DIFFS[e.diff] ? DIFFS[e.diff].title : '', STYLE_TITLE[e.style], CLEF_TITLE[e.clef], e.level ? 'level ' + e.level : ''].filter(Boolean).join(' · '))}</td><td>${e.acc}%</td><td class="dim">${new Date(e.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</td>
+    <td style="text-align:right"><button class="ghost sm" type="button" data-del="${esc(e.id)}">Delete</button></td></tr>`).join('');
+  $('td-body').innerHTML = `
+    <div class="td-sub"><select id="td-scope" aria-label="Leaderboard">${options.map(([k, n]) => `<option value="${esc(k)}" ${k === TD.scope ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select>
+      <span class="dim">Delete a score with an inappropriate name, or use Classes → Clear ${GAME_NAME} data to reset a whole class.</span></div>
+    ${list.length ? `<div class="td-wrap"><table class="td-table"><thead><tr><th>#</th><th>Name</th>${world ? '<th>Class</th>' : ''}<th>Score</th><th>Played</th><th>On time</th><th>Date</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : `<p class="dim">No ${GAME_NAME} scores posted yet.</p>`}`;
+  $('td-scope').onchange = () => { TD.scope = $('td-scope').value; tdScores(); };
+  $('td-body').querySelectorAll('[data-del]').forEach(b => b.onclick = async () => { b.disabled = true; try { await run(({ fs, db }) => fs.deleteDoc(fs.doc(db, SCORES, b.dataset.del))); tdScores(); } catch (e) { tdMsg(tdErr(e)); b.disabled = false; } });
+}
+
+// ----- Admin: approve teacher requests, manage teachers (shared by every game) -----
+async function tdAdmin() {
+  const body = $('td-body');
+  body.innerHTML = '<p class="dim">Loading…</p>';
+  let reqs = [], teachers = [];
+  try { [reqs, teachers] = await run(async ({ fs, db }) => Promise.all([fs.getDocs(fs.collection(db, 'teacher_requests')), fs.getDocs(fs.collection(db, 'teachers'))]).then(([r, t]) => [r.docs.map(d => ({ ...d.data(), email: d.id })), t.docs.map(d => ({ ...d.data(), email: d.id }))])); }
+  catch (e) { tdMsg(tdErr(e)); }
+  const when = t => t && t.toDate ? t.toDate().toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+  body.innerHTML = `
+    <div class="td-sec"><h4>Teacher requests</h4>
+      ${reqs.length ? `<div class="td-wrap"><table class="td-table"><thead><tr><th>Name</th><th>Email</th><th>School</th><th>Note</th><th>Date</th><th></th></tr></thead><tbody>${reqs.map(r => `<tr><td><b>${esc(r.name)}</b></td><td>${esc(r.email)}</td><td>${esc(r.school || '—')}</td><td class="dim">${esc(r.note || '')}</td><td class="dim">${when(r.created_at)}</td>
+        <td style="text-align:right;white-space:nowrap"><button class="sm" type="button" data-approve="${esc(r.email)}">Approve</button> <button class="ghost sm" type="button" data-deny="${esc(r.email)}">Deny</button></td></tr>`).join('')}</tbody></table></div>` : '<p class="dim">No pending requests. When a teacher signs in to any game\'s dashboard and asks for access, it shows up here.</p>'}
+    </div>
+    <div class="td-sec"><h4>Teachers</h4>
+      <div class="td-wrap"><table class="td-table"><thead><tr><th>Name</th><th>Email</th><th>School</th><th>Approved</th><th></th></tr></thead><tbody>
+        ${TEACHER_EMAILS.map(e => `<tr><td><b>Admin</b></td><td>${esc(e)}</td><td>—</td><td class="dim">built in</td><td></td></tr>`).join('')}
+        ${teachers.map(t => `<tr><td><b>${esc(t.name || '—')}</b></td><td>${esc(t.email)}</td><td>${esc(t.school || '—')}</td><td class="dim">${when(t.approved_at)}</td><td style="text-align:right"><button class="ghost sm" type="button" data-remove="${esc(t.email)}">Remove</button></td></tr>`).join('')}
+      </tbody></table></div>
+      <p class="dim" style="margin:0">Approvals are shared: a teacher you approve here can use the dashboard in every game. Removing a teacher stops them managing classes; their classes and students' scores stay.</p>
+    </div>`;
+  body.querySelectorAll('[data-approve]').forEach(b => b.onclick = async () => {
+    b.disabled = true; const r = reqs.find(x => x.email === b.dataset.approve);
+    try { await run(async ({ fs, db }) => { const w = fs.writeBatch(db); w.set(fs.doc(db, 'teachers', r.email), { name: String(r.name || '').slice(0, 60), school: String(r.school || '').slice(0, 80), approved_at: fs.serverTimestamp(), approved_by: TD.email }); w.delete(fs.doc(db, 'teacher_requests', r.email)); await w.commit(); }); tdMsg(`Approved ${r.email}.`, true); tdAdmin(); }
+    catch (e) { tdMsg(tdErr(e)); b.disabled = false; }
+  });
+  body.querySelectorAll('[data-deny]').forEach(b => b.onclick = async () => { b.disabled = true; try { await run(({ fs, db }) => fs.deleteDoc(fs.doc(db, 'teacher_requests', b.dataset.deny))); tdAdmin(); } catch (e) { tdMsg(tdErr(e)); b.disabled = false; } });
+  body.querySelectorAll('[data-remove]').forEach(b => b.onclick = async () => { b.disabled = true; try { await run(({ fs, db }) => fs.deleteDoc(fs.doc(db, 'teachers', b.dataset.remove))); tdMsg(`Removed ${b.dataset.remove}.`, true); tdAdmin(); } catch (e) { tdMsg(tdErr(e)); b.disabled = false; } });
+}
+$('td-tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (!b) return; TD.tab = b.dataset.tab; TD.open = null; tdRender(); });
+$('td-class').onchange = () => { TD.code = $('td-class').value; TD.scope = TD.code; TD.open = null; tdRender(); };
+$('td-back').onclick = () => { clearInterval(TD.timer); goTo('splash', startDemo); refreshSetup(); };
+$('td-signout').onclick = async () => { try { const { auth, authMod } = await fbAuth(); await authMod.signOut(auth); } catch {} TD.email = null; clearInterval(TD.timer); tdStart(); };
+$('teacher-btn').addEventListener('click', openTeacher);
+
 /* ---------- MIDI keyboard input (Web MIDI: note-on and note-off) ---------- */
 let midiAccess = null, midiState = 'off', midiNames = [], midiPlaying = '';
 // virtual and helper ports (the Mac's IAC bus, network sessions, a keyboard's DAW-control port) go last, so a real keyboard is named first
@@ -1727,12 +2254,15 @@ function onMidi(e) {
     if (nm && nm !== midiPlaying) { midiPlaying = nm; syncMidi(); }
   }
   const ts = e.timeStamp || performance.now();
+  if (on) { ensureAudio(); keyOn(note, vel); } else keyOff(note);
   if (on) {
     if (cal.on) { calTap(ts); return; }
     if (view() === 'game' && G.style === 'midi') press('midi' + note, note, ts);
   } else release('midi' + note, ts);
 }
-$('midi-btn').addEventListener('click', connectMidi);
+$('midi-btn').addEventListener('click', () => { ensureAudio(); connectMidi(); });
+// browsers only start sound after a click or key press, so wake the audio on the first one
+addEventListener('pointerdown', ensureAudio, { once: true }); addEventListener('keydown', ensureAudio, { once: true });
 
 /* ---------- setup ---------- */
 function syncStyleNote() {
@@ -1751,6 +2281,8 @@ function refreshSetup() {
   f.querySelector(`#clef-${settings.clef}`).checked = true;
   f.querySelector(`#mode-${settings.mode}`).checked = true;
   f.querySelector(`#met-${settings.met}`).checked = true;
+  f.querySelector(`#ksound-${settings.keySound === 'off' ? 'off' : 'on'}`).checked = true;
+  $('ksound-set').hidden = settings.style !== 'midi';
   $('practice-bpm').value = settings.practiceBpm; $('practice-bpm-out').textContent = settings.practiceBpm;
   $('met-vol').value = settings.metVol; $('met-vol-out').textContent = settings.metVol;
   $('practice-row').hidden = settings.mode !== 'practice';
@@ -1766,6 +2298,7 @@ $('settings').addEventListener('input', e => {
   if (t.name === 'clef') settings.clef = t.value;
   if (t.name === 'mode') settings.mode = t.value;
   if (t.name === 'met') settings.met = t.value;
+  if (t.name === 'ksound') settings.keySound = t.value;
   if (t.id === 'practice-bpm') settings.practiceBpm = +t.value;
   if (t.id === 'met-vol') settings.metVol = +t.value;
   store.set('rooftop:settings', settings);
@@ -1798,6 +2331,7 @@ const LETTER_PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 addEventListener('keydown', e => {
   if (e.target.matches && e.target.matches('input[type="text"]')) return;
   if (!$('welcome').hidden) return;
+  if (view() === 'teacher') return;                              // the dashboard has its own fields; no game shortcuts there
   if (!$('calib').hidden) {
     if (e.code === 'Space') { e.preventDefault(); if (!e.repeat) calTap(e.timeStamp); }
     if (e.code === 'Escape') closeCal();
