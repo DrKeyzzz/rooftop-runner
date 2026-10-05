@@ -736,9 +736,9 @@ const DIFFS = {
   easy:   { title: 'Easy',   bpm: 48, range: { treble: [-2, 2], bass: [3, 7] },   w: { q: 6, h: 3, w: 1, qr: .8 } },
   medium: { title: 'Medium', bpm: 52, range: { treble: [0, 8], bass: [0, 8] },    w: { q: 6, h: 3, w: .6, qr: .8, e2: 1.6, hr: .5 }, hold: true },
   // Hard is what Expert used to be (October 2026: students were acing Expert)
-  hard:   { title: 'Hard',   bpm: 56, range: { treble: [-3, 11], bass: [-3, 11] }, w: { q: 3, h: 1.5, w: .3, qr: .7, e2: 1.8, hr: .4, dh: .7, dq: 1, re: .7, s4: 1.2, es: 1.2, se: 1.2, ds: 1, tr: 1.2 }, hold: true, acc: true, ties: .16, exact: true, sync: true, keyed: true },
+  hard:   { title: 'Hard',   bpm: 56, range: { treble: [-3, 11], bass: [-3, 11] }, w: { q: 3, h: 1.5, w: .3, qr: .7, e2: 1.8, hr: .4, dh: .7, dq: 1, re: .7, s4: 1.2, es: 1.2, se: 1.2, ds: 1, tr: 1.2 }, hold: true, acc: true, ties: .16, chrom: .07, exact: true, sync: true, keyed: true },
   // Expert: syncopation, sixteenth–eighth–sixteenth, sixteenth-note triplets, ties inside the bar, two ledger lines, wider leaps
-  expert: { title: 'Expert', bpm: 64, range: { treble: [-5, 13], bass: [-5, 13] }, w: { q: 1.2, h: .5, w: .1, qr: .5, e2: 1, hr: .2, dh: .3, dq: .8, re: 1, s4: 1.1, es: 1.1, se: 1.1, ds: 1.1, tr: 1.1, ses: 1.6, syn: 1.5, edq: 1.1, sds: 1, t16a: .9, t16b: .9 }, hold: true, acc: true, ties: .3, inTie: .2, leap: .22, exact: true, sync: true, keyed: true },
+  expert: { title: 'Expert', bpm: 64, range: { treble: [-5, 13], bass: [-5, 13] }, w: { q: 1.2, h: .5, w: .1, qr: .5, e2: 1, hr: .2, dh: .3, dq: .8, re: 1, s4: 1.1, es: 1.1, se: 1.1, ds: 1.1, tr: 1.1, ses: 1.6, syn: 1.5, edq: 1.1, sds: 1, t16a: .9, t16b: .9 }, hold: true, acc: true, ties: .3, inTie: .2, chrom: .16, exact: true, sync: true, keyed: true },
 };
 // each token fills part of a bar: items are [beats, isRest]
 const TOKENS = {
@@ -792,7 +792,7 @@ function newRun(o) {
     clef: o.style === 'rhythm' ? 'treble' : o.style === 'live' ? ((INSTR[o.inst] || INSTR['alto-sax']).perc ? 'treble' : (INSTR[o.inst] || INSTR['alto-sax']).clef) : o.clef,
     startBpm: DIFFS[o.diff].bpm, practiceBpm: o.practiceBpm || 60, drill: o.drill || null, custom: o.custom || null,
     running: true, paused: false, over: false, aB: -4, aMs: performance.now() + 250, freeze: null, t: -4, v: -4,
-    bars: [], notes: [], attacks: [], nextBar: 0, lastP: null, prevB: -9, tieCarry: null, levelKeys: {}, keyDeck: [],
+    bars: [], notes: [], attacks: [], nextBar: 0, lastP: null, lastLeap: 0, resolveTo: 0, prevB: -9, tieCarry: null, levelKeys: {}, keyDeck: [],
     halves: 6, score: 0, streak: 0, bestStreak: 0, level: 0, topBpm: 0, chase: newChase(),
     held: new Map(), down: new Set(), popups: [], extras: [], banner: null, ouch: -99, nextClick: null, loop: null, clean: 0,
     stats: { cats: {}, pitches: {}, offsets: [], attacks: 0, hits: 0, wrong: 0, miss: 0, extra: 0, early: 0 },
@@ -843,8 +843,8 @@ function beatAt(ms) {
 function reanchor(b, ms) { G.aB = b; G.aMs = ms; G.nextClick = null; }
 
 /* ---------- writing the music, one bar at a time ---------- */
-const isKeyChangeBar = k => G.diff === 'expert' && !rhythmView() && levelOfBar(k) >= 2 && k === firstBar(levelOfBar(k));
-const keyedBar = k => G.diff === 'expert' && !rhythmView() && levelOfBar(k) >= 2;
+const isKeyChangeBar = k => DIFFS[G.diff].keyed && !rhythmView() && levelOfBar(k) >= 2 && k === firstBar(levelOfBar(k));
+const keyedBar = k => DIFFS[G.diff].keyed && !rhythmView() && levelOfBar(k) >= 2;
 // Expert deals keys from a shuffled deck: every key once before any repeats, never the same key twice in a row
 function levelKey(L) {
   if (G.levelKeys[L]) return G.levelKeys[L];
@@ -859,7 +859,7 @@ function levelKey(L) {
 }
 // Live parts sit in the instrument's home key (concert B♭ for band, D for strings); other styles read in C
 const barKey = k => keyedBar(k) ? levelKey(levelOfBar(k)) : isLive() && !G.inst.perc ? G.inst.home : 'C';
-const maxSig = () => G.diff === 'expert' && !rhythmView() ? 5 : isLive() && !G.inst.perc ? Math.abs(G.inst.sig) : 0;
+const maxSig = () => DIFFS[G.diff].keyed && !rhythmView() ? 5 : isLive() && !G.inst.perc ? Math.abs(G.inst.sig) : 0;
 const rangeOf = () => isLive() && !G.inst.perc ? liveRange(G.inst, G.diff) : DIFFS[G.diff].range[G.clef];
 
 function pick(weights) {
@@ -875,6 +875,10 @@ function barWeights(k) {
   if (nx && L >= PREVIEW_FROM) {
     const share = Math.min(.5, .15 + .07 * (L - PREVIEW_FROM));
     for (const [tk, v] of Object.entries(nx.w)) if (!(tk in w)) w[tk] = v * share;
+  }
+  if (G.diff === 'expert') {
+    if (rhythmView()) { w.q *= .6; w.h *= .5; for (const tk of ['s4', 'ses', 'syn', 'sds', 't16a', 't16b']) w[tk] *= 1.3; }
+    else for (const tk of ['t16a', 't16b', 'sds']) w[tk] *= .5;
   }
   return w;
 }
@@ -902,20 +906,36 @@ function planBar(k, tieIn) {
   }
   return [0, 1, 2, 3].map(o => ({ tk: 'q', o }));
 }
-function nextP() {
-  const [lo, hi] = rangeOf();
-  if (G.drill && G.drill.ps.length && Math.random() < .35) { const p = G.drill.ps[Math.floor(Math.random() * G.drill.ps.length)]; if (p >= lo && p <= hi) return (G.lastP = p); }
+// Melodies a player could really play: mostly steps. max = the largest leap in staff steps (1 = a 2nd, 3 = a 4th, 6 = a 7th);
+// octaves only on Hard and Expert, and only on quarter notes or longer. What gets harder is the rhythm, not the leaps.
+const MOTION = { easy: { max: 1, leap: 0 }, medium: { max: 3, leap: .08 }, hard: { max: 6, leap: .1, oct: true }, expert: { max: 6, leap: .1, oct: true } };
+function nextP(d = 1, key = null) {
+  const [lo, hi] = rangeOf(), M = MOTION[G.diff];
+  if (G.drill && G.drill.ps.length && Math.random() < .35) { const p = G.drill.ps[Math.floor(Math.random() * G.drill.ps.length)]; if (p >= lo && p <= hi) { G.lastLeap = 0; return (G.lastP = p); } }
   let p = G.lastP;
-  if (p == null) p = Math.round((lo + hi) / 2);
-  else {
-    const leap = DIFFS[G.diff].leap || (G.diff === 'hard' ? .12 : G.diff === 'medium' ? .08 : 0);
-    const step = Math.random() < leap ? (Math.random() < .5 ? -1 : 1) * (3 + Math.floor(Math.random() * 2)) : pick([[-2, 1], [-1, 3], [0, 1.2], [1, 3], [2, 1]]);
-    p += step;
-    if (p > hi) p = hi - (p - hi);
-    if (p < lo) p = lo + (lo - p);
-    p = Math.max(lo, Math.min(hi, p));
+  if (p == null) { G.lastLeap = 0; return (G.lastP = Math.round((lo + hi) / 2)); }
+  const ok = s => p + s >= lo && p + s <= hi;
+  let step = null;
+  if (G.resolveTo) { step = G.resolveTo; G.resolveTo = 0; }                                   // a chromatic note moves on by half step
+  else if (G.lastLeap && ok(-Math.sign(G.lastLeap))) step = -Math.sign(G.lastLeap);           // after a leap, step back the other way
+  else if (d >= .5 && M.leap && Math.random() < M.leap) {
+    // a leap of a 4th or more lands on a chord tone of the key (1, 3 or 5) when it can
+    const tonic = key ? key.li : 0, sizes = [];
+    for (let s = 3; s <= M.max; s++) sizes.push(s);
+    if (M.oct && d >= 1) sizes.push(7);
+    const opts = sizes.flatMap(s => [s, -s]).filter(ok).map(s => [s, [0, 2, 4].includes(li(BOTTOM[G.clef] + p + s - tonic)) ? 3 : .3]);
+    if (opts.length) step = pick(opts);
   }
-  return (G.lastP = p);
+  if (step == null) {
+    // fast notes (sixteenths, triplets) only step or repeat; longer ones can also skip a 3rd from Medium up
+    const opts = [[-1, 3], [0, d < .5 ? .6 : 1], [1, 3]];
+    if (M.max >= 2 && d >= .5) opts.push([-2, .8], [2, .8]);
+    step = pick(opts);
+    if (!ok(step)) step = -step;
+    if (!ok(step)) step = 0;
+  }
+  G.lastLeap = Math.abs(step) >= 3 ? step : 0;
+  return (G.lastP = p + step);
 }
 function makeNote(bar, o, d, rest) { return { bar, o, b: bar.b + o, d, rest: !!rest }; }
 function pushBar(bar) {
@@ -932,17 +952,28 @@ function genBar(k) {
   const bar = { k, b: k * 4, L: levelOfBar(k), key: barKey(k), keyChange: isKeyChangeBar(k), count: countIdx(k), notes: [] };
   const tieIn = G.tieCarry; G.tieCarry = null;
   if (bar.count >= 0) { pushBar(bar); return; }          // count-in bar: no music, just the count
-  if (bar.keyChange) { bar.notes.push(makeNote(bar, 0, 4, true)); pushBar(bar); return; }
+  if (bar.keyChange) { G.resolveTo = 0; bar.notes.push(makeNote(bar, 0, 4, true)); pushBar(bar); return; }
   const D = DIFFS[G.diff], key = KEY_BY_ID[bar.key], keyed = keyedBar(k), accState = {};
   const pitched = (o, d) => {
     const n = makeNote(bar, o, d);
-    const p = nextP(), dia = BOTTOM[G.clef] + p;
+    const p = nextP(d, key), dia = BOTTOM[G.clef] + p;
     // the music is spaced by time, so a ♯ or ♭ only fits where the note before it is far enough back
     const room = (n.b - G.prevB) * minPpb() >= 3.1;
     let acc = key && key.sig ? keyAccFor(key, li(dia)) : 0, show = null;
-    if (keyed) { /* Expert: the key signature alone */ }
-    else if (dia in accState) acc = accState[dia];
-    else if (D.acc && !rhythmView() && acc === 0 && room && Math.random() < .13) {
+    if (dia in accState) acc = accState[dia];
+    else if (D.chrom && !rhythmView() && room && G.lastP != null && Math.random() < D.chrom) {
+      // a chromatic note that resolves by half step to the next note (C–C♯–D, E–D♯–E): raised goes up, lowered goes down
+      const [lo, hi] = rangeOf();
+      const opts = [1, -1].filter(dir => {
+        const a2 = acc + dir; if (a2 < -1 || a2 > 1 || (a2 === 1 && !SHARP_OK[li(dia)]) || (a2 === -1 && !FLAT_OK[li(dia)])) return false;
+        const nd = dia + dir, np = p + dir; if (np < lo || np > hi) return false;
+        const na = nd in accState ? accState[nd] : key && key.sig ? keyAccFor(key, li(nd)) : 0;
+        return midiOf(nd, na) - midiOf(dia, a2) === dir;
+      });
+      if (opts.length) { const dir = opts[Math.floor(Math.random() * opts.length)]; acc += dir; show = acc; accState[dia] = acc; G.resolveTo = dir; G.lastLeap = 0; }
+    }
+    else if (keyed) { /* the key signature alone */ }
+    else if (D.acc && !D.chrom && !rhythmView() && acc === 0 && room && Math.random() < .13) {
       const opts = []; if (SHARP_OK[li(dia)]) opts.push(1); if (FLAT_OK[li(dia)]) opts.push(-1);
       if (opts.length) { acc = opts[Math.floor(Math.random() * opts.length)]; show = acc; accState[dia] = acc; }
     }
@@ -985,7 +1016,7 @@ function genBar(k) {
     else group.forEach(n => { if (n.d < 1) n.flag = true; });
     last = group[group.length - 1] || null; lastTk = tk;
     const endsOnNote = T.items.length && !T.items[T.items.length - 1][1];
-    carry = !G.custom && D.inTie && last && endsOnNote && !T.tri && o + T.len < 4 && Math.random() < D.inTie ? last : null;
+    carry = !G.custom && D.inTie && last && endsOnNote && !T.tri && o + T.len < 4 && Math.random() < D.inTie * (rhythmView() ? 1 : .6) ? last : null;
   }
   const tieP = G.custom ? (G.custom.ties ? .25 : 0) : D.ties;
   if (tieP && last && (lastTk === 'q' || lastTk === 'h') && !isKeyChangeBar(k + 1) && !isCountBar(k + 1) && Math.random() < (G.drill && G.drill.ties ? .4 : tieP)) G.tieCarry = last;
@@ -1131,7 +1162,7 @@ const shownP = p => rhythmView() ? 4 : p;
 function minPpb() {
   if (!G.diff) return 4.6;
   const fine = G.custom && G.custom.tokens.some(tk => TOKENS[tk].items.some(([d]) => d < .5));
-  return G.diff === 'expert' || fine ? 7.2 : G.diff === 'hard' ? 6.2 : 4.6;
+  return DIFFS[G.diff].keyed || fine ? 7.2 : 4.6;
 }
 function layout() {
   W = stage.clientWidth || 800;
