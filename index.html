@@ -247,6 +247,8 @@ button.sm { font-size: 13px; padding: 5px 11px; }
 .assign .a-d { flex: 1 1 260px; font-size: 16px; min-width: 0; }
 .assign .a-d small { display: block; color: var(--haze); font-size: 14px; }
 
+.sound-hint { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60; max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 12px; background: var(--brick); border: 1px solid var(--cyan); color: var(--chalk); font-weight: 600; box-shadow: 0 0 24px -6px var(--cyan); }
+
 @media (max-width: 560px) {
   .stat .v { font-size: 20px; }
   .letters button { font-size: 18px; }
@@ -318,7 +320,7 @@ button.sm { font-size: 13px; padding: 5px 11px; }
         <legend>Play style</legend>
         <input type="radio" name="style" id="style-midi" value="midi" checked><label for="style-midi"><b>MIDI keyboard</b><span>Play the notes. Hold each key for its length from Medium up.</span></label>
         <input type="radio" name="style" id="style-keys" value="keys"><label for="style-keys"><b>Computer keys</b><span>Type the letter A–G. Shift for ♯, Option or Alt for ♭.</span></label>
-        <input type="radio" name="style" id="style-rhythm" value="rhythm"><label for="style-rhythm"><b>Rhythm only</b><span>Hold the space bar (or tap pad) for each note's full length.</span></label>
+        <input type="radio" name="style" id="style-rhythm" value="rhythm"><label for="style-rhythm"><b>Rhythm only</b><span>Hold the space bar, any piano key or the tap pad for each note's full length.</span></label>
       </fieldset>
       <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
         <fieldset id="clef-set">
@@ -355,7 +357,7 @@ button.sm { font-size: 13px; padding: 5px 11px; }
           </div>
         </fieldset>
         <fieldset id="ksound-set">
-          <legend>MIDI keyboard sound</legend>
+          <legend>MIDI keyboard sound (on every screen)</legend>
           <div class="seg">
             <input type="radio" name="ksound" id="ksound-on" value="on" checked><label for="ksound-on">Play through the computer</label>
             <input type="radio" name="ksound" id="ksound-off" value="off"><label for="ksound-off">Off (my keyboard has its own sound)</label>
@@ -376,7 +378,7 @@ button.sm { font-size: 13px; padding: 5px 11px; }
   </form>
 
   <div class="pad-area game-only" id="pad-area">
-    <button class="hold-pad" id="hold-pad" type="button" hidden>Hold for the whole note<small>or hold the space bar</small></button>
+    <button class="hold-pad" id="hold-pad" type="button" hidden>Hold for the whole note<small>or hold the space bar or any piano key</small></button>
     <div id="letter-pad" hidden>
       <div class="letters small" id="sharp-row" hidden></div>
       <div class="letters" id="letter-row"></div>
@@ -480,6 +482,8 @@ button.sm { font-size: 13px; padding: 5px 11px; }
     <div class="board-empty" id="board-empty" hidden></div>
   </section>
 </div>
+
+<div class="sound-hint" id="sound-hint" role="status" hidden></div>
 
 <div class="modal" id="welcome" hidden role="dialog" aria-modal="true" aria-labelledby="w-title">
   <form class="mcard" id="w-form" autocomplete="off">
@@ -1305,7 +1309,7 @@ function press(src, pitch, ts) {
 }
 function release(src, ts) {
   G.down.delete(src); stopHoldTone(src);
-  if (src === 'pad') $('hold-pad').classList.remove('down');
+  if (![...G.down].some(k => k === 'pad' || k.startsWith('midi'))) $('hold-pad').classList.remove('down');
   const a = G.held.get(src); if (!a) return;
   G.held.delete(src);
   finishHold(a, beatAt(ts - (latency || 0)));
@@ -1512,7 +1516,7 @@ function syncPad() {
   const accRows = st === 'keys' && (G.diff === 'hard' || G.diff === 'expert');
   $('sharp-row').hidden = $('flat-row').hidden = !accRows;
   const holdText = needsHold() ? ' Hold each note for its full length.' : '';
-  $('hint').innerHTML = st === 'rhythm' ? '<b>Hold the space bar</b> (or the pad) as each note reaches the pink line, and let go when it ends. Keep still during rests.'
+  $('hint').innerHTML = st === 'rhythm' ? '<b>Hold the space bar</b>, any key on your MIDI keyboard, or the pad as each note reaches the pink line, and let go when it ends. Keep still during rests.'
     : st === 'keys' ? '<b>Type the letter</b> as each note reaches the line. <kbd>Shift</kbd> for ♯, <kbd>Option</kbd>/<kbd>Alt</kbd> for ♭.'
     : (midiState === 'ready' ? '<b>Play each note</b> as it reaches the pink line' + (DIFFS[G.diff].exact ? ', in the exact octave.' : ', in any octave.') : '<b>Connect your MIDI keyboard</b> with the button at the top, then play each note as it reaches the line.') + holdText;
 }
@@ -2241,6 +2245,7 @@ function syncMidi() {
   b.dataset.state = midiState;
   $('midi-label').textContent = midiState === 'ready' ? 'MIDI: ' + (midiPlaying || midiNames[0]).slice(0, 26) : label;
   syncStyleNote();
+  $('ksound-set').hidden = settings.style !== 'midi' && midiState !== 'ready';
   if (view() === 'game') syncPad();
 }
 function onMidi(e) {
@@ -2254,15 +2259,27 @@ function onMidi(e) {
     if (nm && nm !== midiPlaying) { midiPlaying = nm; syncMidi(); }
   }
   const ts = e.timeStamp || performance.now();
-  if (on) { ensureAudio(); keyOn(note, vel); } else keyOff(note);
+  const asTap = view() === 'game' && G.style === 'rhythm';      // Rhythm only: any piano key works like the space bar (and plays the level's chord)
+  if (on) { ensureAudio(); if (!asTap) keyOn(note, vel); soundHint(); } else keyOff(note);
   if (on) {
     if (cal.on) { calTap(ts); return; }
     if (view() === 'game' && G.style === 'midi') press('midi' + note, note, ts);
+    else if (asTap) { hp.classList.add('down'); press('midi' + note, null, ts); }
   } else release('midi' + note, ts);
 }
 $('midi-btn').addEventListener('click', () => { ensureAudio(); connectMidi(); });
 // browsers only start sound after a click or key press, so wake the audio on the first one
-addEventListener('pointerdown', ensureAudio, { once: true }); addEventListener('keydown', ensureAudio, { once: true });
+addEventListener('pointerdown', () => { ensureAudio(); hideSoundHint(); }); addEventListener('keydown', () => { ensureAudio(); hideSoundHint(); });
+// the keyboard's piano plays on every screen, but a browser keeps sound off until the page is clicked once, so say so
+function soundHint() {
+  if (settings.keySound === 'off') return;
+  const locked = !actx || actx.state !== 'running', muted = !settings.sound;
+  if (!locked && !muted) return hideSoundHint();
+  const el = $('sound-hint');
+  el.textContent = muted ? '🎹 Your keyboard is connected, but Sound is off. Press "Sound on" at the top to hear it.' : '🎹 Your keyboard is connected. Click anywhere on the page to hear it.';
+  el.hidden = false;
+}
+function hideSoundHint() { if (actx && actx.state === 'running' && settings.sound) $('sound-hint').hidden = true; }
 
 /* ---------- setup ---------- */
 function syncStyleNote() {
@@ -2272,7 +2289,7 @@ function syncStyleNote() {
     + ` Play each note ${DIFFS[settings.diff].exact ? 'in the exact octave' : 'in any octave'}${DIFFS[settings.diff].hold ? ', and hold it for its full length' : ''}.`
     : MIDI_TEXT[midiState][1] || MIDI_TEXT.off[1];
   else if (settings.style === 'keys') el.innerHTML = 'Type <b>C D E F G A B</b> as each note reaches the line, or tap the letters on screen. Any octave counts.';
-  else el.innerHTML = 'Every note sits on one line. <b>Hold the space bar</b> for each note\'s full length, or use the tap pad on a touch screen.';
+  else el.innerHTML = 'Every note sits on one line. <b>Hold the space bar</b> or <b>any key on your MIDI keyboard</b> for each note\'s full length, or use the tap pad on a touch screen.';
 }
 function refreshSetup() {
   const f = $('settings');
@@ -2282,7 +2299,7 @@ function refreshSetup() {
   f.querySelector(`#mode-${settings.mode}`).checked = true;
   f.querySelector(`#met-${settings.met}`).checked = true;
   f.querySelector(`#ksound-${settings.keySound === 'off' ? 'off' : 'on'}`).checked = true;
-  $('ksound-set').hidden = settings.style !== 'midi';
+  $('ksound-set').hidden = settings.style !== 'midi' && midiState !== 'ready';
   $('practice-bpm').value = settings.practiceBpm; $('practice-bpm-out').textContent = settings.practiceBpm;
   $('met-vol').value = settings.metVol; $('met-vol-out').textContent = settings.metVol;
   $('practice-row').hidden = settings.mode !== 'practice';
@@ -2306,7 +2323,7 @@ $('settings').addEventListener('input', e => {
   if (['diff', 'style', 'clef'].includes(t.name)) startDemo();
 });
 function syncSound() { const b = $('sound-btn'); b.textContent = settings.sound ? 'Sound on' : 'Sound off'; b.setAttribute('aria-pressed', String(settings.sound)); }
-$('sound-btn').addEventListener('click', () => { settings.sound = !settings.sound; ensureAudio(); syncSound(); store.set('rooftop:settings', settings); });
+$('sound-btn').addEventListener('click', () => { settings.sound = !settings.sound; ensureAudio(); syncSound(); store.set('rooftop:settings', settings); hideSoundHint(); });
 $('start-btn').addEventListener('click', () => launch());
 $('ov-btn').addEventListener('click', () => ovActions[0]?.());
 $('ov-btn2').addEventListener('click', () => ovActions[1]?.());
