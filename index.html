@@ -294,6 +294,8 @@ button.sm { font-size: 13px; padding: 5px 11px; }
 .ltuner .nd { position: absolute; top: 1px; bottom: 1px; width: 4px; margin-left: -2px; left: 50%; border-radius: 2px; background: var(--chalk); box-shadow: 0 0 8px var(--chalk); }
 .mic-tip { margin: 0; font-size: 14px; color: var(--haze); }
 .mic-tip b { color: var(--cyan); }
+.wsw { display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer; }
+.wsw input { width: 18px; height: 18px; accent-color: var(--neon); }
 .mic-err { margin: 0; color: var(--miss); font-size: 14px; min-height: 1.2em; }
 .live-hud { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 10px 14px; border: 1px solid var(--edge); border-radius: 14px; background: var(--night); }
 .live-hud .k { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--haze); }
@@ -315,6 +317,11 @@ button.sm { font-size: 13px; padding: 5px 11px; }
 .tscale .ok { color: var(--perfect); font-weight: 700; }
 .tscale .tzone { position: absolute; left: 40%; width: 20%; top: 0; bottom: 18px; background: color-mix(in srgb, var(--perfect) 18%, transparent); border-radius: 6px; }
 .tscale .tneedle { position: absolute; left: 50%; top: 0; bottom: 18px; width: 4px; margin-left: -2px; background: var(--chalk); border-radius: 2px; box-shadow: 0 0 10px var(--chalk); transition: left .08s linear; }
+.bselect { font: 600 15px var(--f-ui); color: var(--chalk); background: var(--night); border: 1px solid var(--edge); border-radius: 8px; padding: 6px 10px; }
+.tphones { display: flex; gap: 14px; align-items: flex-start; padding: 14px; border: 1px solid var(--cyan); border-radius: 14px; background: color-mix(in srgb, var(--cyan) 8%, var(--night)); }
+.tphones b { font-family: var(--f-display); font-weight: 400; font-size: 20px; color: var(--cyan); }
+.tphones p { margin: 4px 0 10px; color: var(--chalk); }
+.tph-icon { font-size: 40px; line-height: 1; }
 .tdial .lmeter { flex: none; width: 100%; height: 12px; }
 .tstatus { margin: 0; min-height: 2.6em; text-align: center; font-size: 16px; }
 .tstatus b { color: var(--perfect); }
@@ -423,7 +430,8 @@ header:has(> .mtg-home) { flex-wrap: wrap; }
           </div>
           <div class="calib-line"><span id="tune-line">Not tuned yet.</span><button type="button" id="tune-btn" class="ghost sm">Tune up</button></div>
           <div class="range-row"><label for="live-sens">Sensitivity</label><input type="range" id="live-sens" min="0" max="100" step="5" value="55"><output id="live-sens-out" for="live-sens">55</output></div>
-          <p class="mic-tip">🎧 <b>Use headphones</b> so the mic hears your instrument, not the metronome. A quiet spot works best. Turn sensitivity down in a noisy room.</p>
+          <label class="wsw" for="live-phones"><input type="checkbox" id="live-phones"> I'm wearing headphones</label>
+          <p class="mic-tip">🎧 <b>Headphones work best.</b> Without them the game filters its own clicks out of the mic, and setting the metronome to <b>Count-in only</b> helps even more. A quiet spot works best.</p>
         </div>
       </div>
 
@@ -526,6 +534,7 @@ header:has(> .mtg-home) { flex-wrap: wrap; }
       <div class="stat"><div class="k">Best streak</div><div class="v" id="res-streak">0</div></div>
       <div class="stat"><div class="k">Level reached</div><div class="v" id="res-level">1</div></div>
       <div class="stat"><div class="k">Top tempo</div><div class="v" id="res-bpm">48</div></div>
+      <div class="stat"><div class="k">Villains caught</div><div class="v" id="res-caught">0</div></div>
     </div>
     <p class="tendency" id="res-tendency"></p>
     <div>
@@ -592,13 +601,17 @@ header:has(> .mtg-home) { flex-wrap: wrap; }
           <input type="radio" name="bstyle" id="bstyle-live" value="live"><label for="bstyle-live">Live</label>
         </div>
       </fieldset>
-      <fieldset>
+      <fieldset id="bclef-set">
         <legend>Clef</legend>
         <div class="seg">
           <input type="radio" name="bclef" id="bclef-all" value="all" checked><label for="bclef-all">All</label>
           <input type="radio" name="bclef" id="bclef-treble" value="treble"><label for="bclef-treble">Treble</label>
           <input type="radio" name="bclef" id="bclef-bass" value="bass"><label for="bclef-bass">Bass</label>
         </div>
+      </fieldset>
+      <fieldset id="binst-set" hidden>
+        <legend>Instrument</legend>
+        <select id="binst" class="bselect" aria-label="Instrument"></select>
       </fieldset>
     </form>
     <p class="board-summary" id="board-summary"></p>
@@ -633,16 +646,28 @@ header:has(> .mtg-home) { flex-wrap: wrap; }
     <div class="eyebrow" id="t-eyebrow">Before you play · about 10 seconds</div>
     <h2 id="t-title">Tune up</h2>
     <p class="muted" id="t-help"></p>
+    <div class="tphones" id="t-phones">
+      <div class="tph-icon" aria-hidden="true">🎧</div>
+      <div>
+        <b>Put on headphones</b>
+        <p>With headphones, the microphone hears only your instrument, not the metronome or the game's sounds, so every note is easier to hear.</p>
+        <div class="row">
+          <button class="btn-go" type="button" id="t-ph-yes">I have headphones on</button>
+          <button class="ghost" type="button" id="t-ph-no">No headphones</button>
+        </div>
+      </div>
+    </div>
     <ol class="tsteps" id="t-steps"><li id="t-s1">Stay quiet</li><li id="t-s2">Play your tuning note</li><li id="t-s3">Done</li></ol>
-    <div class="tdial">
+    <div class="tdial" id="t-dial">
       <div class="theard" id="t-heard">—</div>
       <div class="ttarget" id="t-target"></div>
       <div class="tscale" aria-hidden="true"><span>−50¢</span><span>flat</span><span class="ok">in tune</span><span>sharp</span><span>+50¢</span><i class="tzone"></i><i class="tneedle" id="t-needle"></i></div>
       <div class="lmeter" aria-hidden="true"><i id="t-meter"></i></div>
       <p class="tstatus" id="t-status" role="status"></p>
     </div>
-    <div class="row">
+    <div class="row" id="t-row">
       <button class="btn-go" id="t-start" type="button">Start</button>
+      <button id="t-hear" type="button">▶ Hear the note</button>
       <button class="ghost" id="t-close" type="button">Back to settings</button>
     </div>
   </div>
@@ -734,7 +759,7 @@ const TOKENS = {
 const CAT_TITLE = { e: 'Eighth notes', q: 'Quarter notes', dq: 'Dotted quarters', h: 'Half notes', dh: 'Dotted halves', w: 'Whole notes', tie: 'Tied notes', s: 'Sixteenth notes', de: 'Dotted eighths', t: 'Triplets' };
 const CAT_TOKENS = { e: ['e2', 're', 'dq', 'es', 'se', 'ses'], q: ['q'], dq: ['dq'], h: ['h'], dh: ['dh'], w: ['w'], tie: [], s: ['s4', 'es', 'se', 'ses', 'ds'], de: ['ds'], t: ['tr'] };
 const STYLE_TITLE = { midi: 'MIDI', keys: 'Computer keys', rhythm: 'Rhythm only', live: 'Live' };
-const CLEF_TITLE = { treble: 'Treble', bass: 'Bass', none: '' };
+const CLEF_TITLE = { treble: 'Treble', bass: 'Bass', alto: 'Alto clef', treble8: 'Treble 8vb', none: '' };
 const HOODS = ['Downtown', 'Old Town', 'Market Street', 'Harbor District', 'Theater Row', 'Uptown', 'Chinatown', 'Skyline Heights', 'Riverside', 'Arts District', 'Midtown', 'Neon Mile'];
 const LEVEL_BARS = 8, LEVEL_BEATS = 32, STEP_BPM = 5;   // no top speed: it keeps climbing as long as the student can hang on
 const PTS = { P: 100, G: 60, E: 25, L: 25 }, WRONG_PTS = 20, HOLD_BONUS = 40;
@@ -743,7 +768,7 @@ const jColor = j => j === 'P' ? C.perfect : j === 'G' ? C.cyan : j === 'E' || j 
 const isHit = j => j === 'P' || j === 'G' || j === 'E' || j === 'L';
 
 /* ---------- settings ---------- */
-const settings = { diff: 'easy', style: 'midi', clef: 'treble', mode: 'levels', practiceBpm: 60, met: 'on', metVol: 70, sound: true, keySound: 'on', customOn: false, custom: [], customTies: false, instrument: 'alto-sax', liveSens: 55 };
+const settings = { diff: 'easy', style: 'midi', clef: 'treble', mode: 'levels', practiceBpm: 60, met: 'on', metVol: 70, sound: true, keySound: 'on', customOn: false, custom: [], customTies: false, instrument: 'alto-sax', liveSens: 55, liveHeadphones: false };
 let latency = store.get('rooftop:latency', null);               // ms between a click and a tap on this computer
 let liveLatency = store.get('rooftop:latency:live', null);       // the same, measured through the microphone
 const calLive = () => settings.style === 'live';
@@ -759,7 +784,7 @@ function newRun(o) {
     startBpm: DIFFS[o.diff].bpm, practiceBpm: o.practiceBpm || 60, drill: o.drill || null, custom: o.custom || null,
     running: true, paused: false, over: false, aB: -4, aMs: performance.now() + 250, freeze: null, t: -4, v: -4,
     bars: [], notes: [], attacks: [], nextBar: 0, lastP: null, prevB: -9, tieCarry: null, levelKeys: {}, keyDeck: [],
-    halves: 6, score: 0, streak: 0, bestStreak: 0, level: 0, topBpm: 0,
+    halves: 6, score: 0, streak: 0, bestStreak: 0, level: 0, topBpm: 0, chase: newChase(),
     held: new Map(), down: new Set(), popups: [], extras: [], banner: null, ouch: -99, nextClick: null, loop: null, clean: 0,
     stats: { cats: {}, pitches: {}, offsets: [], attacks: 0, hits: 0, wrong: 0, miss: 0, extra: 0, early: 0 },
   });
@@ -996,6 +1021,7 @@ function ensureAudio() {
 function tone(f, dur = .3, type = 'triangle', vol = .15, when) {
   if (!actx || !settings.sound) return;
   const t0 = when ?? actx.currentTime, o = actx.createOscillator(), v = actx.createGain();
+  if (typeof MIC !== 'undefined' && MIC.on && !settings.liveHeadphones) MIC.muteUntil = Math.max(MIC.muteUntil || 0, performance.now() + (t0 - actx.currentTime + dur) * 1000 + 80);
   o.type = type; o.frequency.value = f;
   v.gain.setValueAtTime(0, t0); v.gain.linearRampToValueAtTime(vol, t0 + .01); v.gain.exponentialRampToValueAtTime(.0008, t0 + dur);
   o.connect(v).connect(actx.destination); o.start(t0); o.stop(t0 + dur + .05);
@@ -1074,7 +1100,7 @@ function scheduleClicks(now) {
     const word = inCount ? countWord(G.nextClick) : null;
     // count-in bars always click, whatever the metronome setting: only on the counted beats
     const want = inCount ? word != null : settings.met === 'on' || counting;
-    if (want) { G.clickTimes = (G.clickTimes || []).filter(t => t > now - 1000); G.clickTimes.push(ms); }
+    if (want && settings.sound && settings.metVol) { G.clickTimes = (G.clickTimes || []).filter(t => t > now - 1000); G.clickTimes.push(ms); }
     if (want && ms >= now - 20) click(actx.currentTime + Math.max(0, (ms - now) / 1000), inCount ? word === 1 : ((G.nextClick % 4) + 4) % 4 === 0);
     G.nextClick++;
   }
@@ -1178,8 +1204,10 @@ function drawBuildings() {
   }
   ctx.fillStyle = '#0d0b1f'; ctx.fillRect(0, skyBot, W, 3);
 }
-function runnerPos() {
-  const A = G.attacks, v = G.v, air = .26;
+function runnerPos() { return runnerPosAt(G.v); }
+// where a figure stands (and whether it's mid-jump) at any beat, following the rooftops
+function runnerPosAt(v) {
+  const A = G.attacks, air = .26;
   const arc = (from, to, k) => ({ y: from + (to - from) * k - Math.sin(Math.PI * k) * 1.6 * g, air: true });
   if (!A.length) return { y: skyBot - 3 * g, air: false };
   let cur = -1;
@@ -1194,17 +1222,28 @@ function drawRunner() {
   const trail = ctx.createLinearGradient(x - 5 * s, 0, x, 0);
   trail.addColorStop(0, 'rgba(255,79,163,0)'); trail.addColorStop(1, `rgba(255,79,163,${.1 + m * .1})`);
   ctx.fillStyle = trail; ctx.fillRect(x - 5 * s, y - 2.3 * s, 5 * s, 1.6 * s);
-  const body = hurt ? C.miss : C.chalk;
+  drawStick(x, y, air, s, G.v * Math.PI * 4, hurt ? C.miss : C.chalk, C.neon, hurt ? .35 * s : 0, null);
+}
+// a running stick figure; villains add a mask, a loot bag and sometimes a cape
+function drawStick(x, y, air, s, ph, body, scarf, lean, vil) {
   ctx.strokeStyle = body; ctx.fillStyle = body; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = s * .34;
-  const ph = G.v * Math.PI * 4, sw = air ? 0 : Math.sin(ph);
-  const lean = hurt ? .35 * s : 0, hip = [x, y - 1.25 * s], neck = [x + .3 * s + lean, y - 2.35 * s + lean * .5];
+  const sw = air ? 0 : Math.sin(ph);
+  const hip = [x, y - 1.25 * s], neck = [x + .3 * s + lean, y - 2.35 * s + lean * .5];
+  if (vil && vil.cape) { ctx.fillStyle = vil.color; ctx.globalAlpha *= .6; ctx.beginPath(); ctx.moveTo(neck[0], neck[1]); ctx.quadraticCurveTo(neck[0] - 1.6 * s, neck[1] + .4 * s + Math.sin(ph) * .2 * s, neck[0] - 1.9 * s, hip[1] + .5 * s); ctx.lineTo(hip[0] - .2 * s, hip[1]); ctx.closePath(); ctx.fill(); ctx.globalAlpha /= .6; ctx.fillStyle = body; }
   const leg = (a, bend) => { const kx = hip[0] + Math.sin(a) * .55 * s, ky = hip[1] + .6 * s; ctx.beginPath(); ctx.moveTo(...hip); ctx.lineTo(kx, ky - bend); ctx.lineTo(kx + Math.sin(a - .9) * .5 * s - (air ? .3 * s : 0), y - (air ? .5 * s : Math.max(0, Math.cos(a)) * .3 * s)); ctx.stroke(); };
   if (air) { leg(.9, .3 * s); leg(-.3, .2 * s); } else { leg(sw * .9, 0); leg(-sw * .9, 0); }
   ctx.beginPath(); ctx.moveTo(...hip); ctx.lineTo(...neck); ctx.stroke();
   const arm = a => { ctx.beginPath(); ctx.moveTo(neck[0] - .05 * s, neck[1] + .25 * s); ctx.lineTo(neck[0] + Math.sin(a) * .6 * s, neck[1] + .7 * s); ctx.lineTo(neck[0] + Math.sin(a) * .6 * s + .35 * s, neck[1] + .4 * s); ctx.stroke(); };
   arm(air ? 1.2 : -sw); arm(air ? -1 : sw);
   ctx.beginPath(); ctx.arc(neck[0] + .2 * s, neck[1] - .5 * s, .38 * s, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = C.neon; ctx.lineWidth = s * .2;
+  if (vil) {
+    // a bandit mask across the eyes and a loot bag over the shoulder
+    ctx.fillStyle = '#120f26'; ctx.fillRect(neck[0] - .12 * s, neck[1] - .62 * s, .7 * s, .2 * s);
+    ctx.fillStyle = body; ctx.beginPath(); ctx.arc(neck[0] - .55 * s, neck[1] + .35 * s, .42 * s, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#120f26'; ctx.font = `700 ${.5 * s}px ${F.ui}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('$', neck[0] - .55 * s, neck[1] + .38 * s);
+    return;
+  }
+  ctx.strokeStyle = scarf; ctx.lineWidth = s * .2;
   ctx.beginPath(); ctx.moveTo(neck[0], neck[1] + .05 * s); ctx.quadraticCurveTo(neck[0] - .7 * s, neck[1] - .1 * s + Math.sin(ph * 1.5) * .15 * s, neck[0] - 1.2 * s, neck[1] + .15 * s); ctx.stroke();
 }
 function drawPlayLine() {
@@ -1444,12 +1483,14 @@ function drawCountIn() {
   ctx.globalAlpha = .55 + k * .45; ctx.fillText(String(n), lower ? (PL + W) / 2 : W / 2 + 3 * g, skyBot * (lower ? .66 : .42));
   ctx.restore();
 }
-function drawBanner() {
-  const b = G.banner; if (!b) return;
-  const dur = b.dur || 4, age = G.v - b.at; if (age > dur || age < 0) { if (age > dur) G.banner = null; return; }
+function drawBanner() { drawOneBanner('banner', .3); drawOneBanner('bonusBanner', .6); }
+function drawOneBanner(slot, yFrac) {
+  const b = G[slot]; if (!b) return;
+  const dur = b.dur || 4, age = G.v - b.at; if (age > dur || age < 0) { if (age > dur) G[slot] = null; return; }
   ctx.save(); ctx.globalAlpha = Math.max(0, Math.min(1, age * 3, (dur - age) * 1.5)); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  const cx = (PL + W) / 2, cy = skyBot * .3;
-  ctx.font = `${Math.min(g * 1.9, (W - PL) / (b.text.length * .7))}px ${F.display}`; ctx.fillStyle = C.neon; ctx.shadowColor = C.neon; ctx.shadowBlur = 22;
+  const cx = (PL + W) / 2, cy = skyBot * yFrac;
+  const big = b.bonus ? 3.2 + Math.sin(age * 14) * .25 : 1.9, col = b.bonus ? C.amber : C.neon;
+  ctx.font = `${Math.min(g * big, (W - PL) / (b.text.length * .7))}px ${F.display}`; ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = b.bonus ? 34 : 22;
   ctx.fillText(b.text, cx, cy);
   ctx.shadowBlur = 0; ctx.font = `700 ${g * 1.1}px ${F.ui}`; ctx.fillStyle = C.chalk;
   ctx.fillText(b.sub, cx, cy + 1.8 * g);
@@ -1474,7 +1515,97 @@ function drawPopups() {
 }
 function draw() {
   ctx.clearRect(0, 0, W, H);
-  drawSky(); drawBuildings(); drawStaff(); drawCountMarks(); drawNotes(); drawPanel(); drawPlayLine(); drawRunner(); drawPopups(); drawBeatCounter(); drawBanner(); drawCountIn();
+  drawSky(); drawBuildings(); drawStaff(); drawCountMarks(); drawNotes(); drawPanel(); drawPlayLine(); drawVillain(); drawRunner(); drawFX(); drawPopups(); drawBeatCounter(); drawBanner(); drawCountIn();
+}
+
+
+/* ---------- the chase: a villain flees across the rooftops; every Perfect closes the gap ----------
+   Catch him for a jackpot bonus, and the next (different) villain takes off. A miss lets him pull ahead a step. */
+const VILLAINS = [
+  { name: 'Sly Shadow', color: '#8d6bff', scale: .95 },
+  { name: 'Big Brutus', color: '#ff7a2f', scale: 1.4 },
+  { name: 'Tiny Trix', color: '#4dff9b', scale: .7 },
+  { name: 'Count Crescendo', color: '#ff3b5c', scale: 1.15, cape: true },
+  { name: 'Dr. Dissonance', color: '#ffd23f', scale: 1.25 },
+  { name: 'Mischief Max', color: '#3fd0ff', scale: .85 },
+  { name: 'The Off-Beat Bandit', color: '#ff5fd2', scale: 1.05, cape: true },
+  { name: 'Grumble the Giant', color: '#9be15d', scale: 1.6 },
+];
+const chaseNeed = n => Math.min(10, 6 + n);                    // Perfects to catch villain number n (0, 1, 2…)
+const chaseBonus = n => 500 + 250 * n;
+function newChase() { return { caught: 0, need: chaseNeed(0), dist: chaseNeed(0), vil: VILLAINS[0], away: 0, gone: null, bonusAt: -99, bonus: 0 }; }
+function chaseHit(j) {
+  const ch = G.chase; if (!ch || ch.gone) return;
+  if (j === 'P') ch.dist = Math.max(0, ch.dist - 1);
+  else if (j === 'M') ch.dist = Math.min(ch.need, ch.dist + 1);
+  if (ch.dist === 0) chaseCatch();
+}
+function chaseCatch() {
+  const ch = G.chase, n = ch.caught, pts = chaseBonus(n);
+  ch.caught++; ch.bonus += pts; ch.bonusAt = G.v; ch.gone = { vil: ch.vil, at: G.v, x: PL + 2.4 * g };
+  if (!G.demo) { G.score += pts; G.stats.caught = ch.caught; }
+  G.bonusBanner = { at: G.v, dur: 3, text: 'BONUS!', sub: `You caught ${ch.vil.name}! +${pts.toLocaleString()} points`, bonus: true };
+  burst(PL + 2.4 * g, runnerPosAt(G.v).y - 2 * g);
+  if (!G.demo) { if (isLive() && MIC.on && !settings.liveHeadphones) tone(midiFreq(84), .14, 'triangle', .1); else jackpot(); }
+  // the next villain sets off a moment later, a little further ahead
+  ch.vil = VILLAINS[ch.caught % VILLAINS.length]; ch.need = chaseNeed(ch.caught); ch.dist = ch.need;
+}
+// coins and stars bursting from the catch
+const FX = [];
+function burst(x, y) {
+  const now = performance.now();
+  for (let i = 0; i < 46; i++) {
+    const a = (i / 46) * Math.PI * 2 + (i % 3) * .3, sp = (2.5 + (i % 7)) * g * .9;
+    FX.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 4 * g, t0: now, life: 1100 + (i % 5) * 120, coin: i % 3 !== 0, col: i % 3 === 0 ? (i % 2 ? C.neon : C.cyan) : C.amber });
+  }
+}
+function drawFX() {
+  const now = performance.now();
+  for (let i = FX.length - 1; i >= 0; i--) {
+    const f = FX[i], t = (now - f.t0) / 1000;
+    if (now - f.t0 > f.life) { FX.splice(i, 1); continue; }
+    const x = f.x + f.vx * t, y = f.y + f.vy * t + 9 * g * t * t, k = 1 - (now - f.t0) / f.life;
+    ctx.save(); ctx.globalAlpha = Math.min(1, k * 1.6); ctx.fillStyle = f.col; ctx.shadowColor = f.col; ctx.shadowBlur = 10;
+    if (f.coin) { ctx.beginPath(); ctx.ellipse(x, y, .42 * g * Math.abs(Math.cos(t * 9 + i)) + .08 * g, .42 * g, 0, 0, Math.PI * 2); ctx.fill(); }
+    else { ctx.translate(x, y); ctx.rotate(t * 6); ctx.fillRect(-.22 * g, -.22 * g, .44 * g, .44 * g); }
+    ctx.restore();
+  }
+}
+// slot-machine jackpot: reels spinning, then a bright chord and a shower of coins
+function jackpot() {
+  if (!actx || !settings.sound) return;
+  const t0 = actx.currentTime + .02;
+  for (let i = 0; i < 14; i++) tone(midiFreq(72 + ((i * 7) % 12) + (i % 2) * 12), .06, 'square', .05, t0 + i * .05);
+  [72, 76, 79, 84].forEach(m => tone(midiFreq(m), .9, 'triangle', .1, t0 + .75));
+  for (let i = 0; i < 10; i++) tone(midiFreq(96 + (i % 4) * 2), .16, 'sine', .06, t0 + .85 + i * .07);
+}
+function villainX() { const ch = G.chase; return PL + 2.4 * g + (W - PL - 6 * g) * (ch.dist / ch.need); }
+function drawVillain() {
+  const ch = G.chase; if (!ch) return;
+  // the one just caught spins and shrinks away at the runner's feet
+  if (ch.gone) {
+    const age = G.v - ch.gone.at;
+    if (age > 1.6) ch.gone = null;
+    else {
+      const p = runnerPosAt(G.v), k = Math.max(0, 1 - age / 1.6);
+      ctx.save(); ctx.globalAlpha = k; ctx.translate(ch.gone.x, p.y); ctx.rotate(age * 5); ctx.scale(k, k);
+      drawStick(0, 0, false, g * 1.05 * ch.gone.vil.scale, 0, ch.gone.vil.color, '#120f26', 0, ch.gone.vil);
+      ctx.restore();
+      return;
+    }
+  }
+  if (G.v - ch.bonusAt < 1.2) return;                               // a beat's pause before the next villain shows
+  const x = villainX(), vb = G.v + (x - PL) / ppb, p = runnerPosAt(vb), s = g * 1.05 * ch.vil.scale;
+  const fade = Math.min(1, (G.v - ch.bonusAt - 1.2) * 2);
+  ctx.save(); ctx.globalAlpha = fade;
+  drawStick(x, p.y, p.air, s, vb * Math.PI * 4.4, ch.vil.color, '#120f26', 0, ch.vil);
+  // how many Perfects to go, on a little sign over his head
+  ctx.font = `${g * .95}px ${F.display}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = ch.vil.color; ctx.shadowColor = ch.vil.color; ctx.shadowBlur = 10;
+  const ySign = Math.max(2.1 * g, p.y - 3.9 * s - .6 * g);
+  ctx.fillText(String(ch.dist), x + .3 * s, ySign);
+  ctx.shadowBlur = 0; ctx.font = `600 ${g * .75}px ${F.ui}`; ctx.fillStyle = C.haze;
+  ctx.fillText(ch.vil.name, x + .3 * s, Math.max(.8 * g, ySign - 1.1 * g));
+  ctx.restore();
 }
 
 /* ---------- judging ---------- */
@@ -1525,7 +1656,7 @@ function press(src, pitch, ts) {
   best.ms = ms; G.stats.offsets.push(ms);
   G.streak++; G.bestStreak = Math.max(G.bestStreak, G.streak);
   G.score += PTS[best.j] * mult();
-  pop(JTEXT[best.j], jColor(best.j)); tally(best, true); flashLetter(pitch, true);
+  pop(JTEXT[best.j], jColor(best.j)); tally(best, true); flashLetter(pitch, true); chaseHit(best.j);
   if (needsHold()) { best.pressAt = tt; G.held.set(src, best); }
 }
 function release(src, ts) {
@@ -1555,7 +1686,7 @@ function liveTick() {
   for (const a of G.attacks) {
     if (a.b > v) break;
     if (!a.j && v > a.b + windowBeats(a.b)) {
-      a.j = 'M'; G.stats.miss++; breakStreak(); G.ouch = G.v; pop('Miss', C.miss); tally(a, false); loseHalf();
+      a.j = 'M'; G.stats.miss++; breakStreak(); G.ouch = G.v; pop('Miss', C.miss); tally(a, false); chaseHit('M'); loseHalf();
       if (G.over) return;
     }
   }
@@ -1572,7 +1703,7 @@ function liveTick() {
 function demoTick() {
   for (const a of G.attacks) {
     if (a.b > G.v) break;
-    if (!a.j) { a.j = 'P'; a.pressAt = a.b; a.relAt = a.b + a.len * .95; a.h = 'held'; pop('Perfect', C.perfect); }
+    if (!a.j) { a.j = 'P'; a.pressAt = a.b; a.relAt = a.b + a.len * .95; a.h = 'held'; pop('Perfect', C.perfect); chaseHit('P'); }
   }
 }
 function levelTick() {
@@ -1692,9 +1823,9 @@ function endGame(byChoice) {
   const s = G.stats, L = levelOf(G.v);
   const run = {
     score: G.score, hits: s.hits, acc: s.attacks ? Math.round(100 * s.hits / s.attacks) : 0, level: L + 1, bpm: G.topBpm,
-    diff: G.diff, style: G.style, clef: G.style === 'rhythm' ? 'none' : G.clef, practice: G.mode === 'practice' || !!G.custom, custom: !!G.custom, wasGuest: !getProfile(),
+    diff: G.diff, style: G.style, clef: rhythmView() ? 'none' : G.clef, instrument: isLive() ? G.inst.id : '', practice: G.mode === 'practice' || !!G.custom, custom: !!G.custom, wasGuest: !getProfile(),
   };
-  const bk = bestKey(run), prev = store.get(bk, 0), isBest = !run.practice && run.score > prev && run.score > 0;
+  const bk = bestKey(run), prev = bestOf(run), isBest = !run.practice && run.score > prev && run.score > 0;
   if (isBest) store.set(bk, run.score);
   $('res-badge').hidden = !isBest;
   $('res-title').textContent = run.practice ? 'Practice report' : 'Run report';
@@ -1702,12 +1833,12 @@ function endGame(byChoice) {
   $('res-acc').textContent = run.acc + '%';
   $('res-streak').textContent = G.bestStreak;
   $('res-level').textContent = `${run.level} · ${hoodOf(L)}`;
+  $('res-caught').textContent = G.chase ? `${G.chase.caught}${G.chase.bonus ? ` · +${G.chase.bonus.toLocaleString()}` : ''}` : '0';
   $('res-bpm').textContent = run.bpm + ' BPM';
   $('res-tendency').innerHTML = tendencyText(s.offsets);
   renderTrouble();
   $('results').hidden = false;
   lastRun = run.practice || (run.style === 'live' && !LIVE_BOARD) ? null : run;
-  if (run.style === 'live' && !LIVE_BOARD && !run.practice) $('res-tendency').innerHTML += ' <span class="dim">Live scores join the leaderboard once it is updated for instruments.</span>';
   syncSaveBox(true);
   logRun(run);
   const title = byChoice ? (run.practice ? 'Practice done' : 'Run complete') : 'Lights out';
@@ -1736,7 +1867,8 @@ function renderTrouble() {
   lastDrill = { tokens, ps: pitches.map(([nm]) => s.pitchPos[nm]).filter(p => p != null), ties: cats.some(([c]) => c === 'tie') };
   $('res-drill').disabled = !tokens.size && !lastDrill.ps.length && !lastDrill.ties;
 }
-const bestKey = r => `rooftop:best:${r.diff}:${r.style}:${r.style === 'rhythm' ? 'none' : r.clef}`;
+const bestKey = r => r.style === 'live' ? `rooftop:best:${r.diff}:live:${r.instrument || (r === settings ? settings.instrument : '') || instNow().id}` : `rooftop:best:${r.diff}:${r.style}:${r.style === 'rhythm' ? 'none' : r.clef}`;
+const bestOf = r => { const v = store.get(bestKey(r), null); return v != null ? v : r.style === 'live' ? store.get(`rooftop:best:${r.diff}:live:${r.clef === 'none' ? 'treble' : r.clef || 'treble'}`, 0) : 0; };
 
 /* ---------- answer pad and hints ---------- */
 function syncPad() {
@@ -1847,7 +1979,7 @@ const FIREBASE = {
   appId: '1:956677028482:web:c3ec72a279e61b6f6c929b',
 };
 const SCORES = 'sight_scores';
-const LIVE_BOARD = false;   // turn on once the shared Firestore rules accept style 'live' and an instrument
+const LIVE_BOARD = true;    // the shared Firestore rules accept style 'live' and an instrument (published 2026-10-05)
 let fbP = null;
 function fb() {
   const SDK = 'https://www.gstatic.com/firebasejs/10.12.2/';
@@ -1931,14 +2063,22 @@ function renderScope() {
 }
 function boardFilter() {
   const f = $('board-filters'), v = n => (f.querySelector(`input[name="${n}"]:checked`) || {}).value;
-  return { diff: v('bdiff'), style: v('bstyle'), clef: v('bclef') };
+  const style = v('bstyle');
+  $('binst-set').hidden = style !== 'live'; $('bclef-set').hidden = style === 'live';
+  return { diff: v('bdiff'), style, clef: style === 'live' ? 'all' : v('bclef'), inst: style === 'live' ? $('binst').value : 'all' };
 }
 function setBoardFilter(r) {
-  $('bdiff-' + r.diff).checked = true; $('bstyle-' + r.style).checked = true;
-  $('bclef-' + (r.style === 'rhythm' || r.clef === 'none' ? 'all' : r.clef)).checked = true;
+  const style = r.style === 'keys' ? 'all' : r.style;
+  $('bdiff-' + r.diff).checked = true; $('bstyle-' + style).checked = true;
+  $('bclef-' + (style !== 'midi' || !['treble', 'bass'].includes(r.clef) ? 'all' : r.clef)).checked = true;
+  $('binst').value = style === 'live' && (r.instrument || r.inst) && INSTR[r.instrument || r.inst] ? (r.instrument || r.inst) : 'all';
+}
+// a Live board can be narrowed to one instrument
+function buildBoardInst() {
+  $('binst').innerHTML = '<option value="all">All instruments</option>' + LIVE_GROUPS.map(([title, , list]) => `<optgroup label="${title}">${list.map(([id, name]) => `<option value="${id}">${name}</option>`).join('')}</optgroup>`).join('');
 }
 function boardRows(f, rows = boardAll) {
-  return rows.filter(r => typeof r.score === 'number' && (f.diff === 'all' || r.diff === f.diff) && (f.style === 'all' || r.style === f.style) && (f.clef === 'all' || r.clef === f.clef))
+  return rows.filter(r => typeof r.score === 'number' && (f.diff === 'all' || r.diff === f.diff) && (f.style === 'all' || r.style === f.style) && (f.clef === 'all' || r.clef === f.clef) && (!f.inst || f.inst === 'all' || r.instrument === f.inst))
     .sort((a, b) => b.score - a.score || (b.acc || 0) - (a.acc || 0) || String(a.at).localeCompare(String(b.at)));
 }
 function renderBoard() {
@@ -1950,7 +2090,7 @@ function renderBoard() {
     return;
   }
   const f = boardFilter(), rows = boardRows(f), top = rows.slice(0, 25);
-  const parts = [f.diff === 'all' ? 'every difficulty' : DIFFS[f.diff].title, f.style === 'all' ? 'every play style' : STYLE_TITLE[f.style], f.clef === 'all' ? 'every clef' : CLEF_TITLE[f.clef]];
+  const parts = [f.diff === 'all' ? 'every difficulty' : DIFFS[f.diff].title, f.style === 'all' ? 'every play style' : STYLE_TITLE[f.style], f.style === 'live' ? (f.inst !== 'all' && INSTR[f.inst] ? INSTR[f.inst].name : 'every instrument') : f.clef === 'all' ? 'every clef' : CLEF_TITLE[f.clef]];
   sum.innerHTML = '';
   const b = document.createElement('b'); b.textContent = rows.length ? `Top ${top.length} of ${rows.length}` : 'No scores yet';
   sum.append(b, ' · ' + parts.join(' · '));
@@ -1964,7 +2104,7 @@ function renderBoard() {
     const who = document.createElement('span'); who.className = 'who';
     const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = r.name || 'Player';
     const tags = document.createElement('span'); tags.className = 'tags';
-    tags.textContent = [DIFFS[r.diff] ? DIFFS[r.diff].title : '', STYLE_TITLE[r.style] || '', CLEF_TITLE[r.clef] || ''].filter(Boolean).join(' · ');
+    tags.textContent = [DIFFS[r.diff] ? DIFFS[r.diff].title : '', STYLE_TITLE[r.style] || '', r.instrument && INSTR[r.instrument] ? INSTR[r.instrument].name : CLEF_TITLE[r.clef] || ''].filter(Boolean).join(' · ');
     who.append(nm, tags);
     const det = document.createElement('span'); det.className = 'detail';
     const when = r.at ? new Date(r.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
@@ -2001,15 +2141,16 @@ async function saveRun() {
     const { fs, db } = await fb();
     const r = lastRun;
     const data = { name: displayName(p), score: r.score, hits: r.hits, acc: r.acc, level: r.level, bpm: r.bpm, diff: r.diff, style: r.style, clef: r.clef, created_at: fs.serverTimestamp() };
+    if (r.instrument) data.instrument = r.instrument;
     if (p.classCode) data.class_code = p.classCode;
     const ref = await wait(fs.addDoc(fs.collection(db, SCORES), data));
     savedRunId = ref.id;
     $('save-who').textContent = `Posted as ${displayName(p)}${p.classCode ? ' to ' + p.className + ' and the World board' : ' to the World board'}.`;
-    const f = { diff: r.diff, style: r.style, clef: r.clef };
+    const f = { diff: r.diff, style: r.style, clef: r.clef, inst: r.instrument || 'all' };
     const [world, cls] = await Promise.all([fetchRows('world'), p.classCode ? fetchRows('class') : null]);
     const w = boardRows(f, world).findIndex(x => x.id === ref.id), c = cls ? boardRows(f, cls).findIndex(x => x.id === ref.id) : -1;
     const bits = [c >= 0 ? `#${c + 1} in ${p.className}` : '', w >= 0 ? `#${w + 1} in the world` : ''].filter(Boolean);
-    msg.textContent = `Saved${bits.length ? `. You're ${bits.join(' · ')}` : ''} on the ${DIFFS[r.diff].title} · ${STYLE_TITLE[r.style]}${r.clef !== 'none' ? ' · ' + CLEF_TITLE[r.clef] : ''} board.`;
+    msg.textContent = `Saved${bits.length ? `. You're ${bits.join(' · ')}` : ''} on the ${DIFFS[r.diff].title} · ${STYLE_TITLE[r.style]}${r.instrument && INSTR[r.instrument] ? ' · ' + INSTR[r.instrument].name : r.clef !== 'none' ? ' · ' + CLEF_TITLE[r.clef] : ''} board.`;
     msg.className = 'msg ok';
   } catch {
     $('save-btn').disabled = false; $('save-btn').hidden = false;
@@ -2018,7 +2159,7 @@ async function saveRun() {
   saving = false;
 }
 function openBoard(run) {
-  setBoardFilter(run || { diff: settings.diff, style: settings.style, clef: settings.clef });
+  setBoardFilter(run || { diff: settings.diff, style: settings.style, clef: settings.clef, instrument: settings.style === 'live' ? settings.instrument : '' });
   const p = getProfile(); boardScope = p && p.classCode ? 'class' : 'world';
   goTo('board', loadBoard);
 }
@@ -2527,19 +2668,25 @@ const liveVoice = () => isLive() && G.inst && G.inst.voice;
 /* ---------- the listening engine: level, pitch (YIN) and note starts ---------- */
 const MIC = { on: false, stream: null, src: null, an: null, buf: null, timer: 0, inst: null, sounding: null, cand: null, candN: 0, candAt: 0, quiet: 0, quietAt: 0, lastHit: 0, level: 0, heard: null, cents: 0, prevRms: 0, err: '' };
 const micGate = () => Math.pow(10, (-28 - .42 * settings.liveSens) / 20);    // sensitivity 0–100 → gate from −28 dB to −70 dB
-async function micStart() {
-  if (MIC.on) return true;
+function micStart() {
+  if (MIC.on) return Promise.resolve(true);
+  if (MIC.starting) return MIC.starting;
+  MIC.starting = micOpen().finally(() => { MIC.starting = null; });
+  return MIC.starting;
+}
+async function micOpen() {
   ensureAudio();
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { MIC.err = 'This browser has no microphone access. Use Chrome or Edge.'; syncMicUI(); return false; }
   try {
-    MIC.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+    // without headphones, the browser's echo cancelling removes the game's own clicks and sounds from what the mic hears
+    MIC.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: !settings.liveHeadphones, noiseSuppression: false, autoGainControl: false } });
   } catch (e) { MIC.err = e && e.name === 'NotAllowedError' ? 'The microphone is blocked. Click the icon left of the web address and allow the microphone, then try again.' : "Couldn't open the microphone. Check that one is plugged in."; syncMicUI(); return false; }
   MIC.src = actx.createMediaStreamSource(MIC.stream);
   MIC.an = actx.createAnalyser(); MIC.an.smoothingTimeConstant = 0;
   MIC.src.connect(MIC.an);
   micConfig();
   MIC.on = true; MIC.err = '';
-  MIC.timer = setInterval(micTick, 14);
+  clearInterval(MIC.timer); MIC.timer = setInterval(micTick, 14);
   syncMicUI();
   return true;
 }
@@ -2581,40 +2728,100 @@ function micTick() {
   const rms = Math.sqrt(sum / MIC.buf.length), gate = micGate();
   MIC.level = Math.min(1, rms / (gate * 8));
   const inst = MIC.inst || instNow();
+  // the metronome clicks (and the game's own sounds) can leak from the speakers; for a moment after each click, don't start notes
+  const nearClick = !settings.liveHeadphones && (!!(G.clickTimes && G.clickTimes.some(t => now - t > -15 && now - t < 90)) || now < (MIC.muteUntil || 0));
   if (inst.perc) {
     // snare: a sudden jump in level is a hit
     if (TUNE.on) { tuneTick(rms, null); MIC.prevRms = rms; $('t-meter').style.width = Math.round(Math.min(1, rms / (gate * 8)) * 100) + '%'; return; }
-    if (rms > gate * 1.5 && rms > MIC.prevRms * 2.2 && now - MIC.lastHit > 90) { MIC.lastHit = now; MIC.heard = 'HIT'; micEvent('on', null, at); micEvent('off', null, at + 1); }
-    MIC.prevRms = rms * .6 + MIC.prevRms * .4; syncMicMeter(); return;
+    // during the count-in there's nothing to hit, so whatever the mic hears on a click is the click leaking: remember how loud
+    if (nearClick && G.t < 0 && !G.demo) MIC.leak = Math.max(MIC.leak || 0, rms);
+    if (nearClick) MIC.winPeak = Math.max(MIC.winPeak || 0, rms); else if (!MIC.pendHit) MIC.winPeak = 0;
+    if (rms > gate * 1.5 && rms > MIC.prevRms * 2.2 && now - MIC.lastHit > 90 && !MIC.pendHit) {
+      if (nearClick) { MIC.pendHit = at; syncMicMeter(); return; }          // on a click: decide when the click is over
+      MIC.lastHit = now; MIC.heard = 'HIT'; micEvent('on', null, at); micEvent('off', null, at + 1);
+    } else if (MIC.pendHit && !nearClick) {
+      // a real hit is much louder than a leaked click (or the click is silent with headphones)
+      if (MIC.winPeak > Math.max(gate * 1.5, (MIC.leak || 0) * 1.8)) { MIC.lastHit = now; MIC.heard = 'HIT'; micEvent('on', null, MIC.pendHit); micEvent('off', null, MIC.pendHit + 1); }
+      MIC.pendHit = 0; MIC.winPeak = 0;
+    }
+    if (!MIC.pendHit) MIC.prevRms = rms * .6 + MIC.prevRms * .4;
+    syncMicMeter(); return;
   }
-  let cand = null;
-  if (rms > gate || (TUNE.on && rms > 1e-4)) {          // while tuning, listen below the gate too
+  // pitch, smoothed over the last three frames so one glitchy frame can't start or split a note
+  let mf = null;
+  if (rms > gate * (MIC.sounding != null ? .7 : 1) || (TUNE.on && rms > 1e-4)) {     // a little hysteresis: a held note fades below the gate before it ends
     const { minHz, maxHz } = liveHz(inst), r = yin(MIC.buf, actx.sampleRate, minHz, maxHz);
-    if (r && r.clarity > .75) { const mf = 69 + 12 * Math.log2(r.hz / 440) - (MIC.tune || 0) / 100; cand = Math.round(mf); MIC.cents = Math.round((mf - cand) * 100); MIC.mf = mf + (MIC.tune || 0) / 100; }
+    if (r && r.clarity > .72) mf = 69 + 12 * Math.log2(r.hz / 440) - (MIC.tune || 0) / 100;
   }
-  if (TUNE.on) { tuneTick(rms, cand == null ? null : MIC.mf); MIC.level = Math.min(1, rms / (gate * 8)); $('t-meter').style.width = Math.round(MIC.level * 100) + '%'; return; }
-  // the metronome's own clicks (D6 and A6) can leak into the mic; ignore them right after a click
-  if (cand != null && (cand === 86 || cand === 93) && G.clickTimes && G.clickTimes.some(t => Math.abs(now - t) < 110)) cand = null;
-  if (cand != null) {
-    MIC.quiet = 0;
-    if (cand === MIC.cand) MIC.candN++; else { MIC.cand = cand; MIC.candN = 1; MIC.candAt = at; }
-    MIC.heard = cand;
-    if (MIC.sounding == null && MIC.candN >= 3) micNoteOn(cand, MIC.candAt);
-    else if (MIC.sounding != null && cand !== MIC.sounding && MIC.candN >= 4) { micNoteOff(MIC.candAt); micNoteOn(cand, MIC.candAt); }   // a slur to a new note
+  MIC.hist = (MIC.hist || []).concat([mf]).slice(-3);
+  const got = MIC.hist.filter(x => x != null);
+  const smooth = got.length >= 2 ? got.slice().sort((a, b) => a - b)[got.length >> 1] : mf;
+  if (mf != null) { MIC.cents = Math.round((smooth - Math.round(smooth)) * 100); MIC.mf = smooth + (MIC.tune || 0) / 100; }
+  if (TUNE.on) { tuneTick(rms, mf == null ? null : MIC.mf); $('t-meter').style.width = Math.round(MIC.level * 100) + '%'; return; }
+
+  if (MIC.sounding == null) {
+    // waiting for a note: three steady frames in a row (within a little over half a semitone of each other) start one
+    if (mf != null) {
+      if (MIC.cand != null && Math.abs(smooth - MIC.cand) <= .6) { MIC.candN++; MIC.cand = MIC.cand * .6 + smooth * .4; }
+      else { MIC.cand = smooth; MIC.candN = 1; MIC.candAt = at; }
+      // a leaked click is gone by the end of its window; a real note is still sounding, and starts at its true time
+      if (MIC.candN >= 3 && !nearClick) { MIC.center = MIC.cand; MIC.peak = rms; MIC.dip = 0; micNoteOn(MIC.center, MIC.candAt); }
+    } else { MIC.cand = null; MIC.candN = 0; }
+    MIC.heard = mf == null ? null : Math.round(smooth);
   } else {
-    if (!MIC.quiet) MIC.quietAt = at;
-    MIC.quiet++; MIC.cand = null; MIC.candN = 0;
-    if (MIC.quiet >= 3) { MIC.heard = null; if (MIC.sounding != null) micNoteOff(MIC.quietAt); }
+    // a note is sounding: vibrato, drift and octave slips stay the same note; only a steady new pitch is a slur
+    const d = mf == null ? null : smooth - MIC.center, dOct = d == null ? null : d - 12 * Math.round(d / 12);
+    if (mf == null) {
+      if (!MIC.quiet) MIC.quietAt = at;
+      MIC.quiet++; MIC.away = 0;
+      if (MIC.quiet >= 5) { micNoteOff(MIC.quietAt); MIC.heard = null; MIC.cand = null; MIC.candN = 0; }
+    } else {
+      MIC.quiet = 0;
+      if (!MIC.dip) MIC.peak = Math.max(rms, MIC.peak * .97);
+      if (Math.abs(d) <= .8 || (Math.abs(dOct) <= .5 && Math.abs(d) > 6)) {
+        MIC.away = 0;
+        if (Math.abs(d) <= .8) MIC.center = MIC.center * .9 + smooth * .1;           // follow slow drift
+        // the same pitch played again (tongued or a new syllable): the level dips, then comes back
+        if (!MIC.dip && rms < MIC.peak * .35) { MIC.dip = 1; MIC.dipAt = at; MIC.trough = rms; }
+        else if (MIC.dip) {
+          MIC.trough = Math.min(MIC.trough, rms);
+          if (rms > MIC.peak * .65 && rms > MIC.trough * 2.5 && !nearClick && at - MIC.lastOn >= 110) { micNoteOff(MIC.dipAt); MIC.center = smooth; MIC.peak = rms; micNoteOn(MIC.center, at); }
+        }
+      } else {
+        if (!MIC.away) { MIC.awayAt = at; MIC.awayMf = smooth; }
+        MIC.away++;
+        if (MIC.away >= 4 && Math.abs(smooth - MIC.awayMf) <= .6 && MIC.awayAt - (MIC.lastOn || 0) >= 110) { micNoteOff(MIC.awayAt); MIC.center = smooth; MIC.peak = rms; MIC.dip = 0; micNoteOn(MIC.center, MIC.awayAt); }
+        else if (MIC.away >= 4) { MIC.away = 0; }
+      }
+      MIC.heard = Math.round(MIC.center);
+    }
   }
   syncMicMeter();
 }
-function micNoteOn(concert, at) { MIC.sounding = concert; micEvent('on', concert, at); }
+function micNoteOn(mf, at) {
+  if (MIC.lastOn && at - MIC.lastOn < 110) { MIC.cand = null; MIC.candN = 0; return; }   // one note heard twice: ignore the echo, start fresh
+  MIC.lastOn = at; MIC.sounding = mf; MIC.quiet = 0; MIC.away = 0; MIC.dip = 0; micEvent('on', mf, at);
+}
 function micNoteOff(at) { const c = MIC.sounding; MIC.sounding = null; micEvent('off', c, at); }
-function micEvent(kind, concert, at) {
+// the pitch the mic heard, snapped to the note that's due if it's within about half a semitone
+// (any octave for voices), so a slightly flat or sharp note still counts as that note
+function snapLive(mf, at) {
+  if (mf == null) return null;
+  const tt = beatAt(at - (liveLatency || 0)), wb = windowBeats(tt);
+  let best = null;
+  for (const a of G.attacks) { if (a.b > tt + wb) break; if (a.j || Math.abs(tt - a.b) > wb) continue; if (!best || Math.abs(tt - a.b) < Math.abs(tt - best.b)) best = a; }
+  const writtenMf = mf - G.inst.trans;
+  if (best) {
+    let d = writtenMf - best.midi;
+    if (G.inst.voice) d -= 12 * Math.round(d / 12);
+    if (Math.abs(d) <= .62) return best.midi;
+  }
+  return Math.round(writtenMf);
+}
+function micEvent(kind, mf, at) {
   if (cal.on) { if (kind === 'on') calTap(at); return; }
   if (view() !== 'game' || !isLive()) return;
-  const written = concert == null ? null : concert - G.inst.trans;
-  if (kind === 'on') press('mic', written, at); else release('mic', at);
+  if (kind === 'on') press('mic', G.inst.perc ? null : snapLive(mf, at), at); else release('mic', at);
 }
 // what the student sees: the written note they played, how far off pitch, and the level
 function syncMicMeter() {
@@ -2661,34 +2868,67 @@ const TUNE_NOTE = { violin: 69, viola: 69, cello: 57, 'string-bass': 45, guitar:
 const tuneWritten = inst => TUNE_NOTE[inst.id] ?? inst.easy[0];
 const TUNE = { on: false, phase: '', t0: 0, noise: [], play: [], cents: [], hits: [], then: null, done: {} };
 const tunedFor = inst => TUNE.done[inst.id] != null;
+// the reference pitch, played softly at concert pitch; the tuner stops listening while it sounds so it doesn't hear itself
+function playTuneNote(inst) {
+  ensureAudio(); if (!actx) return 0;
+  let m = tuneWritten(inst) + inst.trans; while (midiFreq(m) < 110) m += 12;        // the tuner accepts any octave, so lift tuba and bass notes into speaker range
+  const f = midiFreq(m), t0 = actx.currentTime + .05, dur = 1.6;
+  const v = actx.createGain(), a = actx.createOscillator(), b = actx.createOscillator(), bg = actx.createGain();
+  a.type = 'triangle'; a.frequency.value = f; b.type = 'sine'; b.frequency.value = f * 2; bg.gain.value = .2;
+  v.gain.setValueAtTime(0, t0); v.gain.linearRampToValueAtTime(.16, t0 + .04); v.gain.setValueAtTime(.16, t0 + dur - .25); v.gain.linearRampToValueAtTime(0, t0 + dur);
+  a.connect(v); b.connect(bg).connect(v); v.connect(actx.destination);
+  a.start(t0); b.start(t0); a.stop(t0 + dur + .05); b.stop(t0 + dur + .05);
+  TUNE.muteUntil = performance.now() + (dur + .35) * 1000;
+  return dur * 1000 + 350;
+}
 function openTune(then) {
   const inst = instNow(); TUNE.then = then || null; MIC.inst = inst;
   const w = tuneWritten(inst), flat = inst.sig < 0, wn = nameOf(spellMidi(w, flat).d, spellMidi(w, flat).acc, false), cn = nameOf(spellMidi(w + inst.trans, true).d, spellMidi(w + inst.trans, true).acc, false);
   $('t-title').textContent = `Tune up · ${inst.name}`;
   $('t-help').textContent = inst.perc ? 'First stay quiet for a moment, then play three hits on your snare at your normal volume.'
-    : inst.voice ? `First stay quiet for a moment. Then sing and hold a steady ${wn} for about two seconds.`
-    : `First stay quiet for a moment. Then play and hold your tuning note for about two seconds, at your normal playing volume. Adjust your instrument until the needle sits in the green.`;
+    : inst.voice ? `First stay quiet for a moment. You'll hear a ${wn}; sing it back and hold it steady for about two seconds. Press ▶ Hear the note to hear it again.`
+    : `First stay quiet for a moment. Then play and hold your tuning note for about two seconds, at your normal playing volume. Press ▶ Hear the note to hear it. Adjust your instrument until the needle sits in the green.`;
   $('t-target').innerHTML = inst.perc ? 'Target: <b>three hits</b>' : `Tuning note: <b>${wn}</b>${inst.trans ? ` (concert ${cn})` : ''}`;
   $('t-heard').textContent = '—'; $('t-heard').classList.remove('in'); $('t-needle').style.left = '50%'; $('t-status').textContent = '';
   for (const id of ['t-s1', 't-s2', 't-s3']) $(id).className = '';
   $('t-s2').textContent = inst.perc ? 'Play three hits' : 'Play your tuning note';
   $('t-start').textContent = 'Start'; $('t-start').disabled = false; $('t-start').onclick = startTune;
+  $('t-hear').hidden = !!inst.perc; $('t-hear').onclick = () => { playTuneNote(MIC.inst || instNow()); if (TUNE.on && TUNE.phase === 'play') $('t-status').textContent = 'Listen… then match it.'; };
+  // headphones first: they keep the metronome and the game's sounds out of the microphone
+  $('t-phones').hidden = false; $('t-steps').hidden = $('t-dial').hidden = $('t-row').hidden = true;
   $('tune').hidden = false;
+  setTimeout(() => $('t-ph-yes').focus(), 30);
+}
+async function tunePhones(on) {
+  const changed = !!settings.liveHeadphones !== on;
+  settings.liveHeadphones = on; store.set('rooftop:settings', settings); $('live-phones').checked = on;
+  if (MIC.starting) await MIC.starting;
+  if (changed && MIC.on) { micStop(); MIC.inst = instNow(); await micStart(); }       // reopen the mic with or without echo cancelling
+  $('t-phones').hidden = true; $('t-steps').hidden = $('t-dial').hidden = $('t-row').hidden = false;
+  if (!on) $('t-status').innerHTML = '<span class="warn">No headphones:</span> the game will filter out its own clicks. Setting the metronome to <b>Count-in only</b> helps even more.';
   setTimeout(() => $('t-start').focus(), 30);
 }
+$('t-ph-yes').addEventListener('click', () => tunePhones(true));
+$('t-ph-no').addEventListener('click', () => tunePhones(false));
 async function startTune() {
   if (!MIC.on) { const ok = await micStart(); if (!ok) { $('t-status').textContent = MIC.err; return; } }
   micConfig();
-  Object.assign(TUNE, { on: true, phase: 'quiet', t0: performance.now(), noise: [], play: [], cents: [], hits: [] });
+  Object.assign(TUNE, { on: true, phase: 'quiet', t0: Math.max(performance.now(), TUNE.muteUntil || 0), noise: [], play: [], cents: [], hits: [] });
   $('t-start').disabled = true; $('t-s1').className = 'now'; $('t-status').textContent = 'Shh… listening to the room.';
 }
 // called from micTick with this frame's level and pitch (in fractional MIDI, concert)
 function tuneTick(rms, mf) {
   if (!TUNE.on) return;
   const inst = MIC.inst || instNow(), now = performance.now();
+  if (TUNE.muteUntil && now < TUNE.muteUntil) return;            // the reference note is playing
   if (TUNE.phase === 'quiet') {
     TUNE.noise.push(rms);
-    if (now - TUNE.t0 > 1500) { TUNE.phase = 'play'; TUNE.t0 = now; $('t-s1').className = 'done'; $('t-s2').className = 'now'; $('t-status').textContent = inst.perc ? 'Now play three hits.' : 'Now play and hold your tuning note.'; }
+    if (now - TUNE.t0 > 1500 && TUNE.noise.length >= 60) {
+      TUNE.phase = 'play'; TUNE.t0 = now; $('t-s1').className = 'done'; $('t-s2').className = 'now';
+      // singers hear their starting pitch first; instruments can press Hear the note any time
+      if (inst.voice) { playTuneNote(inst); $('t-status').textContent = 'Listen to the note… then sing it back and hold it.'; }
+      else $('t-status').textContent = inst.perc ? 'Now play three hits.' : 'Now play and hold your tuning note. Press ▶ Hear the note if you want to hear it first.';
+    }
     return;
   }
   const noise = median(TUNE.noise), floor = Math.max(noise * 3, 1e-4);
@@ -2736,6 +2976,10 @@ function syncTuneLine() {
 $('tune-btn').addEventListener('click', () => { MIC.inst = instNow(); openTune(null); });
 
 $('mic-btn').addEventListener('click', () => { if (MIC.on) micStop(); else { MIC.inst = instNow(); micStart(); } });
+$('live-phones').addEventListener('change', e => {
+  settings.liveHeadphones = e.target.checked; store.set('rooftop:settings', settings);
+  (async () => { const was = MIC.on || !!MIC.starting; if (MIC.starting) await MIC.starting; if (was) { micStop(); MIC.inst = instNow(); await micStart(); } })();   // reopen the mic with or without echo cancelling
+});
 $('live-sens').addEventListener('input', e => { settings.liveSens = +e.target.value; $('live-sens-out').textContent = settings.liveSens; store.set('rooftop:settings', settings); });
 
 /* ---------- MIDI keyboard input (Web MIDI: note-on and note-off) ---------- */
@@ -2834,9 +3078,9 @@ function refreshSetup() {
   $('practice-row').hidden = settings.mode !== 'practice';
   $('clef-set').hidden = settings.style === 'rhythm' || settings.style === 'live';
   $('live-set').hidden = settings.style !== 'live';
-  $('live-sens').value = settings.liveSens; $('live-sens-out').textContent = settings.liveSens;
+  $('live-sens').value = settings.liveSens; $('live-sens-out').textContent = settings.liveSens; $('live-phones').checked = !!settings.liveHeadphones;
   if (settings.style === 'live') syncInstUI(); else if (MIC.on) micStop();
-  $('setup-best').textContent = store.get(bestKey(settings), 0).toLocaleString();
+  $('setup-best').textContent = bestOf(settings).toLocaleString();
   $('start-btn').textContent = settings.mode === 'practice' ? 'Start practice' : 'Start running';
   $('start-btn').disabled = settings.customOn && !customOK();
   syncStyleNote(); syncCalib();
@@ -2866,7 +3110,7 @@ $('loop-btn').addEventListener('click', () => { setLoop(!G.loop); $('loop-btn').
 $('res-again').addEventListener('click', () => startGame(lastConfig));
 $('res-drill').addEventListener('click', () => { if (lastDrill) { ensureAudio(); startGame({ ...lastConfig, mode: 'practice', practiceBpm: DIFFS[lastConfig.diff].bpm, drill: lastDrill }); } });
 $('res-home').addEventListener('click', quitToSetup);
-$('res-board').addEventListener('click', () => openBoard(lastRun || { diff: G.diff, style: G.style, clef: G.style === 'rhythm' ? 'none' : G.clef }));
+$('res-board').addEventListener('click', () => openBoard(lastRun || { diff: G.diff, style: G.style, clef: rhythmView() ? 'none' : G.clef, instrument: isLive() ? G.inst.id : '' }));
 $('board-btn').addEventListener('click', () => { if (view() === 'game' && G.running && !G.over) pause(true); openBoard(null); });
 $('board-back').addEventListener('click', () => { goTo('splash', startDemo); refreshSetup(); });
 $('board-filters').addEventListener('change', renderBoard);
@@ -2993,7 +3237,7 @@ function boot() {
   if (!['treble', 'bass'].includes(settings.clef)) settings.clef = 'treble';
   if (!Array.isArray(settings.custom)) settings.custom = [];
   settings.custom = settings.custom.filter(tk => TOKENS[tk]);
-  buildLetters(); buildPicker(); buildInstPicker(); syncPicker(); refreshSetup(); syncSound(); syncMicUI(); syncTuneLine();
+  buildLetters(); buildPicker(); buildInstPicker(); buildBoardInst(); syncPicker(); refreshSetup(); syncSound(); syncMicUI(); syncTuneLine();
   document.fonts?.load(`40px "Noto Music"`, '\u{1D11E}\u{1D122}♯♭♮').catch(() => {});
   startDemo();
   requestAnimationFrame(frame);
