@@ -651,12 +651,28 @@ function newRun(o) {
 }
 const mult = () => Math.min(4, 1 + Math.floor(G.streak / 8));
 const needsHold = () => G.style === 'rhythm' || (G.style === 'midi' && !!DIFFS[G.diff].hold);
-const levelOf = b => b < 0 ? 0 : Math.floor(b / LEVEL_BEATS);
+/* Every level after the first opens with a two-bar count-in at the new tempo: "1 – 2" on beats 1 and 3, then "1 2 3 4".
+   Practice keeps one tempo, so it has no count-in bars. */
+const countBars = () => G.mode === 'practice' ? 0 : 2;
+const firstBar = L => L <= 0 ? 0 : LEVEL_BARS + (L - 1) * (LEVEL_BARS + countBars());
+const levelOfBar = k => k < LEVEL_BARS ? 0 : 1 + Math.floor((k - LEVEL_BARS) / (LEVEL_BARS + countBars()));
+const levelOf = b => b < 0 ? 0 : levelOfBar(Math.floor(b / 4));
+const countIdx = k => { const L = levelOfBar(k), i = k - firstBar(L); return L > 0 && i < countBars() ? i : -1; };
+const isCountBar = k => k >= 0 && countIdx(k) >= 0;
+const musicBarIdx = k => { const L = levelOfBar(k); return k - firstBar(L) - (L > 0 ? countBars() : 0); };
+// the count word on a count-in beat: bar one says 1 (beat 1) and 2 (beat 3), bar two says 1 2 3 4; null on a silent beat
+function countWord(b) {
+  const k = Math.floor(b / 4), i = countIdx(k), j = ((Math.floor(b) % 4) + 4) % 4;
+  if (k < 0 || i < 0) return null;
+  return i === 0 ? (j === 0 ? 1 : j === 2 ? 2 : null) : j + 1;
+}
+const NUM_WORDS = ['ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'TEN', 'ELEVEN', 'TWELVE', 'THIRTEEN', 'FOURTEEN', 'FIFTEEN', 'SIXTEEN', 'SEVENTEEN', 'EIGHTEEN', 'NINETEEN', 'TWENTY'];
+const levelWord = n => NUM_WORDS[n] || String(n);
 const hoodOf = L => HOODS[L % HOODS.length];
 
 /* ---------- time: beats ↔ ms, with the tempo stepping up at each level ---------- */
 function bpmAt(b) { return G.mode === 'practice' ? G.practiceBpm : Math.min(MAX_BPM, G.startBpm + STEP_BPM * levelOf(b)); }
-const nextBoundary = b => b < 0 ? 0 : (Math.floor(b / LEVEL_BEATS) + 1) * LEVEL_BEATS;
+const nextBoundary = b => b < 0 ? 0 : firstBar(levelOf(b) + 1) * 4;
 function timeOf(b) {
   let x = G.aB, m = G.aMs;
   if (b <= x) return m - (x - b) * 60000 / bpmAt(x);
@@ -676,8 +692,8 @@ function beatAt(ms) {
 function reanchor(b, ms) { G.aB = b; G.aMs = ms; G.nextClick = null; }
 
 /* ---------- writing the music, one bar at a time ---------- */
-const isKeyChangeBar = k => G.diff === 'expert' && G.style !== 'rhythm' && k % LEVEL_BARS === 0 && Math.floor(k / LEVEL_BARS) >= 2;
-const keyedBar = k => G.diff === 'expert' && G.style !== 'rhythm' && Math.floor(k / LEVEL_BARS) >= 2;
+const isKeyChangeBar = k => G.diff === 'expert' && G.style !== 'rhythm' && levelOfBar(k) >= 2 && k === firstBar(levelOfBar(k));
+const keyedBar = k => G.diff === 'expert' && G.style !== 'rhythm' && levelOfBar(k) >= 2;
 // Expert deals keys from a shuffled deck: every key once before any repeats, never the same key twice in a row
 function levelKey(L) {
   if (G.levelKeys[L]) return G.levelKeys[L];
@@ -690,7 +706,7 @@ function levelKey(L) {
   }
   return (G.levelKeys[L] = G.keyDeck.pop());
 }
-const barKey = k => keyedBar(k) ? levelKey(Math.floor(k / LEVEL_BARS)) : 'C';
+const barKey = k => keyedBar(k) ? levelKey(levelOfBar(k)) : 'C';
 const maxSig = () => G.diff === 'expert' && G.style !== 'rhythm' ? 5 : 0;
 const rangeOf = () => DIFFS[G.diff].range[G.clef];
 
@@ -703,7 +719,7 @@ function pick(weights) {
 // From Level 7, a few rhythms from the next difficulty up start to appear: rarely at first, a little more each level
 const NEXT_DIFF = { easy: 'medium', medium: 'hard', hard: 'expert' }, PREVIEW_FROM = 6;
 function barWeights(k) {
-  const D = DIFFS[G.diff], w = { ...D.w }, L = Math.floor(k / LEVEL_BARS), nx = DIFFS[NEXT_DIFF[G.diff]];
+  const D = DIFFS[G.diff], w = { ...D.w }, L = levelOfBar(k), nx = DIFFS[NEXT_DIFF[G.diff]];
   if (nx && L >= PREVIEW_FROM) {
     const share = Math.min(.5, .15 + .07 * (L - PREVIEW_FROM));
     for (const [tk, v] of Object.entries(nx.w)) if (!(tk in w)) w[tk] = v * share;
@@ -719,7 +735,7 @@ function planBar(k, tieIn) {
       const opts = Object.entries(weights).filter(([tk]) => {
         const T = TOKENS[tk];
         if (T.len > 4 - o || (T.ok && !T.ok(o, D))) return false;
-        if ((T.rest || T.restish) && (rests >= 1 || (k === 0 && o === 0) || (tieIn && o === 0))) return false;
+        if ((T.rest || T.restish) && (rests >= 1 || ((k === 0 || isCountBar(k - 1)) && o === 0) || (tieIn && o === 0))) return false;
         if (o === 0 && tieIn && tk !== 'q' && tk !== 'h') return false;
         return true;
       }).map(([tk, w]) => [tk, boost && boost.has(tk) ? w * 3 : w]);
@@ -761,8 +777,9 @@ function pushBar(bar) {
   }
 }
 function genBar(k) {
-  const bar = { k, b: k * 4, L: Math.floor(k / LEVEL_BARS), key: barKey(k), keyChange: isKeyChangeBar(k), notes: [] };
+  const bar = { k, b: k * 4, L: levelOfBar(k), key: barKey(k), keyChange: isKeyChangeBar(k), count: countIdx(k), notes: [] };
   const tieIn = G.tieCarry; G.tieCarry = null;
+  if (bar.count >= 0) { pushBar(bar); return; }          // count-in bar: no music, just the count
   if (bar.keyChange) { bar.notes.push(makeNote(bar, 0, 4, true)); pushBar(bar); return; }
   const D = DIFFS[G.diff], key = KEY_BY_ID[bar.key], keyed = keyedBar(k), accState = {};
   const pitched = (o, d) => {
@@ -814,7 +831,7 @@ function genBar(k) {
     last = group[group.length - 1] || null; lastTk = tk;
   }
   const tieP = G.custom ? (G.custom.ties ? .25 : 0) : D.ties;
-  if (tieP && last && (lastTk === 'q' || lastTk === 'h') && !isKeyChangeBar(k + 1) && Math.random() < (G.drill && G.drill.ties ? .4 : tieP)) G.tieCarry = last;
+  if (tieP && last && (lastTk === 'q' || lastTk === 'h') && !isKeyChangeBar(k + 1) && !isCountBar(k + 1) && Math.random() < (G.drill && G.drill.ties ? .4 : tieP)) G.tieCarry = last;
   pushBar(bar);
 }
 function ensureBars(upTo) { while (G.nextBar * 4 < upTo) genBar(G.nextBar++); }
@@ -829,7 +846,7 @@ function prune() {
 function setLoop(on) {
   if (G.demo || G.mode !== 'practice' || !G.running) return;
   const k = Math.max(0, Math.floor(G.v / 4)), bar = G.bars.find(b => b.k === k);
-  if (on && (!bar || bar.keyChange)) return;
+  if (on && (!bar || bar.keyChange || bar.count >= 0)) return;
   // drop the bars that haven't reached the line yet; they're rewritten from here
   const keep = b => b.k <= k;
   G.bars = G.bars.filter(keep);
@@ -923,8 +940,11 @@ function scheduleClicks(now) {
   for (let n = 0; n < 16; n++) {
     const ms = timeOf(G.nextClick);
     if (ms > now + 150) break;
-    const counting = G.nextClick < 0 || (G.freeze != null && G.nextClick < G.freeze);
-    if ((settings.met === 'on' || counting) && ms >= now - 20) click(actx.currentTime + Math.max(0, (ms - now) / 1000), ((G.nextClick % 4) + 4) % 4 === 0);
+    const counting = G.nextClick < 0 || (G.freeze != null && G.nextClick < G.freeze), inCount = isCountBar(Math.floor(G.nextClick / 4));
+    const word = inCount ? countWord(G.nextClick) : null;
+    // count-in bars always click, whatever the metronome setting: only on the counted beats
+    const want = inCount ? word != null : settings.met === 'on' || counting;
+    if (want && ms >= now - 20) click(actx.currentTime + Math.max(0, (ms - now) / 1000), inCount ? word === 1 : ((G.nextClick % 4) + 4) % 4 === 0);
     G.nextClick++;
   }
 }
@@ -1092,6 +1112,20 @@ function drawStaff() {
     if (bar.keyChange) { ctx.globalAlpha = .95; drawKeySig(x + 1.1 * g, bar.key); ctx.globalAlpha = 1; }
   }
 }
+// count-in bars: the counted numbers sit on the staff where the notes would be, so students see them coming
+function drawCountMarks() {
+  ctx.save(); ctx.fillStyle = C.amber; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `${g * 1.5}px ${F.display}`;
+  for (const bar of G.bars) {
+    if (bar.count < 0) continue;
+    for (let j = 0; j < 4; j++) {
+      const w = countWord(bar.b + j), x = xOf(bar.b + j) + (bar.keyChange && j === 0 ? 4 * g : 0);
+      if (w == null || x < panelEnd || x > W + g) continue;
+      ctx.globalAlpha = x < PL ? Math.max(.2, (x - panelEnd) / (PL - panelEnd)) * .85 : .85;
+      ctx.fillText(String(w), x, yOf(6));
+    }
+  }
+  ctx.restore();
+}
 function drawPanel() {
   const grd = ctx.createLinearGradient(panelEnd, 0, panelEnd + 1.4 * g, 0);
   grd.addColorStop(0, C.wall); grd.addColorStop(1, 'rgba(27,23,54,0)');
@@ -1255,27 +1289,33 @@ function drawBeatCounter() {
   }
   const counting = G.t < 0 || (G.freeze != null && G.t < G.freeze);
   const bar = Math.floor(Math.max(0, G.v) / 4);
-  let label = counting ? 'Count-in: get ready' : G.mode === 'practice' ? `Bar ${bar + 1}` + (G.loop ? ` · repeating · clean runs ${G.clean}` : '') : `Bar ${bar % LEVEL_BARS + 1} of ${LEVEL_BARS}`;
+  const inCount = isCountBar(bar) && !G.demo;
+  let label = counting ? 'Count-in: get ready' : inCount ? 'Count-in: 1 – 2 – 1 2 3 4' : G.mode === 'practice' ? `Bar ${bar + 1}` + (G.loop ? ` · repeating · clean runs ${G.clean}` : '') : `Bar ${musicBarIdx(bar) + 1} of ${LEVEL_BARS}`;
   if (G.style === 'rhythm' && !G.demo) label += ` · ${chordNow().name} chord`;
   if (G.demo) label = 'Demo · press Start running';
-  ctx.font = `600 ${g * .95}px ${F.ui}`; ctx.textAlign = 'left'; ctx.fillStyle = counting ? C.amber : C.haze;
+  ctx.font = `600 ${g * .95}px ${F.ui}`; ctx.textAlign = 'left'; ctx.fillStyle = counting || inCount ? C.amber : C.haze;
   ctx.fillText(label, PL + 9.6 * g, y + g * .05);
 }
 function drawCountIn() {
   let n = null;
+  let lower = false;
   if (G.t < 0 && !G.demo) n = Math.floor(G.t) + 5;
   else if (G.freeze != null && G.t < G.freeze) n = Math.floor(G.t - (G.freeze - 4)) + 1;
+  else if (!G.demo && isCountBar(Math.floor(G.t / 4))) {
+    // between levels: hold each counted number until the next one, so "1 . 2 ." reads as half notes
+    const b0 = Math.floor(G.t), word = countWord(b0) ?? countWord(b0 - 1); n = word; lower = true;
+  }
   if (n == null || n < 1 || n > 4) return;
   const k = 1 - (((G.t % 1) + 1) % 1);
   ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.font = `${g * (4 + k * .8)}px ${F.display}`; ctx.fillStyle = n === 1 ? C.neon : C.cyan; ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 24;
-  ctx.globalAlpha = .55 + k * .45; ctx.fillText(String(n), W / 2 + 3 * g, skyBot * .42);
+  ctx.globalAlpha = .55 + k * .45; ctx.fillText(String(n), lower ? (PL + W) / 2 : W / 2 + 3 * g, skyBot * (lower ? .66 : .42));
   ctx.restore();
 }
 function drawBanner() {
   const b = G.banner; if (!b) return;
-  const age = G.v - b.at; if (age > 4 || age < 0) { if (age > 4) G.banner = null; return; }
-  ctx.save(); ctx.globalAlpha = Math.max(0, Math.min(1, age * 3, (4 - age) * 1.5)); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const dur = b.dur || 4, age = G.v - b.at; if (age > dur || age < 0) { if (age > dur) G.banner = null; return; }
+  ctx.save(); ctx.globalAlpha = Math.max(0, Math.min(1, age * 3, (dur - age) * 1.5)); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   const cx = (PL + W) / 2, cy = skyBot * .3;
   ctx.font = `${Math.min(g * 1.9, (W - PL) / (b.text.length * .7))}px ${F.display}`; ctx.fillStyle = C.neon; ctx.shadowColor = C.neon; ctx.shadowBlur = 22;
   ctx.fillText(b.text, cx, cy);
@@ -1302,7 +1342,7 @@ function drawPopups() {
 }
 function draw() {
   ctx.clearRect(0, 0, W, H);
-  drawSky(); drawBuildings(); drawStaff(); drawNotes(); drawPanel(); drawPlayLine(); drawRunner(); drawPopups(); drawBeatCounter(); drawBanner(); drawCountIn();
+  drawSky(); drawBuildings(); drawStaff(); drawCountMarks(); drawNotes(); drawPanel(); drawPlayLine(); drawRunner(); drawPopups(); drawBeatCounter(); drawBanner(); drawCountIn();
 }
 
 /* ---------- judging ---------- */
@@ -1333,7 +1373,7 @@ function press(src, pitch, ts) {
     if (!best || Math.abs(tt - a.b) < Math.abs(tt - best.b)) best = a;
   }
   if (!best) {
-    if (tt >= 0) { G.extras.push(tt); G.stats.extra++; breakStreak(); G.ouch = G.v; pop(G.style === 'rhythm' ? 'Extra tap' : 'Extra note', C.miss); }
+    if (tt >= 0 && !isCountBar(Math.floor(tt / 4))) { G.extras.push(tt); G.stats.extra++; breakStreak(); G.ouch = G.v; pop(G.style === 'rhythm' ? 'Extra tap' : 'Extra note', C.miss); }
     return;
   }
   const ms = (tt - best.b) * 60000 / bpmAt(best.b), am = Math.abs(ms);
@@ -1404,8 +1444,11 @@ function levelTick() {
   if (L > G.level) {
     G.level = L; sfx.level();
     const bpm = bpmAt(G.v);
-    if (isKeyChangeBar(L * LEVEL_BARS)) G.banner = { at: G.v, text: `KEY OF ${keyName(levelKey(L)).toUpperCase()} MAJOR`, sub: `Level ${L + 1} · ${hoodOf(L)}${G.mode === 'practice' ? '' : ' · ' + bpm + ' BPM'}` };
-    else G.banner = { at: G.v, text: `LEVEL ${L + 1} · ${hoodOf(L).toUpperCase()}`, sub: (G.mode === 'practice' ? 'New neighborhood' : `Tempo up to ${bpm} BPM`) + (G.style === 'rhythm' ? ` · new chord: ${chordFor(L).name}` : '') };
+    const bits = [G.mode === 'practice' ? hoodOf(L) : `${hoodOf(L)} · ${bpm} BPM`];
+    if (isKeyChangeBar(firstBar(L))) bits.push(`Key of ${keyName(levelKey(L))} major`);
+    if (G.style === 'rhythm') bits.push(`new chord: ${chordFor(L).name}`);
+    if (countBars()) bits.push('count: 1 – 2 – 1 2 3 4');
+    G.banner = { at: G.v, dur: countBars() ? countBars() * 4 : 4, text: `LEVEL ${levelWord(L + 1)}`, sub: bits.join(' · ') };
   }
   G.topBpm = Math.max(G.topBpm, bpmAt(Math.max(0, G.v)));
 }
