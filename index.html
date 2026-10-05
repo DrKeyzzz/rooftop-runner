@@ -871,7 +871,19 @@ function setLoop(on) {
 
 /* ---------- audio ---------- */
 let actx = null;
-function ensureAudio() { try { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); } catch {} }
+// Chrome can leave page audio "suspended" (before the first click) or "interrupted" (after sleep or a change of speakers):
+// wake it whenever it isn't running, and start a fresh one if it was closed
+function ensureAudio() {
+  try {
+    if (!actx || actx.state === 'closed') {
+      actx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+      actx.onstatechange = () => { if (actx.state !== 'running') soundHint(true); else hideSoundHint(); };
+      const buf = actx.createBuffer(1, 1, 22050), src = actx.createBufferSource();   // a silent blip unlocks output on some browsers
+      src.buffer = buf; src.connect(actx.destination); src.start(0);
+    }
+    if (actx.state !== 'running') actx.resume().catch(() => {});
+  } catch {}
+}
 function tone(f, dur = .3, type = 'triangle', vol = .15, when) {
   if (!actx || !settings.sound) return;
   const t0 = when ?? actx.currentTime, o = actx.createOscillator(), v = actx.createGain();
@@ -1515,6 +1527,7 @@ const hideOverlay = () => { $('overlay').hidden = true; };
 let lastConfig = null;
 function launch(drill) {
   ensureAudio();
+  setTimeout(() => soundHint(true), 600);   // if the browser still has the sound stopped (or Sound is off), say so
   if (latency == null && !skipCalib) { openCal(() => launch(drill)); return; }
   const cfg = drill ? { ...lastConfig, mode: 'practice', practiceBpm: DIFFS[lastConfig.diff].bpm, drill } : { style: settings.style, diff: settings.diff, clef: settings.clef, mode: settings.mode, practiceBpm: settings.practiceBpm, custom: customCfg() };
   lastConfig = { ...cfg, drill: null };
@@ -2369,12 +2382,12 @@ $('midi-btn').addEventListener('click', () => { ensureAudio(); connectMidi(); })
 // browsers only start sound after a click or key press, so wake the audio on the first one
 addEventListener('pointerdown', () => { ensureAudio(); hideSoundHint(); }); addEventListener('keydown', () => { ensureAudio(); hideSoundHint(); });
 // the keyboard's piano plays on every screen, but a browser keeps sound off until the page is clicked once, so say so
-function soundHint() {
-  if (settings.keySound === 'off') return;
+function soundHint(any) {
+  if (settings.keySound === 'off' && !any) return;
   const locked = !actx || actx.state !== 'running', muted = !settings.sound;
   if (!locked && !muted) return hideSoundHint();
   const el = $('sound-hint');
-  el.textContent = muted ? '🎹 Your keyboard is connected, but Sound is off. Press "Sound on" at the top to hear it.' : '🎹 Your keyboard is connected. Click anywhere on the page to hear it.';
+  el.textContent = muted ? '🔇 Sound is off. Press "Sound on" at the top to hear the game.' : any ? '🔈 Sound is paused by the browser. Click anywhere on the page to turn it back on.' : '🎹 Your keyboard is connected. Click anywhere on the page to hear it.';
   el.hidden = false;
 }
 function hideSoundHint() { if (actx && actx.state === 'running' && settings.sound) $('sound-hint').hidden = true; }
