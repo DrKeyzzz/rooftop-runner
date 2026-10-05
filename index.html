@@ -336,7 +336,7 @@ button.sm { font-size: 13px; padding: 5px 11px; }
 </style>
 <style>
 /* Music Theory Games home link: the same in every game, on its own row at the top left of the header */
-.mtg-home { order: -1; flex: 0 0 100%; display: flex; }
+.mtg-home { order: -1; flex: 0 0 100%; display: flex; gap: 8px; flex-wrap: wrap; }
 .mtg-home a { display: inline-flex; align-items: center; gap: 7px; width: fit-content; font: 600 13px/1 system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: .06em; color: inherit; text-decoration: none; opacity: .82; padding: 6px 12px 6px 10px; border: 1px solid color-mix(in srgb, currentColor 35%, transparent); border-radius: 999px; }
 .mtg-home a:hover, .mtg-home a:focus-visible { opacity: 1; border-color: currentColor; }
 .mtg-home svg { width: 15px; height: 15px; flex: none; }
@@ -347,7 +347,7 @@ header:has(> .mtg-home) { flex-wrap: wrap; }
 
 <div class="wrap">
   <header class="top">
-    <div class="mtg-home"><a href="https://drkeyzzz.github.io/" title="All the Music Theory Games"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 3l9 8"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg>Music Theory Games</a></div>
+    <div class="mtg-home"><a href="https://drkeyzzz.github.io/" title="All the Music Theory Games"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 3l9 8"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg>Music Theory Games</a><a href="https://drkeyzzz.github.io/report/" title="See your report: what you're doing well and what to practice next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>My Report</a></div>
     <div class="brand">
       <div class="eyebrow">Read it · play it · in time</div>
       <h1 aria-label="Rooftop Sight Reading Runner"><span class="l">Rooftop</span> <span class="l sr">Sight Reading</span> <span class="l">Runner</span></h1>
@@ -2179,8 +2179,50 @@ function readDay() {
 }
 function writeDay(d) { try { localStorage.setItem(DAY_KEY, JSON.stringify(d)); } catch {} }
 // every judged note counts once: "correct" means the right note on time. The teacher sees rhythms and letter names.
+/* ---------- Music Theory Games: shared practice history for the student report (identical in every game) ----------
+   One localStorage key per student, 'mtg_hist_v1:<first+initial>', kept with no time limit:
+   { v: 1, name, days: { 'YYYY-MM-DD': { <game>: { plays, answers, correct, ms, best, level, bpm, caught, skills: { label: [right, total] }, last } } } }
+   The report at https://drkeyzzz.github.io/report/ reads it. Guests are not recorded. */
+const MTG_HIST = (() => {
+  const prof = () => { try { if (sessionStorage.getItem('music_guest') === '1') return null; const p = JSON.parse(localStorage.getItem('rdt_profile_v1') || 'null'); return p && p.first && p.init ? p : null; } catch { return null; } };
+  const day = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  function edit(game, fn) {
+    const p = prof(); if (!p) return;
+    const k = 'mtg_hist_v1:' + (p.first + p.init).toLowerCase().replace(/[^a-z]/g, '');
+    let h = null; try { h = JSON.parse(localStorage.getItem(k) || 'null'); } catch {}
+    if (!h || !h.days) h = { v: 1, days: {} };
+    h.name = `${p.first.charAt(0).toUpperCase()}${p.first.slice(1)} ${p.init}.`; h.classCode = p.classCode || '';
+    const d = h.days[day()] || (h.days[day()] = {});
+    const g = d[game] || (d[game] = { plays: 0, answers: 0, correct: 0, ms: 0, best: 0, level: 0, skills: {}, last: 0 });
+    fn(g);
+    try { localStorage.setItem(k, JSON.stringify(h)); } catch {}
+  }
+  return {
+    // one answered note/question/rhythm: ok = right; labels = the skills it shows (e.g. ['Eighth notes', 'F4'])
+    note(game, labels, ok) {
+      edit(game, g => {
+        const now = Date.now();
+        if (g.last && now - g.last < 600000) g.ms += now - g.last;     // gaps over 10 minutes aren't practice time
+        g.last = now; g.answers++; if (ok) g.correct++;
+        for (const lab of [].concat(labels || [])) { if (!lab) continue; const s = g.skills[lab] || (g.skills[lab] = [0, 0]); s[1]++; if (ok) s[0]++; }
+      });
+    },
+    // one finished game or round
+    run(game, r) {
+      edit(game, g => {
+        g.plays++; g.best = Math.max(g.best, Math.round(r.score || 0)); g.level = Math.max(g.level, r.level || 0);
+        if (r.bpm) g.bpm = Math.max(g.bpm || 0, r.bpm);
+        if (r.caught) g.caught = (g.caught || 0) + r.caught;
+        if (r.acc != null) g.acc = Math.max(g.acc || 0, Math.round(r.acc));
+      });
+    },
+  };
+})();
+
 function logAnswer(a, ok) {
   if (G.demo) return;
+  // the student report: the rhythm, and for pitched styles the note (spelled as written)
+  MTG_HIST.note('rooftop', [CAT_TITLE[catOf(a)], rhythmView() ? null : (a.note.bar.key !== 'C' ? `${nameOf(a.d, a.acc, true)} in ${keyName(a.note.bar.key)}` : nameOf(a.d, a.acc, true)), isLive() ? `Live: ${G.inst.name}` : null], ok);
   const d = readDay(); if (!d) return;
   const now = Date.now();
   if (d.last && now - d.last <= 10 * 60000) d.ms += now - d.last;   // gaps over 10 minutes don't count as practice
@@ -2193,6 +2235,7 @@ function logAnswer(a, ok) {
   writeDay(d); scheduleSync();
 }
 function logRun(run) {
+  if (!run.practice) MTG_HIST.run('rooftop', { score: run.score, level: run.level, bpm: run.bpm, acc: run.acc, caught: G.chase ? G.chase.caught : 0 });
   const d = readDay(); if (!d) return;
   d.games++; d.best_score = Math.max(d.best_score, run.score); d.best_level = Math.max(d.best_level, run.practice ? 0 : run.level);
   d.runs.push({ s: run.score, a: run.acc, l: run.practice ? 0 : run.level, b: run.bpm, st: run.style, d: run.diff, m: run.practice ? 'practice' : 'levels', t: Date.now() });
