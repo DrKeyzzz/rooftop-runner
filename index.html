@@ -270,7 +270,7 @@ button.sm { font-size: 13px; padding: 5px 11px; }
 .rslide { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--haze); }
 .rslide input { width: 100%; accent-color: var(--neon); }
 .rmarks { grid-column: 2; position: relative; height: 16px; margin-top: -6px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--amber); }
-.rmarks span { position: absolute; left: calc(8px + (100% - 16px) * var(--at) / 18); transform: translateX(-50%); white-space: nowrap; }
+.rmarks span { position: absolute; left: calc(8px + (100% - 16px) * var(--at) / 22); transform: translateX(-50%); white-space: nowrap; }
 .rcount small { color: var(--haze); font-weight: 600; }
 .rpick label { position: relative; }
 .rpick .only { margin-left: auto; flex: none; font: 700 11px var(--ui, system-ui); letter-spacing: .08em; text-transform: uppercase; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--edge); background: none; color: var(--haze); cursor: pointer; }
@@ -505,10 +505,10 @@ header:has(> .mtg-home) { flex-wrap: wrap; }
         </div>
         <div class="rslide">
           <span>Easiest</span>
-          <input type="range" id="rslider" min="2" max="20" step="1" value="20" list="rslider-marks" aria-label="How many rhythms are in play, easiest first">
+          <input type="range" id="rslider" min="2" max="24" step="1" value="20" list="rslider-marks" aria-label="How many rhythms are in play, easiest first">
           <span>Hardest</span>
-          <datalist id="rslider-marks"><option value="4"></option><option value="6"></option><option value="14"></option><option value="20"></option></datalist>
-          <div class="rmarks" aria-hidden="true"><span style="--at:2">Easy</span><span style="--at:4">Medium</span><span style="--at:12">Hard</span><span style="--at:18">Expert</span></div>
+          <datalist id="rslider-marks"><option value="4"></option><option value="6"></option><option value="14"></option><option value="24"></option></datalist>
+          <div class="rmarks" aria-hidden="true"><span style="--at:2">Easy</span><span style="--at:4">Medium</span><span style="--at:12">Hard</span><span style="--at:22">Expert</span></div>
         </div>
         <div class="rpick" id="rpick"></div>
         <p class="adv-err" id="adv-err" role="alert"></p>
@@ -756,7 +756,7 @@ const DIFFS = {
   // Hard is what Expert used to be (October 2026: students were acing Expert)
   hard:   { title: 'Hard',   bpm: 56, range: { treble: [-3, 11], bass: [-3, 11] }, w: { q: 3, h: 1.5, w: .3, qr: .7, e2: 1.8, hr: .4, dh: .7, dq: 1, re: .7, s4: 1.2, es: 1.2, se: 1.2, ds: 1, tr: 1.2 }, hold: true, acc: true, ties: .16, chrom: .07, exact: true, sync: true, keyed: true },
   // Expert: syncopation, sixteenth–eighth–sixteenth, sixteenth-note triplets, ties inside the bar, two ledger lines, wider leaps
-  expert: { title: 'Expert', bpm: 64, range: { treble: [-5, 13], bass: [-5, 13] }, w: { q: 1.2, h: .5, w: .1, qr: .5, e2: 1, hr: .2, dh: .3, dq: .8, re: 1, s4: 1.1, es: 1.1, se: 1.1, ds: 1.1, tr: 1.1, ses: 1.6, syn: 1.5, edq: 1.1, sds: 1, t16a: .9, t16b: .9 }, hold: true, acc: true, ties: .3, inTie: .2, chrom: .16, exact: true, sync: true, keyed: true },
+  expert: { title: 'Expert', bpm: 64, range: { treble: [-5, 13], bass: [-5, 13] }, w: { q: 1.2, h: .5, w: .1, qr: .5, e2: 1, hr: .2, dh: .3, dq: .8, re: 1, s4: 1.1, es: 1.1, se: 1.1, ds: 1.1, tr: 1.1, ses: 1.6, syn: 1.5, edq: 1.1, sds: 1, t16a: .9, t16b: .9, qt: .9, rss: .9, r16: .8, er16: .8 }, hold: true, acc: true, ties: .3, inTie: .2, chrom: .16, exact: true, sync: true, keyed: true },
 };
 // each token fills part of a bar: items are [beats, isRest]
 const TOKENS = {
@@ -782,9 +782,14 @@ const TOKENS = {
   sds: { len: 1, beam: true, items: [[.25], [.75]] },                                           // sixteenth–dotted eighth (Scotch snap)
   t16a: { len: 1, beam: true, tri: [0, 1, 2], items: [[1 / 6], [1 / 6], [1 / 6], [.5]] },        // sixteenth triplet + eighth
   t16b: { len: 1, beam: true, tri: [1, 2, 3], items: [[.5], [1 / 6], [1 / 6], [1 / 6]] },        // eighth + sixteenth triplet
+  // advanced reading: quarter-note triplets (bracketed) and sixteenth rests inside the beat
+  qt:   { len: 2, ok: o => o % 2 === 0, tri: true, brk: true, items: [[2 / 3], [2 / 3], [2 / 3]] },   // quarter-note triplet over two beats
+  rss:  { len: 1, beam: true, restish: true, items: [[.5, 1], [.25], [.25]] },                       // eighth rest + two sixteenths
+  r16:  { len: 1, beam: true, restish: true, items: [[.25, 1], [.25], [.5]] },                       // sixteenth rest + sixteenth + eighth
+  er16: { len: 1, beam: true, restish: true, items: [[.5], [.25, 1], [.25]] },                       // eighth + sixteenth rest + sixteenth
 };
-const CAT_TITLE = { st: 'Sixteenth triplets', sy: 'Syncopation', e: 'Eighth notes', q: 'Quarter notes', dq: 'Dotted quarters', h: 'Half notes', dh: 'Dotted halves', w: 'Whole notes', tie: 'Tied notes', s: 'Sixteenth notes', de: 'Dotted eighths', t: 'Triplets' };
-const CAT_TOKENS = { e: ['e2', 're', 'dq', 'es', 'se', 'ses'], q: ['q'], dq: ['dq'], h: ['h'], dh: ['dh'], w: ['w'], tie: [], s: ['s4', 'es', 'se', 'ses', 'ds'], de: ['ds'], t: ['tr'], st: ['t16a', 't16b'], sy: ['syn', 'edq', 'sds'] };
+const CAT_TITLE = { qt: 'Quarter-note triplets', sr: 'Sixteenth rests', st: 'Sixteenth triplets', sy: 'Syncopation', e: 'Eighth notes', q: 'Quarter notes', dq: 'Dotted quarters', h: 'Half notes', dh: 'Dotted halves', w: 'Whole notes', tie: 'Tied notes', s: 'Sixteenth notes', de: 'Dotted eighths', t: 'Triplets' };
+const CAT_TOKENS = { e: ['e2', 're', 'dq', 'es', 'se', 'ses'], q: ['q'], dq: ['dq'], h: ['h'], dh: ['dh'], w: ['w'], tie: [], s: ['s4', 'es', 'se', 'ses', 'ds'], de: ['ds'], t: ['tr'], st: ['t16a', 't16b'], sy: ['syn', 'edq', 'sds'], qt: ['qt'], sr: ['rss', 'r16', 'er16'] };
 const STYLE_TITLE = { midi: 'MIDI', keys: 'Computer keys', rhythm: 'Rhythm only', live: 'Live' };
 const CLEF_TITLE = { treble: 'Treble', bass: 'Bass', alto: 'Alto clef', treble8: 'Treble 8vb', none: '' };
 const HOODS = ['Downtown', 'Old Town', 'Market Street', 'Harbor District', 'Theater Row', 'Uptown', 'Chinatown', 'Skyline Heights', 'Riverside', 'Arts District', 'Midtown', 'Neon Mile'];
@@ -895,9 +900,11 @@ function barWeights(k) {
     for (const [tk, v] of Object.entries(nx.w)) if (!(tk in w)) w[tk] = v * share;
   }
   if (G.diff === 'expert') {
-    if (rhythmView()) { w.q *= .6; w.h *= .5; for (const tk of ['s4', 'ses', 'syn', 'sds', 't16a', 't16b']) w[tk] *= 1.3; }
-    else for (const tk of ['t16a', 't16b', 'sds']) w[tk] *= .5;
+    if (rhythmView()) { w.q *= .6; w.h *= .5; for (const tk of ['s4', 'ses', 'syn', 'sds', 't16a', 't16b', 'qt', 'rss', 'r16', 'er16']) w[tk] *= 1.3; }
+    else for (const tk of ['t16a', 't16b', 'sds', 'r16', 'er16']) w[tk] *= .5;
   }
+  // Hard, Rhythm only: quarter-note triplets and sixteenth rests too (tapping is easier than reading pitch)
+  if (G.diff === 'hard' && rhythmView() && !G.custom) Object.assign(w, { qt: .6, rss: .6, r16: .5, er16: .5 });
   return w;
 }
 function planBar(k, tieIn) {
@@ -1007,6 +1014,9 @@ function genBar(k) {
     }
     const groups = {};
     G.loop.tpl.forEach((t, i) => { if (t.grp != null) (groups[t.grp] = groups[t.grp] || []).push(bar.notes[i]); });
+    const brks = {};
+    G.loop.tpl.forEach((t, i) => { if (t.brk != null) (brks[t.brk] = brks[t.brk] || []).push(bar.notes[i]); });
+    Object.values(brks).forEach(grp => grp.forEach(n => { n.brk = grp; }));
     Object.values(groups).forEach(grp => grp.forEach(n => { n.grp = grp; }));
     pushBar(bar); return;
   }
@@ -1024,6 +1034,7 @@ function genBar(k) {
         from.tieTo = n;
       } else n = pitched(oo, d);
       if (['syn', 'edq', 'sds'].includes(tk) && !r) n.sync = true;
+      if (['rss', 'r16', 'er16'].includes(tk) && !r) n.sr = true;
       n.ti = i;
       bar.notes.push(n);
       if (!r) group.push(n);
@@ -1031,6 +1042,7 @@ function genBar(k) {
       oo += d;
     });
     if (T.beam && group.length >= 2) group.forEach(n => { n.grp = group; n.tri = Array.isArray(T.tri) ? T.tri.includes(n.ti) : !!T.tri; delete n.ti; });
+    else if (T.brk) group.forEach(n => { n.brk = group; n.tri = true; });
     else group.forEach(n => { if (n.d < 1) n.flag = true; });
     last = group[group.length - 1] || null; lastTk = tk;
     const endsOnNote = T.items.length && !T.items[T.items.length - 1][1];
@@ -1060,7 +1072,7 @@ function setLoop(on) {
   G.attacks = G.attacks.filter(a => a.note.bar.k <= k);
   for (const n of G.notes) if (n.tieTo && n.tieTo.bar.k > k) { n.tieTo = null; if (n.attack) { n.attack.len = n.attack.note.d; n.attack.tied = false; } }
   G.nextBar = k + 1; G.tieCarry = null;
-  G.loop = on ? { k, tpl: bar.notes.map(n => ({ o: n.o, d: n.d, rest: n.rest, p: n.p, dia: n.dia, acc: n.acc, showAcc: n.showAcc, midi: n.midi, flag: n.flag || (n.tiedFrom && n.d < 1), tri: n.tri, grp: n.grp ? bar.notes.indexOf(n.grp[0]) : null })) } : null;
+  G.loop = on ? { k, tpl: bar.notes.map(n => ({ o: n.o, d: n.d, rest: n.rest, p: n.p, dia: n.dia, acc: n.acc, showAcc: n.showAcc, midi: n.midi, flag: n.flag || (n.tiedFrom && n.d < 1), tri: n.tri, grp: n.grp ? bar.notes.indexOf(n.grp[0]) : null, brk: n.brk ? bar.notes.indexOf(n.brk[0]) : null })) } : null;
   G.clean = 0;
   $('loop-btn').setAttribute('aria-pressed', String(on));
   $('loop-btn').textContent = on ? 'Stop repeating (R)' : 'Repeat this bar (R)';
@@ -1407,10 +1419,24 @@ function drawRest(x, d) {
     ctx.quadraticCurveTo(x - .55 * g, y4 + .15 * g, x - .05 * g, y4 + 1.15 * g); ctx.stroke();
     return;
   }
-  // eighth rest: a dot and a slanted stroke
+  // eighth rest: a dot and a slanted stroke; a sixteenth rest has a second dot and hook lower down
   ctx.beginPath(); ctx.arc(x - .28 * g, y4 - 1 * g, .24 * g, 0, Math.PI * 2); ctx.fill();
   ctx.lineWidth = g * .16;
-  ctx.beginPath(); ctx.moveTo(x - .3 * g, y4 - .8 * g); ctx.quadraticCurveTo(x, y4 - .7 * g, x + .32 * g, y4 - 1.15 * g); ctx.lineTo(x - .1 * g, y4 + .9 * g); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x - .3 * g, y4 - .8 * g); ctx.quadraticCurveTo(x, y4 - .7 * g, x + .32 * g, y4 - 1.15 * g); ctx.lineTo(x - .25 * g, y4 + (d < .5 ? 1.5 : .9) * g); ctx.stroke();
+  if (d < .5) {
+    ctx.beginPath(); ctx.arc(x - .48 * g, y4 + .05 * g, .24 * g, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x - .5 * g, y4 + .25 * g); ctx.quadraticCurveTo(x - .2 * g, y4 + .35 * g, x + .1 * g, y4 - .05 * g); ctx.stroke();
+  }
+}
+// quarter-note triplet: a bracket with a 3 over (or under) the three notes, on the stem side
+function drawBracket(grp, col) {
+  const ps = grp.map(m => shownP(m.p)), up = grp.up, xs = grp.map(m => xOf(m.b));
+  const y = up ? Math.min(...ps.map(p => yOf(p))) - 4.3 * g : Math.max(...ps.map(p => yOf(p))) + 4.3 * g, hook = (up ? 1 : -1) * .5 * g;
+  const x0 = xs[0] - .2 * g, x1 = xs[2] + .9 * g, mx = (x0 + x1) / 2, gap = .75 * g;
+  ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = Math.max(1, g * .1);
+  ctx.beginPath(); ctx.moveTo(x0, y + hook); ctx.lineTo(x0, y); ctx.lineTo(mx - gap, y); ctx.moveTo(mx + gap, y); ctx.lineTo(x1, y); ctx.lineTo(x1, y + hook); ctx.stroke();
+  ctx.font = `italic 700 ${1.25 * g}px Georgia, "Times New Roman", serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('3', mx, y);
 }
 const stemUp = p => rhythmView() || p < 4;
 // one straight beam over a group: stems up or down by the group's average pitch, gently sloped from first note to last
@@ -1468,7 +1494,8 @@ function drawNotes() {
     // stem, flag or beam
     if (!whole) {
       const beamed = !!n.grp;
-      const bm = beamed ? beamOf(n.grp) : null, up = beamed ? bm.up : stemUp(p);
+      if (n.brk && n.brk.up == null) n.brk.up = stemUp(n.brk.reduce((t, m) => t + shownP(m.p), 0) / n.brk.length);
+      const bm = beamed ? beamOf(n.grp) : null, up = beamed ? bm.up : n.brk ? n.brk.up : stemUp(p);
       const sx = x + (up ? .56 : -.56) * g;
       ctx.strokeStyle = col; ctx.lineWidth = Math.max(1.2, g * .11);
       let tip;
@@ -1485,6 +1512,7 @@ function drawNotes() {
         }
       }
     }
+    if (n.brk && n === n.brk[0] && n.brk.length === 3) drawBracket(n.brk, C.chalk);
     if (n.tieTo) {
       const x2 = xOf(n.tieTo.b), up = stemUp(p), ty = y + (up ? .75 : -.75) * g, dir = up ? 1 : -1;
       ctx.strokeStyle = col; ctx.lineWidth = g * .13;
@@ -1676,7 +1704,7 @@ function drawVillain() {
 // instruments take a moment to speak, so Live timing is a little more forgiving than keys
 const slack = () => isLive() ? 1.3 : 1;
 const windowBeats = b => .2 * slack() * bpmAt(b) / 60;
-function catOf(a) { return a.tied ? 'tie' : a.note.tri ? (a.note.d < .3 ? 'st' : 't') : a.note.sync ? 'sy' : ({ .25: 's', .5: 'e', .75: 'de', 1: 'q', 1.5: 'dq', 2: 'h', 3: 'dh', 4: 'w' })[a.note.d] || 'q'; }
+function catOf(a) { return a.tied ? 'tie' : a.note.tri ? (a.note.d < .3 ? 'st' : a.note.d > .6 ? 'qt' : 't') : a.note.sr ? 'sr' : a.note.sync ? 'sy' : ({ .25: 's', .5: 'e', .75: 'de', 1: 'q', 1.5: 'dq', 2: 'h', 3: 'dh', 4: 'w' })[a.note.d] || 'q'; }
 function tally(a, ok) {
   const s = G.stats, c = catOf(a);
   s.attacks++; if (ok) s.hits++;
@@ -3352,12 +3380,14 @@ const PICK_GROUPS = [
   ['Rests', ['hr', 'qr']],
   ['Eighths', ['e2', 'dq', 're', 'tr']],
   ['Sixteenths', ['s4', 'es', 'se', 'ses', 'ds']],
-  ['Syncopation & 16th triplets', ['syn', 'edq', 'sds', 't16a', 't16b']],
+  ['Rests inside the beat', ['rss', 'r16', 'er16']],
+  ['Syncopation & triplets', ['syn', 'edq', 'sds', 'qt', 't16a', 't16b']],
 ];
 const PICK_TITLE = { w: 'Whole note', h: 'Half note', dh: 'Dotted half', q: 'Quarter note', hr: 'Half rest', qr: 'Quarter rest',
   e2: 'Two eighths', dq: 'Dotted quarter + eighth', re: 'Eighth rest + eighth', tr: 'Eighth-note triplet',
   s4: 'Four sixteenths', es: 'Eighth + two sixteenths', se: 'Two sixteenths + eighth', ses: 'Sixteenth–eighth–sixteenth', ds: 'Dotted eighth + sixteenth',
-  syn: 'Eighth–quarter–eighth', edq: 'Eighth + dotted quarter', sds: 'Sixteenth + dotted eighth', t16a: 'Sixteenth triplet + eighth', t16b: 'Eighth + sixteenth triplet' };
+  syn: 'Eighth–quarter–eighth', edq: 'Eighth + dotted quarter', sds: 'Sixteenth + dotted eighth', t16a: 'Sixteenth triplet + eighth', t16b: 'Eighth + sixteenth triplet',
+  qt: 'Quarter-note triplet', rss: 'Eighth rest + two sixteenths', r16: 'Sixteenth rest + sixteenth + eighth', er16: 'Eighth + sixteenth rest + sixteenth' };
 // a small drawing of each rhythm, in the same notation as the staff
 function rhythmIcon(tk) {
   const T = TOKENS[tk], n = T.items.length, step = 15, W = 12 + n * step, y = 27, top = 6;
@@ -3369,14 +3399,15 @@ function rhythmIcon(tk) {
     if (r) {
       if (d >= 2) out += `<rect x="${x - 5}" y="${y - 9}" width="10" height="4.5"/><rect x="${x - 7}" y="${y - 4.7}" width="14" height="1.2"/>`;
       else if (d >= 1) out += `<path d="M${x - 2} ${y - 19} L${x + 3} ${y - 13} L${x - 2} ${y - 7} L${x + 3} ${y - 1} Q${x - 5} ${y - 3} ${x} ${y + 5}" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`;
-      else out += `<circle cx="${x - 2.5}" cy="${y - 13}" r="2.2"/><path d="M${x - 2.5} ${y - 11} Q${x} ${y - 10} ${x + 3} ${y - 14} L${x - 1} ${y + 2}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>`;
+      else out += `<circle cx="${x - 2.5}" cy="${y - 13}" r="2.2"/><path d="M${x - 2.5} ${y - 11} Q${x} ${y - 10} ${x + 3} ${y - 14} L${x - 1} ${y + (d < .5 ? 6 : 2)}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>`
+        + (d < .5 ? `<circle cx="${x - 3.8}" cy="${y - 6}" r="2.2"/><path d="M${x - 3.8} ${y - 4} Q${x - 1.5} ${y - 3} ${x + 1.2} ${y - 7}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>` : '');
       return;
     }
     const hollow = d >= 2;
     out += `<ellipse cx="${x}" cy="${y}" rx="${d >= 4 ? 5.6 : 4.8}" ry="3.6" transform="rotate(${d >= 4 ? 0 : -20} ${x} ${y})" ${hollow ? 'fill="none" stroke="currentColor" stroke-width="1.8"' : ''}/>`;
     if (d === .75 || d === 1.5 || d === 3) out += `<circle cx="${x + 8}" cy="${y - 1}" r="1.6"/>`;
     if (d < 4) out += `<rect x="${x + 3.6}" y="${top}" width="1.5" height="${y - top}"/>`;
-    if (d < 1 && !beamed) {
+    if (d < 1 && !beamed && !T.brk) {
       for (let f = 0; f < (d < .5 ? 2 : 1); f++) out += `<path d="M${x + 4.3} ${top + f * 5} q1 6 7 9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>`;
     }
   });
@@ -3392,6 +3423,7 @@ function rhythmIcon(tk) {
     const ti = Array.isArray(T.tri) ? T.tri.map(i => T.items.slice(0, i).filter(([, r]) => !r).length) : [0, notes.length - 1];
     if (T.tri) out += `<text x="${(sx[ti[0]] + sx[ti[ti.length - 1]]) / 2}" y="${top - 1}" font-size="8" font-style="italic" font-weight="700" text-anchor="middle" font-family="Georgia, serif">3</text>`;
   }
+  if (T.brk) out += `<path d="M${xs[0] - 1} ${top + 2} V${top - 2} H${xs[1] - 2} M${xs[1] + 9} ${top - 2} H${xs[2] + 6} V${top + 2}" fill="none" stroke="currentColor" stroke-width="1.2"/><text x="${xs[1] + 4}" y="${top + 1}" font-size="8" font-style="italic" font-weight="700" text-anchor="middle" font-family="Georgia, serif">3</text>`;
   return `<svg viewBox="0 -4 ${W} 38" fill="currentColor" aria-hidden="true">${out}</svg>`;
 }
 function buildPicker() {
@@ -3402,8 +3434,8 @@ function buildPicker() {
 const customOK = () => settings.customOn && settings.custom.some(tk => !TOKENS[tk].rest);
 // "rhythms in play" starts as every rhythm the difficulty uses; students untick, add, or pick one with Only
 const diffTokens = diff => PICK_GROUPS.flatMap(([, l]) => l).filter(tk => tk in DIFFS[diff].w);
-// every rhythm from easiest to hardest; each difficulty's set is the start of this list (Easy 4, Medium 6, Hard 14, Expert 20)
-const RHYTHM_LADDER = ['w', 'h', 'q', 'qr', 'hr', 'e2', 'dh', 'dq', 're', 'tr', 's4', 'es', 'se', 'ds', 'ses', 'syn', 'edq', 'sds', 't16a', 't16b'];
+// every rhythm from easiest to hardest; each difficulty's set is the start of this list (Easy 4, Medium 6, Hard 14, Expert 24)
+const RHYTHM_LADDER = ['w', 'h', 'q', 'qr', 'hr', 'e2', 'dh', 'dq', 're', 'tr', 's4', 'es', 'se', 'ds', 'ses', 'rss', 'syn', 'edq', 'qt', 'r16', 'er16', 'sds', 't16a', 't16b'];
 const ladderCount = list => { const n = list.length; return n && sameSet(list, RHYTHM_LADDER.slice(0, n)) ? n : 0; };
 const sameSet = (a, b) => a.length === b.length && a.every(tk => b.includes(tk));
 function pickRhythms(on, from) {
