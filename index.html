@@ -249,6 +249,25 @@ button.sm { font-size: 13px; padding: 5px 11px; }
 
 .sound-hint { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60; max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 12px; background: var(--brick); border: 1px solid var(--cyan); color: var(--chalk); font-weight: 600; box-shadow: 0 0 24px -6px var(--cyan); }
 
+
+/* advanced: choose the rhythms */
+.adv { border-top: 1px solid var(--edge); padding-top: 12px; }
+.adv summary { cursor: pointer; font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+.adv summary b { color: var(--neon); letter-spacing: .08em; margin-left: 6px; }
+.adv-body { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+.adv-body > p { margin: 0; color: var(--haze); font-size: 15px; max-width: 70ch; }
+.rpick { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+.rpick label { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border: 1px solid var(--edge); border-radius: 10px; background: var(--night); cursor: pointer; font-size: 15px; color: var(--haze); min-width: 0; }
+.rpick label:hover { border-color: var(--haze); }
+.rpick input { width: 18px; height: 18px; accent-color: var(--neon); flex: none; }
+.rpick svg { flex: none; height: 34px; width: auto; color: var(--chalk); }
+.rpick label:has(input:checked) { border-color: var(--neon); color: var(--chalk); background: color-mix(in srgb, var(--neon) 9%, var(--night)); }
+.rpick .grp { grid-column: 1 / -1; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--haze); margin-top: 4px; }
+.adv-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.adv-row .sw { display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer; }
+.adv-row .sw input { width: 20px; height: 20px; accent-color: var(--neon); }
+.adv-err { margin: 0; color: var(--miss); font-size: 15px; min-height: 1.2em; }
+
 @media (max-width: 560px) {
   .stat .v { font-size: 20px; }
   .letters button { font-size: 18px; }
@@ -369,6 +388,19 @@ button.sm { font-size: 13px; padding: 5px 11px; }
         </fieldset>
       </div>
     </div>
+    <details class="adv" id="adv">
+      <summary>Advanced: choose the rhythms<b id="adv-on" hidden>On</b></summary>
+      <div class="adv-body">
+        <p>Pick exactly which rhythms appear, for example the sixteenth–eighth–sixteenth a student is stuck on, plus quarter notes and quarter rests. The notes, clef and key signatures still come from the difficulty above. Custom runs are practice for the student and don't post to the leaderboard.</p>
+        <div class="adv-row">
+          <label class="sw" for="custom-on"><input type="checkbox" id="custom-on"> Use only the rhythms I pick</label>
+          <label class="sw" for="custom-ties"><input type="checkbox" id="custom-ties"> Include ties across the bar line</label>
+          <button type="button" class="ghost sm" id="custom-clear">Clear all</button>
+        </div>
+        <div class="rpick" id="rpick"></div>
+        <p class="adv-err" id="adv-err" role="alert"></p>
+      </div>
+    </details>
     <div class="launch">
       <button class="btn-go big" id="start-btn" type="button">Start running</button>
       <span class="muted">or press <kbd>Enter</kbd></span>
@@ -584,9 +616,10 @@ const TOKENS = {
   se: { len: 1, beam: true, items: [[.25], [.25], [.5]] },
   ds: { len: 1, beam: true, items: [[.75], [.25]] },
   tr: { len: 1, beam: true, tri: true, items: [[1 / 3], [1 / 3], [1 / 3]] },
+  ses: { len: 1, beam: true, items: [[.25], [.5], [.25]] },            // custom rhythms only
 };
 const CAT_TITLE = { e: 'Eighth notes', q: 'Quarter notes', dq: 'Dotted quarters', h: 'Half notes', dh: 'Dotted halves', w: 'Whole notes', tie: 'Tied notes', s: 'Sixteenth notes', de: 'Dotted eighths', t: 'Triplets' };
-const CAT_TOKENS = { e: ['e2', 're', 'dq', 'es', 'se'], q: ['q'], dq: ['dq'], h: ['h'], dh: ['dh'], w: ['w'], tie: [], s: ['s4', 'es', 'se', 'ds'], de: ['ds'], t: ['tr'] };
+const CAT_TOKENS = { e: ['e2', 're', 'dq', 'es', 'se', 'ses'], q: ['q'], dq: ['dq'], h: ['h'], dh: ['dh'], w: ['w'], tie: [], s: ['s4', 'es', 'se', 'ses', 'ds'], de: ['ds'], t: ['tr'] };
 const STYLE_TITLE = { midi: 'MIDI', keys: 'Computer keys', rhythm: 'Rhythm only' };
 const CLEF_TITLE = { treble: 'Treble', bass: 'Bass', none: '' };
 const HOODS = ['Downtown', 'Old Town', 'Market Street', 'Harbor District', 'Theater Row', 'Uptown', 'Chinatown', 'Skyline Heights', 'Riverside', 'Arts District', 'Midtown', 'Neon Mile'];
@@ -597,7 +630,7 @@ const jColor = j => j === 'P' ? C.perfect : j === 'G' ? C.cyan : j === 'E' || j 
 const isHit = j => j === 'P' || j === 'G' || j === 'E' || j === 'L';
 
 /* ---------- settings ---------- */
-const settings = { diff: 'easy', style: 'midi', clef: 'treble', mode: 'levels', practiceBpm: 60, met: 'on', metVol: 70, sound: true, keySound: 'on' };
+const settings = { diff: 'easy', style: 'midi', clef: 'treble', mode: 'levels', practiceBpm: 60, met: 'on', metVol: 70, sound: true, keySound: 'on', customOn: false, custom: [], customTies: false };
 let latency = store.get('rooftop:latency', null);               // ms between a click and a tap on this computer
 let skipCalib = false;
 
@@ -606,9 +639,9 @@ const G = {};
 function newRun(o) {
   Object.assign(G, {
     demo: !!o.demo, style: o.style, diff: o.diff, clef: o.style === 'rhythm' ? 'treble' : o.clef, mode: o.mode,
-    startBpm: DIFFS[o.diff].bpm, practiceBpm: o.practiceBpm || 60, drill: o.drill || null,
+    startBpm: DIFFS[o.diff].bpm, practiceBpm: o.practiceBpm || 60, drill: o.drill || null, custom: o.custom || null,
     running: true, paused: false, over: false, aB: -4, aMs: performance.now() + 250, freeze: null, t: -4, v: -4,
-    bars: [], notes: [], attacks: [], nextBar: 0, lastP: null, tieCarry: null, levelKeys: {}, keyDeck: [],
+    bars: [], notes: [], attacks: [], nextBar: 0, lastP: null, prevB: -9, tieCarry: null, levelKeys: {}, keyDeck: [],
     halves: 6, score: 0, streak: 0, bestStreak: 0, level: 0, topBpm: 0,
     held: new Map(), down: new Set(), popups: [], extras: [], banner: null, ouch: -99, nextClick: null, loop: null, clean: 0,
     stats: { cats: {}, pitches: {}, offsets: [], attacks: 0, hits: 0, wrong: 0, miss: 0, extra: 0, early: 0 },
@@ -678,7 +711,8 @@ function barWeights(k) {
   return w;
 }
 function planBar(k, tieIn) {
-  const D = DIFFS[G.diff], boost = G.drill ? G.drill.tokens : null, weights = barWeights(k);
+  const D = DIFFS[G.diff], boost = G.drill ? G.drill.tokens : null;
+  const weights = G.custom ? Object.fromEntries(G.custom.tokens.map(tk => [tk, TOKENS[tk].rest ? .5 : 1])) : barWeights(k);
   for (let tries = 0; tries < 50; tries++) {
     const plan = []; let o = 0, rests = 0, hits = 0;
     while (o < 4) {
@@ -689,6 +723,7 @@ function planBar(k, tieIn) {
         if (o === 0 && tieIn && tk !== 'q' && tk !== 'h') return false;
         return true;
       }).map(([tk, w]) => [tk, boost && boost.has(tk) ? w * 3 : w]);
+      if (!opts.length && G.custom && !(tieIn && o === 0)) { plan.push({ tk: 'q', o }); o += 1; hits++; continue; }   // a quarter note fills a gap the picks can't
       if (!opts.length) break;
       const tk = pick(opts), T = TOKENS[tk];
       plan.push({ tk, o }); o += T.len;
@@ -733,10 +768,12 @@ function genBar(k) {
   const pitched = (o, d) => {
     const n = makeNote(bar, o, d);
     const p = nextP(), dia = BOTTOM[G.clef] + p;
+    // the music is spaced by time, so a ♯ or ♭ only fits where the note before it is far enough back
+    const room = (n.b - G.prevB) * minPpb() >= 3.1;
     let acc = 0, show = null;
     if (keyed) acc = keyAccFor(key, li(dia));
     else if (dia in accState) acc = accState[dia];
-    else if (D.acc && G.style !== 'rhythm' && Math.random() < .13) {
+    else if (D.acc && G.style !== 'rhythm' && room && Math.random() < .13) {
       const opts = []; if (SHARP_OK[li(dia)]) opts.push(1); if (FLAT_OK[li(dia)]) opts.push(-1);
       if (opts.length) { acc = opts[Math.floor(Math.random() * opts.length)]; show = acc; accState[dia] = acc; }
     }
@@ -769,13 +806,15 @@ function genBar(k) {
       } else n = pitched(oo, d);
       bar.notes.push(n);
       if (!r) group.push(n);
+      G.prevB = n.b;
       oo += d;
     });
     if (T.beam && group.length >= 2) group.forEach(n => { n.grp = group; n.tri = !!T.tri; });
     else group.forEach(n => { if (n.d < 1) n.flag = true; });
     last = group[group.length - 1] || null; lastTk = tk;
   }
-  if (D.ties && last && (lastTk === 'q' || lastTk === 'h') && !isKeyChangeBar(k + 1) && Math.random() < (G.drill && G.drill.ties ? .4 : D.ties)) G.tieCarry = last;
+  const tieP = G.custom ? (G.custom.ties ? .25 : 0) : D.ties;
+  if (tieP && last && (lastTk === 'q' || lastTk === 'h') && !isKeyChangeBar(k + 1) && Math.random() < (G.drill && G.drill.ties ? .4 : tieP)) G.tieCarry = last;
   pushBar(bar);
 }
 function ensureBars(upTo) { while (G.nextBar * 4 < upTo) genBar(G.nextBar++); }
@@ -897,6 +936,12 @@ const yOf = p => top8 + (8 - p) * g / 2;
 const xOf = b => PL + (b - G.v) * ppb;
 const rhythmView = () => G.style === 'rhythm';
 const shownP = p => rhythmView() ? 4 : p;
+// the narrowest spacing a run can get, in staff spaces per beat: sixteenths and triplets need the most room
+function minPpb() {
+  if (!G.diff) return 4.6;
+  const fine = G.custom && G.custom.tokens.some(tk => TOKENS[tk].items.some(([d]) => d < .5));
+  return G.diff === 'expert' || fine ? 7.2 : G.diff === 'hard' ? 6.2 : 4.6;
+}
 function layout() {
   W = stage.clientWidth || 800;
   g = Math.max(12, Math.min(17, W / 56));
@@ -909,7 +954,7 @@ function layout() {
   const sig = G.diff ? maxSig() : 0;
   panelEnd = (sig ? 4.1 + sig * .95 + 2.2 : 6.3) * g;
   PL = panelEnd + 3 * g;
-  ppb = Math.max((G.diff === 'expert' ? 7.2 : G.diff === 'hard' ? 6.2 : 4.6) * g, Math.min((W - PL) / 6.5, 9 * g));   // Expert's sixteenths need room between noteheads
+  ppb = Math.max(minPpb() * g, Math.min((W - PL) / 6.5, 9 * g));   // Expert's sixteenths need room between noteheads
 }
 function roofY(p) {
   const [lo, hi] = G.style === 'rhythm' ? [0, 2] : rangeOf(), span = skyBot - 8 * g;
@@ -1403,7 +1448,8 @@ function goTo(v, then) {
   const apply = () => { document.body.dataset.view = v; if (then) then(); layout(); window.scrollTo({ top: 0 }); };
   if (document.startViewTransition && !reduceMotion) { const t = document.startViewTransition(apply); t.ready?.catch(() => {}); t.finished?.catch(() => {}); } else apply();
 }
-function startDemo() { newRun({ demo: true, style: settings.style, diff: settings.diff, clef: settings.clef, mode: 'levels' }); }
+const customCfg = () => customOK() ? { tokens: settings.custom.slice(), ties: !!settings.customTies } : null;
+function startDemo() { newRun({ demo: true, style: settings.style, diff: settings.diff, clef: settings.clef, mode: 'levels', custom: customCfg() }); }
 let ovActions = [];
 function showOverlay(tag, title, text, buttons, keys) {
   $('ov-tag').textContent = tag; $('ov-title').textContent = title; $('ov-text').textContent = text; $('ov-keys').textContent = keys || '';
@@ -1418,7 +1464,7 @@ let lastConfig = null;
 function launch(drill) {
   ensureAudio();
   if (latency == null && !skipCalib) { openCal(() => launch(drill)); return; }
-  const cfg = drill ? { ...lastConfig, mode: 'practice', practiceBpm: DIFFS[lastConfig.diff].bpm, drill } : { style: settings.style, diff: settings.diff, clef: settings.clef, mode: settings.mode, practiceBpm: settings.practiceBpm };
+  const cfg = drill ? { ...lastConfig, mode: 'practice', practiceBpm: DIFFS[lastConfig.diff].bpm, drill } : { style: settings.style, diff: settings.diff, clef: settings.clef, mode: settings.mode, practiceBpm: settings.practiceBpm, custom: customCfg() };
   lastConfig = { ...cfg, drill: null };
   goTo('game', () => startGame(cfg));
 }
@@ -1463,7 +1509,7 @@ function endGame(byChoice) {
   const s = G.stats, L = levelOf(G.v);
   const run = {
     score: G.score, hits: s.hits, acc: s.attacks ? Math.round(100 * s.hits / s.attacks) : 0, level: L + 1, bpm: G.topBpm,
-    diff: G.diff, style: G.style, clef: G.style === 'rhythm' ? 'none' : G.clef, practice: G.mode === 'practice', wasGuest: !getProfile(),
+    diff: G.diff, style: G.style, clef: G.style === 'rhythm' ? 'none' : G.clef, practice: G.mode === 'practice' || !!G.custom, custom: !!G.custom, wasGuest: !getProfile(),
   };
   const bk = bestKey(run), prev = store.get(bk, 0), isBest = !run.practice && run.score > prev && run.score > 0;
   if (isBest) store.set(bk, run.score);
@@ -2306,6 +2352,7 @@ function refreshSetup() {
   $('clef-set').hidden = settings.style === 'rhythm';
   $('setup-best').textContent = store.get(bestKey(settings), 0).toLocaleString();
   $('start-btn').textContent = settings.mode === 'practice' ? 'Start practice' : 'Start running';
+  $('start-btn').disabled = settings.customOn && !customOK();
   syncStyleNote(); syncCalib();
 }
 $('settings').addEventListener('input', e => {
@@ -2342,6 +2389,75 @@ $('w-form').addEventListener('submit', submitWelcome);
 $('w-solo').addEventListener('change', e => { $('w-code').disabled = e.target.checked; if (e.target.checked) $('w-code').value = ''; });
 $('w-guest').addEventListener('click', playAsGuest);
 $('who-btn').addEventListener('click', () => showWelcome(!!getProfile()));
+
+
+/* ---------- advanced: the rhythm picker ---------- */
+const PICK_GROUPS = [
+  ['Notes', ['w', 'h', 'dh', 'q']],
+  ['Rests', ['hr', 'qr']],
+  ['Eighths', ['e2', 'dq', 're', 'tr']],
+  ['Sixteenths', ['s4', 'es', 'se', 'ses', 'ds']],
+];
+const PICK_TITLE = { w: 'Whole note', h: 'Half note', dh: 'Dotted half', q: 'Quarter note', hr: 'Half rest', qr: 'Quarter rest',
+  e2: 'Two eighths', dq: 'Dotted quarter + eighth', re: 'Eighth rest + eighth', tr: 'Eighth-note triplet',
+  s4: 'Four sixteenths', es: 'Eighth + two sixteenths', se: 'Two sixteenths + eighth', ses: 'Sixteenth–eighth–sixteenth', ds: 'Dotted eighth + sixteenth' };
+// a small drawing of each rhythm, in the same notation as the staff
+function rhythmIcon(tk) {
+  const T = TOKENS[tk], n = T.items.length, step = 15, W = 12 + n * step, y = 27, top = 6;
+  const xs = T.items.map((_, i) => 9 + i * step), notes = T.items.map(([d, r], i) => ({ d, r, x: xs[i] })).filter(m => !m.r);
+  let out = '';
+  const beamed = T.beam && notes.length >= 2;
+  T.items.forEach(([d, r], i) => {
+    const x = xs[i];
+    if (r) {
+      if (d >= 2) out += `<rect x="${x - 5}" y="${y - 9}" width="10" height="4.5"/><rect x="${x - 7}" y="${y - 4.7}" width="14" height="1.2"/>`;
+      else if (d >= 1) out += `<path d="M${x - 2} ${y - 19} L${x + 3} ${y - 13} L${x - 2} ${y - 7} L${x + 3} ${y - 1} Q${x - 5} ${y - 3} ${x} ${y + 5}" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`;
+      else out += `<circle cx="${x - 2.5}" cy="${y - 13}" r="2.2"/><path d="M${x - 2.5} ${y - 11} Q${x} ${y - 10} ${x + 3} ${y - 14} L${x - 1} ${y + 2}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>`;
+      return;
+    }
+    const hollow = d >= 2;
+    out += `<ellipse cx="${x}" cy="${y}" rx="${d >= 4 ? 5.6 : 4.8}" ry="3.6" transform="rotate(${d >= 4 ? 0 : -20} ${x} ${y})" ${hollow ? 'fill="none" stroke="currentColor" stroke-width="1.8"' : ''}/>`;
+    if (d === .75 || d === 1.5 || d === 3) out += `<circle cx="${x + 8}" cy="${y - 1}" r="1.6"/>`;
+    if (d < 4) out += `<rect x="${x + 3.6}" y="${top}" width="1.5" height="${y - top}"/>`;
+    if (d < 1 && !beamed) {
+      for (let f = 0; f < (d < .5 ? 2 : 1); f++) out += `<path d="M${x + 4.3} ${top + f * 5} q1 6 7 9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>`;
+    }
+  });
+  if (beamed) {
+    const sx = notes.map(m => m.x + 4.3);
+    out += `<rect x="${sx[0] - .7}" y="${top}" width="${sx[sx.length - 1] - sx[0] + 1.4}" height="3.4"/>`;
+    notes.forEach((m, i) => {
+      if (m.d !== .25) return;
+      const nx = notes[i + 1], pv = notes[i - 1];
+      if (nx && nx.d === .25) out += `<rect x="${sx[i] - .7}" y="${top + 5.4}" width="${sx[i + 1] - sx[i] + 1.4}" height="3"/>`;
+      else if (!(pv && pv.d === .25)) out += i > 0 ? `<rect x="${sx[i] - 6}" y="${top + 5.4}" width="6.7" height="3"/>` : `<rect x="${sx[i] - .7}" y="${top + 5.4}" width="6.7" height="3"/>`;
+    });
+    if (T.tri) out += `<text x="${(sx[0] + sx[sx.length - 1]) / 2}" y="${top - 1}" font-size="8" font-style="italic" font-weight="700" text-anchor="middle" font-family="Georgia, serif">3</text>`;
+  }
+  return `<svg viewBox="0 -4 ${W} 38" fill="currentColor" aria-hidden="true">${out}</svg>`;
+}
+function buildPicker() {
+  $('rpick').innerHTML = PICK_GROUPS.map(([g, list]) => `<span class="grp">${g}</span>` + list.map(tk =>
+    `<label for="rp-${tk}"><input type="checkbox" id="rp-${tk}" data-tk="${tk}">${rhythmIcon(tk)}<span>${PICK_TITLE[tk]}</span></label>`).join('')).join('');
+}
+// the run's own vocabulary when custom rhythms are on; quarter notes fill any gap the picks can't
+const customOK = () => settings.customOn && settings.custom.some(tk => !TOKENS[tk].rest);
+function syncPicker() {
+  $('custom-on').checked = !!settings.customOn;
+  $('custom-ties').checked = !!settings.customTies;
+  for (const box of $('rpick').querySelectorAll('input[data-tk]')) box.checked = settings.custom.includes(box.dataset.tk);
+  $('adv-on').hidden = !settings.customOn;
+  $('adv-err').textContent = settings.customOn && !customOK() ? 'Pick at least one rhythm with a note in it (not only rests).' : '';
+}
+$('rpick').addEventListener('change', e => {
+  const tk = e.target.dataset.tk; if (!tk) return;
+  settings.custom = settings.custom.filter(x => x !== tk); if (e.target.checked) settings.custom.push(tk);
+  if (e.target.checked) settings.customOn = true;
+  store.set('rooftop:settings', settings); syncPicker(); refreshSetup(); startDemo();
+});
+$('custom-on').addEventListener('change', e => { settings.customOn = e.target.checked; store.set('rooftop:settings', settings); syncPicker(); refreshSetup(); startDemo(); });
+$('custom-ties').addEventListener('change', e => { settings.customTies = e.target.checked; store.set('rooftop:settings', settings); startDemo(); });
+$('custom-clear').addEventListener('click', () => { settings.custom = []; settings.customOn = false; store.set('rooftop:settings', settings); syncPicker(); refreshSetup(); startDemo(); });
 
 /* ---------- keyboard ---------- */
 const LETTER_PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -2387,7 +2503,9 @@ function boot() {
   if (!DIFFS[settings.diff]) settings.diff = 'easy';
   if (!['midi', 'keys', 'rhythm'].includes(settings.style)) settings.style = 'midi';
   if (!['treble', 'bass'].includes(settings.clef)) settings.clef = 'treble';
-  buildLetters(); refreshSetup(); syncSound();
+  if (!Array.isArray(settings.custom)) settings.custom = [];
+  settings.custom = settings.custom.filter(tk => TOKENS[tk]);
+  buildLetters(); buildPicker(); syncPicker(); refreshSetup(); syncSound();
   document.fonts?.load(`40px "Noto Music"`, '\u{1D11E}\u{1D122}♯♭♮').catch(() => {});
   startDemo();
   requestAnimationFrame(frame);
