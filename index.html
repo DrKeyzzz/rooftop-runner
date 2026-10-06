@@ -273,8 +273,6 @@ button.sm { font-size: 13px; padding: 5px 11px; }
 .rmarks span { position: absolute; left: calc(8px + (100% - 16px) * var(--at) / 22); transform: translateX(-50%); white-space: nowrap; }
 .rcount small { color: var(--haze); font-weight: 600; }
 .rpick label { position: relative; }
-.rpick .only { margin-left: auto; flex: none; font: 700 11px var(--ui, system-ui); letter-spacing: .08em; text-transform: uppercase; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--edge); background: none; color: var(--haze); cursor: pointer; }
-.rpick .only:hover, .rpick .only:focus-visible { border-color: var(--neon); color: var(--neon); }
 .adv-err { margin: 0; color: var(--miss); font-size: 15px; min-height: 1.2em; }
 
 
@@ -496,7 +494,7 @@ header:has(> .mtg-home) { flex-wrap: wrap; }
     <details class="adv" id="adv">
       <summary>Practice specific rhythms<b id="adv-on" hidden>On</b></summary>
       <div class="adv-body">
-        <p>Every rhythm the difficulty uses starts ticked. Untick the ones you don't want, tick harder ones to try them, or tap <b>Only</b> to drill a single rhythm (with quarter notes filling any gaps). The notes, clef and key signatures still come from the difficulty above. This is practice, so it doesn't post to the leaderboard.</p>
+        <p>Every rhythm the difficulty uses starts ticked. Slide up for harder rhythms, or tick and untick them one by one. Quarter notes fill any gaps. The notes, clef and key signatures still come from the difficulty above. This is practice, so it doesn't post to the leaderboard.</p>
         <div class="adv-row">
           <span class="rcount" id="rcount"></span>
           <label class="sw" for="custom-ties"><input type="checkbox" id="custom-ties"> Include ties across the bar line</label>
@@ -3428,11 +3426,11 @@ function rhythmIcon(tk) {
 }
 function buildPicker() {
   $('rpick').innerHTML = PICK_GROUPS.map(([g, list]) => `<span class="grp">${g}</span>` + list.map(tk =>
-    `<label for="rp-${tk}"><input type="checkbox" id="rp-${tk}" data-tk="${tk}">${rhythmIcon(tk)}<span>${PICK_TITLE[tk]}</span><button type="button" class="only" data-only="${tk}" title="Practice only this rhythm">Only</button></label>`).join('')).join('');
+    `<label for="rp-${tk}"><input type="checkbox" id="rp-${tk}" data-tk="${tk}">${rhythmIcon(tk)}<span>${PICK_TITLE[tk]}</span></label>`).join('')).join('');
 }
 // the run's own vocabulary when custom rhythms are on; quarter notes fill any gap the picks can't
 const customOK = () => settings.customOn && settings.custom.some(tk => !TOKENS[tk].rest);
-// "rhythms in play" starts as every rhythm the difficulty uses; students untick, add, or pick one with Only
+// "rhythms in play" starts as every rhythm the difficulty uses; students untick, add, or slide up to harder ones
 const diffTokens = diff => PICK_GROUPS.flatMap(([, l]) => l).filter(tk => tk in DIFFS[diff].w);
 // every rhythm from easiest to hardest; each difficulty's set is the start of this list (Easy 4, Medium 6, Hard 14, Expert 24)
 const RHYTHM_LADDER = ['w', 'h', 'q', 'qr', 'hr', 'e2', 'dh', 'dq', 're', 'tr', 's4', 'es', 'se', 'ds', 'ses', 'rss', 'syn', 'edq', 'qt', 'r16', 'er16', 'sds', 't16a', 't16b'];
@@ -3457,10 +3455,6 @@ $('rpick').addEventListener('change', e => {
   const tk = e.target.dataset.tk; if (!tk) return;
   settings.custom = settings.custom.filter(x => x !== tk); if (e.target.checked) settings.custom.push(tk);
   pickRhythms(true);
-});
-$('rpick').addEventListener('click', e => {
-  const b = e.target.closest('[data-only]'); if (!b) return;
-  e.preventDefault(); settings.custom = [b.dataset.only]; pickRhythms(true);
 });
 // the slider works like the Rhythm Dictation Trainer's: slide up to bring in harder rhythms (it replaces hand-picked sets)
 $('rslider').addEventListener('input', e => { settings.custom = RHYTHM_LADDER.slice(0, +e.target.value); pickRhythms(true); });
