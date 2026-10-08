@@ -932,6 +932,18 @@ function planBar(k, tieIn) {
 // Melodies a player could really play: mostly steps. max = the largest leap in staff steps (1 = a 2nd, 3 = a 4th, 6 = a 7th);
 // octaves only on Hard and Expert, and only on quarter notes or longer. What gets harder is the rhythm, not the leaps.
 const MOTION = { easy: { max: 1, leap: 0 }, medium: { max: 3, leap: .08 }, hard: { max: 6, leap: .1, oct: true }, expert: { max: 6, leap: .1, oct: true } };
+// Wind players and singers need to breathe: every second bar of a level ends with a rest (strings, keyboards, guitar and mallets don't)
+const NO_BREATH = new Set(['violin', 'viola', 'cello', 'string-bass', 'piano', 'guitar', 'electric-bass', 'bells', 'mallets']);
+const breathBar = k => isLive() && G.inst && !G.inst.perc && !NO_BREATH.has(G.inst.id) && musicBarIdx(k) % 2 === 1;
+function withBreath(plan) {
+  const last = plan[plan.length - 1];
+  if (last && (TOKENS[last.tk].rest || (last.o + TOKENS[last.tk].len === 4 && TOKENS[last.tk].items.at(-1)[1]))) return plan;   // already ends with a rest
+  const keep = plan.filter(t => t.o + TOKENS[t.tk].len <= 3);
+  let o = keep.length ? keep[keep.length - 1].o + TOKENS[keep[keep.length - 1].tk].len : 0;
+  while (o < 3) { keep.push({ tk: 'q', o }); o++; }          // quarter notes fill up to the breath
+  keep.push({ tk: 'qr', o: 3 });
+  return keep;
+}
 function nextP(d = 1, key = null) {
   const [lo, hi] = rangeOf(), M = MOTION[G.diff];
   if (G.drill && G.drill.ps.length && Math.random() < .35) { const p = G.drill.ps[Math.floor(Math.random() * G.drill.ps.length)]; if (p >= lo && p <= hi) { G.lastLeap = 0; return (G.lastP = p); } }
@@ -1018,7 +1030,7 @@ function genBar(k) {
     Object.values(groups).forEach(grp => grp.forEach(n => { n.grp = grp; }));
     pushBar(bar); return;
   }
-  const plan = planBar(k, tieIn);
+  const plan = breathBar(k) ? withBreath(planBar(k, tieIn)) : planBar(k, tieIn);
   let last = null, lastTk = null, carry = null;
   for (const { tk, o } of plan) {
     const T = TOKENS[tk], group = []; let oo = o;
@@ -1759,7 +1771,9 @@ function release(src, ts) {
 function finishHold(a, tt) {
   a.relAt = tt;
   if (a.len < 1) { a.h = 'held'; return; }
-  const need = a.b + a.len - Math.min(.25, a.len * .25);       // a little slack so the next note can be struck again
+  // a little slack so the next note can be struck again; in Live, players cut long notes a little short to breathe, like real musicians
+  const slack = isLive() ? Math.min(a.len * .5, Math.max(.5, a.len * .25, .35 * bpmAt(a.b) / 60)) : Math.min(.25, a.len * .25);
+  const need = a.b + a.len - slack;
   a.h = tt >= need ? 'held' : 'early';
   if (a.h === 'held') { if (a.len >= 2) { G.score += HOLD_BONUS * mult(); pop('Held!', C.cyan); sfx.held(); } }
   else { G.stats.early++; breakStreak(); pop('Let go early', C.amber); }
