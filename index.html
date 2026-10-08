@@ -181,6 +181,11 @@ legend { padding: 0; margin-bottom: 6px; font-size: 12px; font-weight: 700; lett
 .wrow { display: grid; grid-template-columns: 1fr 120px; gap: 12px; }
 .wsolo { flex-direction: row !important; align-items: center; gap: 10px !important; font: 600 15px var(--f-ui) !important; letter-spacing: 0 !important; text-transform: none !important; color: var(--chalk) !important; cursor: pointer; }
 .wsolo input { width: 20px; height: 20px; accent-color: var(--neon); }
+#w-more { display: flex; flex-direction: column; gap: 14px; }
+#w-more:empty { display: none; }
+.wx { display: flex; gap: 8px; }
+.wx button { flex: none; }
+.wadd { align-self: flex-start; margin-top: -6px; padding: 0; background: none; border: 0; color: var(--cyan); font: 600 15px var(--f-ui); cursor: pointer; text-decoration: underline; }
 .werr { margin: 0; min-height: 20px; color: var(--miss); font-size: 15px; }
 .wnote { margin: 0; color: var(--haze); font-size: 14px; text-align: center; }
 .cal-dots { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
@@ -649,6 +654,8 @@ header:has(> .mtg-home) { flex-wrap: wrap; }
       <label for="w-init">Last initial<input type="text" id="w-init" maxlength="1" autocapitalize="characters" spellcheck="false"></label>
     </div>
     <label for="w-code">Class code<input type="text" id="w-code" maxlength="7" autocapitalize="characters" spellcheck="false" placeholder="From your teacher"></label>
+    <div id="w-more"></div>
+    <button class="wadd" id="w-add" type="button">+ Add another class</button>
     <label class="wsolo" for="w-solo"><input type="checkbox" id="w-solo"> I'm not in a class (World leaderboard only)</label>
     <p class="werr" id="w-error" role="alert"></p>
     <button class="btn-go big" id="w-go" type="submit">Hit the roofs</button>
@@ -2117,9 +2124,19 @@ function getProfile() { if (isGuest()) return null; try { const p = JSON.parse(l
 function setProfile(p) { try { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); sessionStorage.removeItem(GUEST_KEY); } catch {} }
 const displayName = p => `${p.first.charAt(0).toUpperCase()}${p.first.slice(1)} ${p.init}.`;
 const cleanCode = v => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+// Every class this student is in, main class first (max 3); [] when not in a class.
+function classesOf(p) {
+  if (!p) return [];
+  const list = Array.isArray(p.classes) && p.classes.length ? p.classes
+    : (p.classCode ? [{ code: p.classCode, name: p.className || p.classCode, owner: p.classOwner || '' }] : []);
+  return list.filter(c => c && c.code).slice(0, 3);
+}
+// the profile with this class list; classCode/className/classOwner always mirror the main (first) class
+const withClasses = (p, list) => ({ ...p, classes: list, classCode: list.length ? list[0].code : '', className: list.length ? list[0].name : '', classOwner: list.length ? list[0].owner : '' });
+const classNames = p => classesOf(p).map(c => c.name).join(' · ');
 function updateWho() {
   const p = getProfile();
-  $('who-btn').innerHTML = p ? `${iconHTML(iconOf(p)) || '👤'} ${esc(displayName(p))}${p.classCode ? ' · ' + esc(p.className) : ''}` : isGuest() ? '👤 Guest (sign in)' : '👤 Sign in';
+  $('who-btn').innerHTML = p ? `${iconHTML(iconOf(p)) || '👤'} ${esc(displayName(p))}${p.classCode ? ' · ' + esc(classNames(p)) : ''}` : isGuest() ? '👤 Guest (sign in)' : '👤 Sign in';
 }
 // ---------- player icons (shared by every game: saved with the sign-in, shown next to names on leaderboards) ----------
 const ICONS = ['🎹','🎸','🎺','🪊','🎷','🥁','🎻','🪕','🎤','🎧','🎼','𝄢','🎵','🪘','🪗','⭐','🔥','🚀'];   // must match iconOk() in firestore.rules
@@ -2165,11 +2182,28 @@ function applyFocus(label) {
   settings.custom = toks; pickRhythms(true);
   focusToast(`🎯 Practice set up: only <b>${CAT_TITLE[cat]}</b> are in play. Press <b>Start practice</b>!`);
 }
+// up to 3 class codes: the Class code box plus up to 2 "Another class code" boxes
+const classBoxes = () => [$('w-code'), ...$('w-more').querySelectorAll('input')];
+function addClassBox(v = '') {
+  const box = document.createElement('label');
+  box.innerHTML = 'Another class code<span class="wx"><input type="text" maxlength="7" autocapitalize="characters" spellcheck="false" placeholder="From your teacher"><button class="ghost sm" type="button" aria-label="Remove this class">✕</button></span>';
+  box.querySelector('input').value = v;
+  box.querySelector('button').onclick = () => { box.remove(); syncClassBoxes(); };
+  $('w-more').append(box); syncClassBoxes();
+  return box.querySelector('input');
+}
+// "I'm not in a class" disables and clears every code box
+function syncClassBoxes() {
+  const solo = $('w-solo').checked;
+  classBoxes().forEach(i => { i.disabled = solo; if (solo) i.value = ''; });
+  $('w-add').hidden = solo || classBoxes().length >= 3;
+}
 function showWelcome(keep) {
-  const p = keep ? getProfile() : null;
+  const p = keep ? getProfile() : null, cl = classesOf(p);
   setPickedIcon(p && p.icon);
-  $('w-first').value = p ? p.first : ''; $('w-init').value = p ? p.init : ''; $('w-code').value = p ? p.classCode || '' : '';
-  $('w-solo').checked = !!(p && !p.classCode); $('w-code').disabled = $('w-solo').checked; $('w-error').textContent = '';
+  $('w-first').value = p ? p.first : ''; $('w-init').value = p ? p.init : ''; $('w-code').value = cl.length ? cl[0].code : '';
+  $('w-more').innerHTML = ''; cl.slice(1).forEach(c => addClassBox(c.code));
+  $('w-solo').checked = !!(p && !p.classCode); syncClassBoxes(); $('w-error').textContent = '';
   if (view() === 'game') pause(true);
   $('welcome').hidden = false;
   setTimeout(() => (keep ? $('w-code') : $('w-first')).focus(), 50);
@@ -2177,32 +2211,37 @@ function showWelcome(keep) {
 async function submitWelcome(e) {
   e.preventDefault();
   const first = $('w-first').value.trim().replace(/\s+/g, ' '), init = $('w-init').value.trim().toUpperCase();
-  const solo = $('w-solo').checked, code = cleanCode($('w-code').value), err = $('w-error');
+  const solo = $('w-solo').checked, err = $('w-error');
+  const boxes = classBoxes().filter(i => cleanCode(i.value)), codes = [...new Set(boxes.map(i => cleanCode(i.value)))];   // blank boxes and repeats are ignored
   if (!/^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ' -]{0,14}$/.test(first)) { err.textContent = 'Enter your first name (letters only).'; $('w-first').focus(); return; }
   if (!/^[A-Z]$/.test(init)) { err.textContent = 'Enter the first letter of your last name.'; $('w-init').focus(); return; }
   if (isDevName(first + ' ' + init)) { try { await devPost(first + ' ' + init, fbAuth, async () => { const { auth, authMod } = await fbAuth(); return (await authMod.signInWithPopup(auth, new authMod.GoogleAuthProvider())).user.email; }); } catch (ex) { err.textContent = 'That name is reserved. Use your own first name and last initial.'; return; } }
-  let className = '', classOwner = '';
+  const classes = [];
   if (!solo) {
-    if (!code) { err.textContent = 'Enter the class code from your teacher, or check "I\'m not in a class."'; $('w-code').focus(); return; }
+    if (!codes.length) { err.textContent = 'Enter the class code from your teacher, or check "I\'m not in a class."'; $('w-code').focus(); return; }
     $('w-go').disabled = true; $('w-go').textContent = 'Checking…';
     try {
-      const { fs, db } = await fb(), d = await wait(fs.getDoc(fs.doc(db, 'classes', code)));
-      if (!d.exists()) { err.textContent = "We couldn't find that class code. Check it with your teacher."; $('w-code').focus(); return; }
-      className = d.data().name; classOwner = d.data().ownerEmail || '';
+      const { fs, db } = await fb(), docs = await wait(Promise.all(codes.map(c => fs.getDoc(fs.doc(db, 'classes', c)))));
+      const bad = docs.findIndex(d => !d.exists());
+      if (bad >= 0) { err.textContent = codes.length > 1 ? `We couldn't find the class code ${codes[bad]}. Check it with your teacher.` : "We couldn't find that class code. Check it with your teacher."; boxes.find(i => cleanCode(i.value) === codes[bad]).focus(); return; }
+      docs.forEach((d, i) => classes.push({ code: codes[i], name: d.data().name, owner: d.data().ownerEmail || '' }));
     } catch { err.textContent = "Couldn't check the code. Check your internet connection and try again."; return; }
     finally { $('w-go').disabled = false; $('w-go').textContent = 'Hit the roofs'; }
   }
-  setProfile({ first, init, classCode: solo ? '' : code, className, classOwner, icon: pickedIcon() });
+  setProfile(withClasses({ first, init, icon: pickedIcon() }, classes));
   $('welcome').hidden = true; updateWho(); syncSaveBox();
-  classAssign = null; renderAssignment(); refreshClass();
+  classAssign = null; assignBy = {}; renderAssignment(); refreshClass();
 }
 function playAsGuest() { try { sessionStorage.setItem(GUEST_KEY, '1'); } catch {} $('welcome').hidden = true; updateWho(); syncSaveBox(); renderAssignment(); }
+// re-read every class: keep the ones that still exist (fresh name/owner), drop deleted ones
 async function refreshClass() {
-  const p = getProfile(); if (!p || !p.classCode) return;
+  const p = getProfile(), cl = classesOf(p); if (!cl.length) return;
   try {
-    const { fs, db } = await fb(), d = await wait(fs.getDoc(fs.doc(db, 'classes', p.classCode)));
-    setProfile(d.exists() ? { ...p, className: d.data().name, classOwner: d.data().ownerEmail || '' } : { ...p, classCode: '', className: '', classOwner: '' });
-    classAssign = d.exists() ? d.data()[ASSIGN] || null : null;
+    const { fs, db } = await fb(), docs = await wait(Promise.all(cl.map(c => fs.getDoc(fs.doc(db, 'classes', c.code)))));
+    const keep = cl.filter((c, i) => docs[i].exists()), live = docs.filter(d => d.exists());
+    setProfile(withClasses(p, keep.map((c, i) => ({ code: c.code, name: live[i].data().name, owner: live[i].data().ownerEmail || '' }))));
+    assignBy = Object.fromEntries(keep.map((c, i) => [c.code, live[i].data()[ASSIGN] || null]));
+    classAssign = keep.length ? assignBy[keep[0].code] : null;
     updateWho(); renderAssignment();
   } catch {}
 }
@@ -2228,6 +2267,15 @@ async function devPost(name, getAuth, signIn) {
 async function devRows(fs, db, col, extra = []) {
   try { return (await fs.getDocs(fs.query(fs.collection(db, col), fs.where('dev', '==', true), ...extra))).docs; } catch (e) { return []; }
 }
+// Runs tagged with this class in class_codes (students in 2+ classes): no orderBy or other filter, so no index is needed.
+async function multiRows(fs, col, code) {
+  try { return (await wait(fs.getDocs(fs.query(col, fs.where('class_codes', 'array-contains', code))))).docs.map(toRow); } catch (e) { return []; }
+}
+// board scope -> class code: 'class' = the main class, 'class:<code>' = another of the student's classes, 'world' = ''
+function scopeCls(scope, p) {
+  const cl = classesOf(p), c = scope === 'class' ? cl[0] : cl.find(x => 'class:' + x.code === scope);
+  return c ? c.code : '';
+}
 // Boards read only their top 60 (difficulty and class filtered on the server; style/clef/instrument here), kept 60 s in memory.
 const BOARD_N = 60, BOARD_TTL = 60000, boardCache = new Map(), noIndex = {};
 // Try the indexed query; if its composite index is missing, say so once and use the old query for the rest of the visit.
@@ -2236,7 +2284,7 @@ async function indexed(shape, fresh, old) {
   return old();
 }
 async function fetchRows(scope, diff = 'all') {
-  const { fs, db } = await fb(), p = getProfile(), col = fs.collection(db, SCORES), cls = scope === 'class' && p && p.classCode ? p.classCode : '';
+  const { fs, db } = await fb(), p = getProfile(), col = fs.collection(db, SCORES), cls = scopeCls(scope, p);
   const key = [SCORES, cls ? 'class' : 'world', cls, diff].join('|'), hit = boardCache.get(key);
   if (hit && Date.now() - hit.t < BOARD_TTL) return hit;
   const eq = [...(cls ? [fs.where('class_code', '==', cls)] : []), ...(diff !== 'all' ? [fs.where('diff', '==', diff)] : [])];
@@ -2245,11 +2293,16 @@ async function fetchRows(scope, diff = 'all') {
   // old way: every class run, or the world's 400 best (counted as shown, as before)
   const old = () => cls ? get(fs.query(col, fs.where('class_code', '==', cls)), 0) : get(fs.query(col, fs.orderBy('score', 'desc'), fs.limit(400)), 400);
   const res = await indexed('board' + (cls ? '+class' : '') + (diff !== 'all' ? '+diff' : ''), () => get(fs.query(col, ...eq, fs.orderBy('score', 'desc'), fs.limit(BOARD_N)), BOARD_N), old);
+  let extra = [];
   if (cls) {   // the developer's runs show on every class board
     const seen = new Set(res.rows.map(r => r.id));
     res.rows = res.rows.concat((await devRows(fs, db, SCORES, diff !== 'all' ? [fs.where('diff', '==', diff)] : [])).map(toRow).filter(r => !seen.has(r.id)));
+    // plus runs whose main class is another class but that list this one in class_codes (all fetched; difficulty filtered here)
+    extra = (await multiRows(fs, col, cls)).filter(r => r.class_code !== cls && (diff === 'all' || r.diff === diff));
+    res.rows.forEach(r => seen.add(r.id));
+    res.rows = res.rows.concat(extra.filter(r => !seen.has(r.id)));
   }
-  const e = { ...res, t: Date.now(), cls, diff, counts: {} };
+  const e = { ...res, t: Date.now(), cls, diff, counts: {}, extra };
   boardCache.set(key, e);
   return e;
 }
@@ -2265,13 +2318,14 @@ function boardTotal(e, f, shown) {
   if (k in e.counts) return e.counts[k] ?? shown;
   e.counts[k] = null;
   fb().then(({ fs, db }) => wait(fs.getCountFromServer(fs.query(fs.collection(db, SCORES), ...boardEq(fs, e, f)))))
-    .then(s => { e.counts[k] = s.data().count; if (boardEntry === e) renderBoard(); }).catch(() => {});
+    .then(s => { e.counts[k] = s.data().count + boardRows(f, e.extra).length; if (boardEntry === e) renderBoard(); }).catch(() => {});
   return shown;
 }
 // a just-posted run joins any cached board it belongs on, so it shows right away
 function addToBoards(row) {
   boardCache.forEach(e => {
-    if ((e.cls && e.cls !== row.class_code) || (e.diff !== 'all' && e.diff !== row.diff)) return;
+    if ((e.cls && e.cls !== row.class_code && !(row.class_codes || []).includes(e.cls)) || (e.diff !== 'all' && e.diff !== row.diff)) return;
+    if (e.cls && e.cls !== row.class_code) e.extra = e.extra.concat(row);
     if (e.cut && !e.rows.some(x => x.score <= row.score)) return;
     e.rows = e.rows.concat(row); e.counts = {};
     if (boardEntry === e) boardAll = e.rows;
@@ -2283,18 +2337,18 @@ async function runRank(scope, diff, f, id, score) {
   if (i >= 0 || !e.cut) return i;
   const { fs, db } = await fb(), col = fs.collection(db, SCORES);
   return indexed('rank' + (e.cls ? '+class' : '') + (f.inst && f.inst !== 'all' ? '+inst' : ''),
-    async () => (await wait(fs.getCountFromServer(fs.query(col, ...boardEq(fs, e, f), fs.where('score', '>', score))))).data().count,
-    async () => boardRows(f, (await wait(fs.getDocs(e.cls ? fs.query(col, fs.where('class_code', '==', e.cls)) : fs.query(col, fs.orderBy('score', 'desc'), fs.limit(400))))).docs.map(toRow)).findIndex(x => x.id === id));
+    async () => (await wait(fs.getCountFromServer(fs.query(col, ...boardEq(fs, e, f), fs.where('score', '>', score))))).data().count + boardRows(f, e.extra).filter(x => x.score > score).length,
+    async () => boardRows(f, (await wait(fs.getDocs(e.cls ? fs.query(col, fs.where('class_code', '==', e.cls)) : fs.query(col, fs.orderBy('score', 'desc'), fs.limit(400))))).docs.map(toRow).concat(e.extra)).findIndex(x => x.id === id));
 }
 async function loadBoard() {
   const p = getProfile(), tok = ++boardTok;
-  if (boardScope === 'class' && !(p && p.classCode)) boardScope = 'world';
+  if (boardScope !== 'world' && !scopeCls(boardScope, p)) boardScope = 'world';
   renderScope(); boardState = 'loading'; renderBoard();
   try { const e = await fetchRows(boardScope, boardFilter().diff); if (tok !== boardTok) return; boardEntry = e; boardAll = e.rows; boardState = 'ready'; } catch { if (tok !== boardTok) return; boardState = 'off'; }
   renderBoard();
 }
 function renderScope() {
-  const p = getProfile(), opts = (p && p.classCode ? [['class', p.className]] : []).concat([['world', 'World']]);
+  const p = getProfile(), opts = classesOf(p).map((c, i) => [i ? 'class:' + c.code : 'class', c.name]).concat([['world', 'World']]);
   $('scope-seg').innerHTML = opts.map(([k]) => `<input type="radio" name="bscope" id="bscope-${k}" value="${k}"${k === boardScope ? ' checked' : ''}><label for="bscope-${k}"></label>`).join('');
   opts.forEach(([k, l]) => { $('scope-seg').querySelector(`label[for="bscope-${k}"]`).textContent = l; });
 }
@@ -2359,7 +2413,7 @@ function syncSaveBox(fresh) {
   if (box.hidden || savedRunId) return;
   // signed-in players' scores post automatically; the button only appears if a post fails, or to sign in
   if (p) {
-    $('save-who').textContent = `Posting as ${displayName(p)}${p.classCode ? ' to ' + p.className + ' and the World board' : ' to the World board'}.`;
+    $('save-who').textContent = `Posting as ${displayName(p)}${p.classCode ? ' to ' + classNames(p) + ' and the World board' : ' to the World board'}.`;
     btn.textContent = 'Try again'; btn.onclick = saveRun; btn.hidden = true;
     if (fresh || !lastRun.wasGuest) {
       if (lastRun.hits > 0) saveRun();
@@ -2381,12 +2435,13 @@ async function saveRun() {
     const data = { name: displayName(p), score: r.score, hits: r.hits, acc: r.acc, level: r.level, bpm: r.bpm, diff: r.diff, style: r.style, clef: r.clef, created_at: fs.serverTimestamp() };
     if (r.instrument) data.instrument = r.instrument;
     if (p.classCode) data.class_code = p.classCode;
+    if (classesOf(p).length > 1) data.class_codes = classesOf(p).map(c => c.code);   // only for 2+ classes: other runs stay as they were
     if (iconOf(p)) data.icon = iconOf(p);
     if (await devPost(data.name, fbAuth, async () => { const { auth, authMod } = await fbAuth(); return (await authMod.signInWithPopup(auth, new authMod.GoogleAuthProvider())).user.email; })) { data.dev = true; data.name = DEV_NAME; }
     const ref = await wait(fs.addDoc(fs.collection(db, SCORES), data));
     savedRunId = ref.id;
     addToBoards({ ...data, id: ref.id, at: new Date().toISOString() });
-    $('save-who').textContent = `Posted as ${displayName(p)}${p.classCode ? ' to ' + p.className + ' and the World board' : ' to the World board'}.`;
+    $('save-who').textContent = `Posted as ${displayName(p)}${p.classCode ? ' to ' + classNames(p) + ' and the World board' : ' to the World board'}.`;
     const f = { diff: r.diff, style: r.style, clef: r.clef, inst: r.instrument || 'all' };
     const [w, c] = await Promise.all([runRank('world', r.diff, f, ref.id, r.score), p.classCode ? runRank('class', r.diff, f, ref.id, r.score) : -1]);
     const bits = [c >= 0 ? `#${c + 1} in ${p.className}` : '', w >= 0 ? `#${w + 1} in the world` : ''].filter(Boolean);
@@ -2409,7 +2464,7 @@ function openBoard(run) {
 const DAY_KEY = 'rooftop_day_v1';
 const dayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const sidOf = p => (p.first + p.init).toLowerCase().replace(/[^a-z]/g, '');
-const tracked = () => { const p = getProfile(); return p && p.classCode && p.classOwner ? p : null; };
+const tracked = () => { const p = getProfile(); return p && classesOf(p).some(c => c.owner) ? p : null; };
 function readDay() {
   const p = tracked(); if (!p) return null;
   let d = null; try { d = JSON.parse(localStorage.getItem(DAY_KEY) || 'null'); } catch {}
@@ -2490,32 +2545,44 @@ async function syncProgress() {
   clearTimeout(syncTimer);
   const p = tracked(), d = readDay(); if (!p || !d || !d.answers) return;
   const missed = Object.fromEntries(Object.entries(d.missed).filter(([, v]) => v[0]).sort((a, b) => b[1][0] - a[1][0]).slice(0, 15));
-  const data = { class_code: p.classCode, owner: p.classOwner, date: d.date, sid: d.sid, student: displayName(p),
+  const data = { date: d.date, sid: d.sid, student: displayName(p),
     answers: d.answers, correct: d.correct, minutes: Math.max(1, Math.round(d.ms / 60000)), first_at: d.first, last_at: d.last,
-    games: d.games, best_score: d.best_score, best_level: d.best_level, by_game: d.by_game, missed, runs: d.runs,
-    goal: (classAssign && classAssign.goal) || 0 };
-  try { const { fs, db } = await fb(); data.updated_at = fs.serverTimestamp(); await wait(fs.setDoc(fs.doc(db, 'rooftop_progress', `${p.classCode}_${d.date}_${d.sid}`), data)); }
+    games: d.games, best_score: d.best_score, best_level: d.best_level, by_game: d.by_game, missed, runs: d.runs };
+  // the same day summary goes to one document per class (each with that class's code, teacher and goal)
+  try {
+    const { fs, db } = await fb(); data.updated_at = fs.serverTimestamp();
+    await wait(Promise.all(classesOf(p).filter(c => c.owner).map(c => fs.setDoc(fs.doc(db, 'rooftop_progress', `${c.code}_${d.date}_${d.sid}`),
+      { class_code: c.code, owner: c.owner, ...data, goal: (assignBy[c.code] && assignBy[c.code].goal) || 0 }))));
+  }
   catch (e) { console.warn('Progress sync failed:', e); }
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden) syncProgress(); });
 
 /* ---------- assignment (set by the teacher, shown to the class) ---------- */
-let classAssign = null;
+let classAssign = null, assignBy = {};   // the main class's assignment; every class's, by code
 const MODE_TITLE = { levels: 'Levels', practice: 'Practice' };
 const assignText = a => [DIFFS[a.level] ? DIFFS[a.level].title : 'Easy', STYLE_TITLE[a.style] || 'MIDI', a.style === 'rhythm' ? '' : CLEF_TITLE[a.clef] || 'Treble', MODE_TITLE[a.mode] || 'Levels'].filter(Boolean).join(' · ');
+// the main class's banner, then one more (labeled with its class name) for each other class with an assignment
 function renderAssignment() {
-  const box = $('assign-banner'), a = classAssign;
-  if (!a || !tracked()) { box.hidden = true; return; }
+  const box = $('assign-banner'), a = classAssign, p = tracked(), more = p ? classesOf(p).slice(1).filter(c => assignBy[c.code]) : [];
+  document.querySelectorAll('.assign-more').forEach(el => el.remove());
+  box.hidden = !a || !p;
+  if (!p || (!a && !more.length)) return;
   const d = readDay(), done = d ? d.correct : 0, mins = d ? Math.round(d.ms / 60000) : 0;
-  const goals = [a.goal ? `${Math.min(done, a.goal)} / ${a.goal} notes on time today` : '', a.minutes ? `${Math.min(mins, a.minutes)} / ${a.minutes} minutes today` : ''].filter(Boolean).join(' · ');
-  box.innerHTML = '<span class="a-t">Assignment</span><span class="a-d"></span><button type="button" class="sm" id="assign-use">Use these settings</button>';
-  box.querySelector('.a-d').textContent = assignText(a);
-  if (goals || a.note) { const sm = document.createElement('small'); sm.textContent = [goals, a.note].filter(Boolean).join(' · '); box.querySelector('.a-d').appendChild(sm); }
-  box.querySelector('#assign-use').onclick = useAssignment;
-  box.hidden = false;
+  const fill = (el, a, label) => {
+    const goals = [a.goal ? `${Math.min(done, a.goal)} / ${a.goal} notes on time today` : '', a.minutes ? `${Math.min(mins, a.minutes)} / ${a.minutes} minutes today` : ''].filter(Boolean).join(' · ');
+    el.innerHTML = '<span class="a-t">Assignment</span><span class="a-d"></span><button type="button" class="sm">Use these settings</button>';
+    if (label) el.querySelector('.a-t').textContent += ' · ' + label;
+    el.querySelector('.a-d').textContent = assignText(a);
+    if (goals || a.note) { const sm = document.createElement('small'); sm.textContent = [goals, a.note].filter(Boolean).join(' · '); el.querySelector('.a-d').appendChild(sm); }
+    el.querySelector('button').onclick = () => useAssignment(a);
+  };
+  if (a) { fill(box, a, more.length ? classesOf(p)[0].name : ''); box.querySelector('button').id = 'assign-use'; }
+  let at = box;
+  more.forEach(c => { const el = document.createElement('div'); el.className = 'assign assign-more'; fill(el, assignBy[c.code], c.name); at.after(el); at = el; });
 }
-function useAssignment() {
-  const a = classAssign; if (!a) return;
+function useAssignment(a = classAssign) {
+  if (!a) return;
   if (DIFFS[a.level]) settings.diff = a.level;
   if (STYLE_TITLE[a.style]) settings.style = a.style === 'keys' ? 'midi' : a.style;
   if (a.clef === 'treble' || a.clef === 'bass') settings.clef = a.clef;
@@ -2823,7 +2890,9 @@ async function tdScores() {
   $('td-body').innerHTML = '<p class="dim">Loading scores…</p>';
   let list = [];
   try {
-    list = await run(async ({ fs, db }) => { const col = fs.collection(db, SCORES); const q = world ? fs.query(col, fs.orderBy('score', 'desc'), fs.limit(400)) : fs.query(col, fs.where('class_code', '==', TD.scope)); return (await fs.getDocs(q)).docs.map(toRow); });
+    list = await run(async ({ fs, db }) => { const col = fs.collection(db, SCORES); const q = world ? fs.query(col, fs.orderBy('score', 'desc'), fs.limit(400)) : fs.query(col, fs.where('class_code', '==', TD.scope));
+      const rows = (await fs.getDocs(q)).docs.map(toRow), ids = new Set(rows.map(r => r.id));
+      return world ? rows : rows.concat((await multiRows(fs, col, TD.scope)).filter(r => !ids.has(r.id))); });   // + runs from students in 2+ classes
     list.sort((a, b) => b.score - a.score);
   } catch (e) { tdMsg(tdErr(e)); }
   const rows = list.map((e, i) => `<tr><td>${i + 1}</td><td>${esc(e.name)}</td>${world ? `<td class="dim">${esc(e.class_code || '—')}</td>` : ''}<td>${Number(e.score).toLocaleString()}</td>
@@ -3403,7 +3472,8 @@ $('board-back').addEventListener('click', () => { goTo('splash', startDemo); ref
 $('board-filters').addEventListener('change', e => e.target.name === 'bdiff' ? loadBoard() : renderBoard());
 $('board-scope').addEventListener('change', e => { if (e.target.name === 'bscope') { boardScope = e.target.value; loadBoard(); } });
 $('w-form').addEventListener('submit', submitWelcome);
-$('w-solo').addEventListener('change', e => { $('w-code').disabled = e.target.checked; if (e.target.checked) $('w-code').value = ''; });
+$('w-solo').addEventListener('change', syncClassBoxes);
+$('w-add').addEventListener('click', () => { if (classBoxes().length < 3) addClassBox().focus(); });
 $('w-guest').addEventListener('click', playAsGuest);
 $('who-btn').addEventListener('click', () => showWelcome(!!getProfile()));
 
