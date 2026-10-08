@@ -1896,6 +1896,22 @@ function startGame(cfg) {
   $('loop-btn').hidden = G.mode !== 'practice';
   $('loop-btn').setAttribute('aria-pressed', 'false'); $('loop-btn').textContent = 'Repeat this bar (R)';
   G.topBpm = bpmAt(0);
+  // bring the game to the middle of the screen, however far down the settings were scrolled
+  requestAnimationFrame(() => requestAnimationFrame(centerGame)); setTimeout(centerGame, 400);
+}
+// frame the scoreboard, the rooftops and the staff (and the tap pad) in the window; on a short screen, make sure the whole staff shows
+function centerGame() {
+  if (view() !== 'game') return;
+  const vis = el => el && el.offsetParent !== null && el.getBoundingClientRect().height > 0;
+  const hud = document.querySelector('.hud'), stage = $('stage'), pad = $('pad-area');
+  const top = (vis(hud) ? hud : stage).getBoundingClientRect().top + scrollY;
+  const bottom = (vis(pad) ? pad : stage).getBoundingClientRect().bottom + scrollY;
+  const st = stage.getBoundingClientRect(), stTop = st.top + scrollY, h = innerHeight;
+  let y;
+  if (bottom - top <= h) y = top - (h - (bottom - top)) / 2;
+  else if (st.height <= h) y = Math.min(stTop - 8, Math.max(top, stTop + st.height - h + 8));   // the whole staff, plus as much of the scoreboard as fits
+  else y = stTop;
+  window.scrollTo({ top: Math.max(0, Math.round(y)), behavior: 'auto' });
 }
 function releaseAll() {
   if (!G.held) return;
