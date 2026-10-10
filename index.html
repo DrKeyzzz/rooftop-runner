@@ -353,6 +353,64 @@ button.sm { font-size: 13px; padding: 5px 11px; }
 .mtg-home a:hover, .mtg-home a:focus-visible { opacity: 1; border-color: currentColor; }
 .mtg-home svg { width: 15px; height: 15px; flex: none; }
 header:has(> .mtg-home) { flex-wrap: wrap; }
+/* ---------- start screen (2026-10): PLAY on the playfield, four dropdowns, everything else in "More options" tabs ---------- */
+.hero { display: none !important; }
+.src-hide { display: none !important; }
+.play-cta { position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 16px; text-align: center; background: radial-gradient(62% 72% at 50% 50%, rgba(18,15,38,.12), rgba(18,15,38,.66)); }
+.stage:has(.overlay:not([hidden])) .play-cta { display: none; }
+.play-title { font: 400 clamp(26px, 4.6vw, 46px)/.95 var(--f-display); color: var(--chalk); text-shadow: 0 4px 20px rgba(0,0,0,.6); }
+.play-title span { color: var(--neon); text-shadow: 0 0 20px rgba(255,79,163,.6); }
+.play-big { font: 400 clamp(26px, 4vw, 40px) var(--f-display); letter-spacing: .04em; color: #1a0f22; background: var(--neon); border: 0; border-radius: 22px; padding: 16px 48px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 14px; box-shadow: 0 0 0 4px rgba(255,79,163,.25), 0 10px 40px -6px rgba(255,79,163,.8); animation: playPulse 2s ease-in-out infinite; }
+.play-big:hover { filter: brightness(1.08); }
+.play-big:focus-visible { outline: 3px solid var(--chalk); outline-offset: 4px; }
+.play-big:disabled { opacity: .5; cursor: not-allowed; animation: none; }
+.play-big svg { width: .8em; height: .8em; }
+@keyframes playPulse { 50% { box-shadow: 0 0 0 10px rgba(255,79,163,.12), 0 10px 50px -4px rgba(255,79,163,.95); } }
+@media (prefers-reduced-motion: reduce) { .play-big { animation: none; } }
+.play-sum { font-weight: 700; font-size: 17px; letter-spacing: .04em; color: var(--chalk); background: rgba(18,15,38,.75); border: 1px solid var(--edge); border-radius: 999px; padding: 6px 14px; }
+.play-sum b { color: var(--amber); font-weight: 700; }
+.play-hint { font-size: 14px; color: var(--haze); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center; background: rgba(18,15,38,.6); border-radius: 999px; padding: 2px 10px; }
+.play-hint kbd { font: 700 12px var(--f-ui); border: 1px solid var(--edge); border-radius: 5px; padding: 1px 6px; color: var(--chalk); }
+.linkish { all: unset; cursor: pointer; color: var(--cyan); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.linkish:focus-visible { outline: 2px solid var(--chalk); outline-offset: 2px; border-radius: 4px; }
+.quick { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; gap: 10px; align-items: end; }
+.quick:has(#dd-clef[hidden]) { grid-template-columns: repeat(3, minmax(0, 1fr)) auto; }
+@media (max-width: 820px) { .quick, .quick:has(#dd-clef[hidden]) { grid-template-columns: repeat(2, minmax(0, 1fr)); } .quick .more-btn { grid-column: 1 / -1; } }
+.dd { position: relative; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.dd > span { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--amber); }
+.dd .sel { width: 100%; text-align: left; font: 700 17px var(--f-ui); color: var(--chalk); background: var(--wall); border: 1px solid var(--edge); border-radius: 12px; padding: 10px 36px 10px 14px; cursor: pointer; position: relative; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dd .sel::after { content: ''; position: absolute; right: 14px; top: 50%; width: 8px; height: 8px; border: solid var(--haze); border-width: 0 2px 2px 0; transform: translateY(-70%) rotate(45deg); }
+.dd .sel:hover, .dd .sel[aria-expanded="true"] { border-color: var(--neon); }
+.dd-menu { position: absolute; z-index: 30; top: calc(100% + 6px); left: 0; min-width: 100%; width: max-content; max-width: min(360px, 92vw); background: var(--wall); border: 1px solid var(--neon); border-radius: 14px; padding: 6px; box-shadow: 0 18px 40px -10px rgba(0,0,0,.7); display: flex; flex-direction: column; gap: 2px; }
+.dd:last-of-type .dd-menu { left: auto; right: 0; }
+.dd-menu button { all: unset; box-sizing: border-box; cursor: pointer; padding: 9px 12px; border-radius: 10px; display: flex; flex-direction: column; gap: 1px; }
+.dd-menu button:hover, .dd-menu button:focus-visible { background: var(--brick); }
+.dd-menu button b { font-size: 17px; }
+.dd-menu button small { color: var(--haze); font-size: 14px; line-height: 1.25; }
+.dd-menu button[aria-checked="true"] b::before { content: '✓ '; color: var(--neon); }
+.more-btn { font: 700 15px var(--f-ui); letter-spacing: .06em; color: var(--chalk); background: none; border: 1px solid var(--edge); border-radius: 12px; padding: 11px 16px; cursor: pointer; white-space: nowrap; }
+.more-btn:hover, .more-btn[aria-expanded="true"] { border-color: var(--cyan); color: var(--cyan); }
+.more { background: var(--wall); border: 1px solid var(--edge); border-radius: 16px; overflow: hidden; }
+.mtabs { display: flex; gap: 2px; flex-wrap: wrap; border-bottom: 1px solid var(--edge); padding: 6px 6px 0; }
+.mtabs button { font: 700 15px var(--f-ui); letter-spacing: .06em; text-transform: uppercase; color: var(--haze); background: none; border: 0; border-bottom: 3px solid transparent; padding: 10px 14px 8px; cursor: pointer; }
+.mtabs button[aria-selected="true"] { color: var(--chalk); border-color: var(--cyan); }
+.mpanel { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.mpanel .adv { border-top: 0; padding-top: 0; }
+.mpanel .adv > summary { display: none; }
+.mnote { margin: 0; color: var(--haze); font-size: 15px; }
+.mnote button { margin-left: 8px; }
+.input-hint { position: absolute; left: 50%; top: 34%; transform: translate(-50%, -50%); z-index: 2; pointer-events: none; font: 400 clamp(16px, 2.6vw, 26px)/1.2 var(--f-display); color: var(--chalk); text-align: center; background: rgba(18,15,38,.84); border: 2px solid var(--cyan); border-radius: 18px; padding: 14px 22px 10px; box-shadow: 0 0 30px -6px var(--cyan); max-width: 90%; }
+.input-hint kbd { font: inherit; color: #10202a; background: var(--cyan); border-radius: 8px; padding: 0 10px; }
+.input-hint small { display: block; font: 600 15px var(--f-ui); color: var(--haze); margin-top: 6px; letter-spacing: .02em; }
+.input-hint.got { border-color: var(--perfect); color: var(--perfect); box-shadow: 0 0 30px -6px var(--perfect); }
+body:not([data-view="game"]) .input-hint { display: none; }
+body[data-view="game"] .stage { touch-action: none; user-select: none; -webkit-user-select: none; }
+.howto-pop { position: fixed; inset: 0; z-index: 60; background: rgba(8,6,20,.72); display: grid; place-items: center; padding: 16px; }
+.howto-pop .card { max-width: 540px; background: var(--wall); border: 1px solid var(--neon); border-radius: 18px; padding: 22px; display: flex; flex-direction: column; gap: 12px; }
+.howto-pop h2 { margin: 0; font: 400 26px var(--f-display); }
+.howto-pop ol { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 18px; }
+.howto-pop ol b { color: var(--cyan); }
+.howto-pop .play-big { align-self: center; font-size: 22px; padding: 12px 30px 9px; animation: none; }
 .devtag { display: inline-block; font: 700 10px var(--f-ui, sans-serif); letter-spacing: .12em; padding: 3px 6px 1px; margin-left: 6px; border-radius: 999px; background: var(--lamp, #ffc45c); color: var(--deep, #0c1a24); vertical-align: middle; }
 </style>
 </head>
@@ -376,7 +434,7 @@ header:has(> .mtg-home) { flex-wrap: wrap; }
       <button class="iconbtn" id="midi-btn" type="button" data-state="off"><i></i><span id="midi-label">MIDI keyboard</span></button>
       <button class="iconbtn" id="board-btn" type="button">Leaderboard</button>
       <button class="iconbtn" id="sound-btn" type="button" aria-pressed="true">Sound on</button>
-      <button class="iconbtn" id="teacher-btn" type="button">Teacher Dashboard</button>
+      <button class="iconbtn" id="teacher-btn" type="button" title="Teacher Dashboard" aria-label="Teacher Dashboard">🎓</button>
     </div>
   </header>
 
@@ -391,6 +449,13 @@ header:has(> .mtg-home) { flex-wrap: wrap; }
 
   <div class="stage" id="stage">
     <canvas id="cv" aria-label="A runner crosses rooftops above a scrolling staff. Each note is one building."></canvas>
+    <div class="play-cta splash-only" id="play-cta">
+      <div class="play-title">Ready to <span>run?</span></div>
+      <button class="play-big" id="play-btn" type="button"><svg viewBox="0 0 10 10" fill="currentColor" aria-hidden="true"><path d="M1 0 L10 5 L1 10 Z"/></svg><span id="play-label">PLAY</span></button>
+      <div class="play-sum" id="play-sum"></div>
+      <div class="play-hint"><span>or press <kbd>Enter</kbd></span><span>·</span><button type="button" class="linkish" id="howto-btn">? How to play</button></div>
+    </div>
+    <div class="input-hint" id="input-hint" hidden></div>
     <div class="overlay" id="overlay" hidden>
       <div class="ov-card">
         <div class="ov-tag" id="ov-tag"></div>
@@ -408,6 +473,25 @@ header:has(> .mtg-home) { flex-wrap: wrap; }
 
   <form class="setup splash-only" id="settings" onsubmit="return false">
     <div class="assign" id="assign-banner" hidden></div>
+    <div class="quick" id="quick">
+      <div class="dd" data-name="diff"><span>Difficulty</span></div>
+      <div class="dd" data-name="style"><span>Play style</span></div>
+      <div class="dd" data-name="clef" id="dd-clef"><span>Clef</span></div>
+      <div class="dd" data-name="mode"><span>Mode</span></div>
+      <button type="button" class="more-btn" id="more-btn" aria-expanded="false" aria-controls="more">⚙ More options</button>
+    </div>
+    <div class="more" id="more" hidden>
+      <div class="mtabs" role="tablist" aria-label="More options">
+        <button type="button" role="tab" data-tab="sound" aria-selected="true">Sound</button>
+        <button type="button" role="tab" data-tab="live" aria-selected="false">Live (mic)</button>
+        <button type="button" role="tab" data-tab="rhythms" aria-selected="false">Rhythms</button>
+        <button type="button" role="tab" data-tab="timing" aria-selected="false">Timing</button>
+      </div>
+      <div class="mpanel" data-panel="sound" role="tabpanel"></div>
+      <div class="mpanel" data-panel="live" role="tabpanel" hidden><p class="mnote" id="live-note">To play your own instrument or sing, set <b>Play style</b> to <b>Live · microphone</b>.<button type="button" class="ghost sm" id="live-use">Use Live</button></p></div>
+      <div class="mpanel" data-panel="rhythms" role="tabpanel" hidden><p class="mnote" id="rhythms-note">To practice only the rhythms you choose, set <b>Mode</b> to <b>Specific rhythms</b>.<button type="button" class="ghost sm" id="rhythms-use">Use specific rhythms</button></p></div>
+      <div class="mpanel" data-panel="timing" role="tabpanel" hidden><p class="mnote" id="tempo-note">The practice tempo is used when <b>Mode</b> is Practice.</p></div>
+    </div>
     <div class="setup-grid">
       <fieldset class="tiles four">
         <legend>Difficulty</legend>
@@ -461,7 +545,7 @@ header:has(> .mtg-home) { flex-wrap: wrap; }
           <div class="seg">
             <input type="radio" name="mode" id="mode-levels" value="levels" checked><label for="mode-levels">Levels (3 lights)</label>
             <input type="radio" name="mode" id="mode-practice" value="practice"><label for="mode-practice">Practice</label>
-            <input type="radio" name="mode" id="mode-rhythms" value="rhythms"><label for="mode-rhythms">Practice specific rhythms</label>
+            <input type="radio" name="mode" id="mode-rhythms" value="rhythms"><label for="mode-rhythms">Specific rhythms</label>
           </div>
           <div class="range-row" id="practice-row" hidden>
             <label for="practice-bpm">Tempo</label>
@@ -824,6 +908,7 @@ function newRun(o) {
     halves: 6, score: 0, streak: 0, bestStreak: 0, level: 0, topBpm: 0, chase: newChase(),
     held: new Map(), down: new Set(), popups: [], extras: [], banner: null, ouch: -99, nextClick: null, loop: null, clean: 0,
     stats: { cats: {}, pitches: {}, offsets: [], attacks: 0, hits: 0, wrong: 0, miss: 0, extra: 0, early: 0 },
+    gotInput: false, heardCheck: false, silent: 0, warmLeft: !o.demo && !store.get('rooftop:warmed', false) ? 4 : 0,
   });
   if (G.demo) { G.aB = 0; G.aMs = performance.now(); }
   layout();
@@ -987,6 +1072,7 @@ function pushBar(bar) {
     if (n.rest) continue;
     if (n.tiedFrom) { const a = n.tiedFrom.attack; n.attack = a; if (a) { a.len += n.d; a.tied = true; } continue; }
     const a = { note: n, b: n.b, len: n.d, midi: n.midi, p: n.p, d: n.dia, acc: n.acc, j: null };
+    if (G.warmLeft > 0) { a.warm = true; G.warmLeft--; }
     n.attack = a; G.attacks.push(a);
   }
 }
@@ -1572,7 +1658,7 @@ function drawBeatCounter() {
   const inCount = isCountBar(bar) && !G.demo;
   let label = counting ? 'Count-in: get ready' : inCount ? 'Count-in: 1 2 3 4' : G.mode === 'practice' ? `Bar ${bar + 1}` + (G.loop ? ` · repeating · clean runs ${G.clean}` : '') : `Bar ${musicBarIdx(bar) + 1} of ${LEVEL_BARS}`;
   if (G.style === 'rhythm' && !G.demo) label += ` · ${chordNow().name} chord`;
-  if (G.demo) label = 'Demo · press Start running';
+  if (G.demo) label = 'Demo · press PLAY';
   ctx.font = `600 ${g * .95}px ${F.ui}`; ctx.textAlign = 'left'; ctx.fillStyle = counting || inCount ? C.amber : C.haze;
   ctx.fillText(label, PL + 9.6 * g, y + g * .05);
 }
@@ -1735,6 +1821,7 @@ function press(src, pitch, ts) {
   if (!G.running || G.paused || G.demo || G.over) return;
   if (G.down.has(src)) return;
   G.down.add(src);
+  if (!G.gotInput) { G.gotInput = true; inputGot(); }
   if (G.style === 'rhythm') startHoldTone(src);
   else if (G.style === 'keys' && pitch != null) tone(midiFreq(60 + pitch), .35, 'triangle', .12);
   const tt = beatAt(ts - ((isLive() ? liveLatency : latency) || 0));
@@ -1770,7 +1857,7 @@ function press(src, pitch, ts) {
 }
 function release(src, ts) {
   G.down.delete(src); stopHoldTone(src);
-  if (![...G.down].some(k => k === 'pad' || k.startsWith('midi'))) $('hold-pad').classList.remove('down');
+  if (![...G.down].some(k => k === 'pad' || k.startsWith('midi') || k.startsWith('k:') || k.startsWith('ptr'))) $('hold-pad').classList.remove('down');
   const a = G.held.get(src); if (!a) return;
   G.held.delete(src);
   finishHold(a, beatAt(ts - ((isLive() ? liveLatency : latency) || 0)));
@@ -1795,9 +1882,13 @@ function liveTick() {
   const v = G.t;
   for (const [src, a] of G.held) if (v >= a.b + a.len + .2) { finishHold(a, a.b + a.len); G.held.delete(src); }
   for (const a of G.attacks) {
+    if (a.warm && !a.cued && v >= a.b - .06) { a.cued = true; if (!a.j) pop('NOW!', C.cyan); }
     if (a.b > v) break;
     if (!a.j && v > a.b + windowBeats(a.b)) {
-      a.j = 'M'; G.stats.miss++; breakStreak(); G.ouch = G.v; pop('Miss', C.miss); tally(a, false); chaseHit('M'); loseHalf();
+      if (!G.gotInput && ++G.silent >= 3 && !G.heardCheck) { a.j = 'M'; G.heardCheck = true; notHeard(); return; }   // nothing heard at all: stop and show how
+      if (a.warm) { a.j = 'M'; pop('Try the next one!', C.amber); continue; }      // first-ever run: the warm-up notes don't count
+      a.j = 'M'; G.stats.miss++; breakStreak(); G.ouch = G.v; pop('Miss', C.miss); tally(a, false); chaseHit('M');
+      loseHalf();
       if (G.over) return;
     }
   }
@@ -1888,10 +1979,143 @@ function launch(drill) {
   if (settings.style === 'live' && !MIC.on) { MIC.inst = instNow(); micStart().then(ok => { if (ok) launch(drill); else $('live-set').scrollIntoView({ block: 'center' }); }); return; }
   if (settings.style === 'live' && !tunedFor(instNow())) { openTune(() => launch(drill)); return; }
   if (settings.style === 'live') { MIC.inst = instNow(); MIC.tune = TUNE.done[MIC.inst.id] || 0; micConfig(); }
-  if (curLat() == null && !skipCalib) { openCal(() => launch(drill)); return; }
+  if (settings.style === 'live' && curLat() == null && !skipCalib) { openCal(() => launch(drill)); return; }   // only Live needs it first; everyone else can calibrate later (More options › Timing)
   const cfg = drill ? { ...lastConfig, mode: 'practice', practiceBpm: DIFFS[lastConfig.diff].bpm, drill } : { style: settings.style, diff: settings.diff, clef: settings.clef, inst: settings.instrument, mode: settings.mode, practiceBpm: settings.practiceBpm, custom: customCfg() };
   lastConfig = { ...cfg, drill: null };
   goTo('game', () => startGame(cfg));
+}
+/* ---------- the start screen: PLAY, dropdowns, More options, how to play, input checks ---------- */
+const TAP_SKIP = new Set(['Escape', 'KeyP', 'Tab', 'MetaLeft', 'MetaRight', 'ControlLeft', 'ControlRight', 'AltLeft', 'AltRight', 'CapsLock', 'F5']);
+const touchy = () => matchMedia('(pointer: coarse)').matches;
+const HOW_LINE = () => G.style === 'midi' ? 'Play each note on your <b>MIDI keyboard</b>.' : G.style === 'live' ? `Play each note on your <b>${(G.inst && G.inst.name) || 'instrument'}</b>.`
+  : touchy() ? '<b>Tap and hold</b> the game for each note (or the space bar).' : 'Hold the <b>space bar</b> (or any key), or <b>click and hold</b> the game, for each note.';
+let quickReady = false;
+const DD_DESC = { 'clef-treble': '', 'clef-bass': '', 'mode-levels': 'Scored. The tempo climbs every level. Posts to the leaderboard.', 'mode-practice': 'No lights to lose. You pick the tempo (More options › Timing).', 'mode-rhythms': 'Practice only the rhythms you choose (More options › Rhythms).' };
+function ddOptions(name) {
+  return [...$('settings').querySelectorAll(`input[name="${name}"]`)].map(inp => {
+    const lab = $('settings').querySelector(`label[for="${inp.id}"]`), b = lab && lab.querySelector('b'), sp = lab && lab.querySelector('span');
+    return { inp, title: (b ? b.textContent : lab ? lab.textContent : inp.value).trim(), desc: inp.id in DD_DESC ? DD_DESC[inp.id] : sp ? sp.textContent.trim() : '' };
+  });
+}
+function setChoice(name, value) {
+  const inp = $('settings').querySelector(`input[name="${name}"][value="${value}"]`); if (!inp) return;
+  inp.checked = true; inp.dispatchEvent(new Event('input', { bubbles: true }));
+  if (name === 'style' && value === 'live') openMore('live');
+  if (name === 'mode' && value === 'rhythms') openMore('rhythms');
+  syncQuick();
+}
+function closeDD() { document.querySelectorAll('.dd-menu').forEach(m => m.remove()); document.querySelectorAll('.dd .sel').forEach(b => b.setAttribute('aria-expanded', 'false')); }
+function openMore(tab) { $('more').hidden = false; $('more-btn').setAttribute('aria-expanded', 'true'); if (tab) showMoreTab(tab); }
+function showMoreTab(t) {
+  document.querySelectorAll('.mtabs [data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+  document.querySelectorAll('.mpanel').forEach(p => { p.hidden = p.dataset.panel !== t; });
+}
+function buildQuick() {
+  // the original choices stay as the source of truth (hidden); the dropdowns drive them
+  const grid = document.querySelector('.setup-grid'), panel = t => document.querySelector(`.mpanel[data-panel="${t}"]`);
+  panel('sound').append($('met-on').closest('fieldset'), $('ksound-set'));
+  panel('live').append($('live-set'));
+  panel('rhythms').append($('adv'));
+  panel('timing').append($('practice-row'), $('calib-btn').closest('fieldset'));
+  grid.classList.add('src-hide');
+  document.querySelector('.launch').classList.add('src-hide');
+  $('adv').open = true;
+  document.querySelectorAll('.dd').forEach(dd => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'sel'; b.setAttribute('aria-haspopup', 'listbox'); b.setAttribute('aria-expanded', 'false'); dd.append(b);
+  });
+  $('quick').addEventListener('click', e => {
+    const opt = e.target.closest('.dd-menu button'), sel = e.target.closest('.dd .sel');
+    if (opt) { const dd = opt.closest('.dd'); closeDD(); setChoice(dd.dataset.name, opt.dataset.v); dd.querySelector('.sel').focus(); return; }
+    if (!sel) return;
+    const open = sel.getAttribute('aria-expanded') === 'true'; closeDD(); if (open) return;
+    const name = sel.closest('.dd').dataset.name, m = document.createElement('div'); m.className = 'dd-menu'; m.setAttribute('role', 'listbox');
+    m.innerHTML = ddOptions(name).map(o => `<button type="button" role="option" data-v="${o.inp.value}" aria-checked="${o.inp.checked}"><b>${esc(o.title)}</b>${o.desc ? `<small>${esc(o.desc)}</small>` : ''}</button>`).join('');
+    sel.after(m); sel.setAttribute('aria-expanded', 'true'); (m.querySelector('[aria-checked="true"]') || m.firstElementChild).focus();
+  });
+  $('quick').addEventListener('keydown', e => {
+    const m = e.target.closest('.dd-menu'); if (!m) return;
+    const items = [...m.querySelectorAll('button')], i = items.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); items[(i + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length].focus(); }
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); const sel = m.parentNode.querySelector('.sel'); closeDD(); sel.focus(); }
+  });
+  document.addEventListener('click', e => { if (!e.target.closest('.dd')) closeDD(); });
+  $('more-btn').addEventListener('click', () => { const open = $('more').hidden; $('more').hidden = !open; $('more-btn').setAttribute('aria-expanded', String(open)); });
+  document.querySelector('.mtabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) showMoreTab(b.dataset.tab); });
+  $('live-use').addEventListener('click', () => setChoice('style', 'live'));
+  $('rhythms-use').addEventListener('click', () => setChoice('mode', 'rhythms'));
+  $('play-btn').addEventListener('click', () => playPressed());
+  $('howto-btn').addEventListener('click', () => showHowTo(null));
+  quickReady = true; syncQuick();
+}
+function syncQuick() {
+  const pick = name => ddOptions(name).find(o => o.inp.checked);
+  document.querySelectorAll('.dd').forEach(dd => { const o = pick(dd.dataset.name); dd.querySelector('.sel').textContent = o ? o.title : ''; });
+  $('dd-clef').hidden = $('clef-set').hidden;
+  $('live-note').hidden = settings.style === 'live';
+  $('rhythms-note').hidden = !!settings.customOn;
+  $('tempo-note').hidden = settings.mode === 'practice';
+  const best = bestOf(settings), bits = [pick('diff'), pick('style'), $('clef-set').hidden ? null : pick('clef'), pick('mode')].filter(Boolean).map(o => esc(o.title));
+  if (settings.style === 'live') bits.splice(2, 0, esc(instNow().name));
+  $('play-sum').innerHTML = `<b>${bits[0]}</b> · ${bits.slice(1).join(' · ')}${best > 0 ? ` · Best ${best.toLocaleString()}` : ''}`;
+  $('play-label').textContent = settings.mode === 'practice' ? 'PRACTICE' : 'PLAY';
+  $('play-btn').disabled = $('start-btn').disabled;
+}
+// How to play: shown once before a student's very first run, and any time from the link
+function showHowTo(then) {
+  const st = settings.style, inst = st === 'live' ? instNow().name : '';
+  const how = st === 'midi' ? 'play that note on your <b>MIDI keyboard</b>' : st === 'live' ? `play it on your <b>${esc(inst)}</b>` : touchy() ? '<b>tap and hold</b> anywhere on the game' : 'press and hold the <b>space bar</b> (or any key), or <b>click and hold</b> the game';
+  const box = document.createElement('div'); box.className = 'howto-pop'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'How to play');
+  box.innerHTML = `<div class="card"><h2>How to play</h2><ol>
+    <li>Music scrolls toward the <b>pink line</b>.</li>
+    <li>When a note touches the line, ${how}.</li>
+    <li><b>Hold</b> it for the note's length. Wider roofs are longer notes.</li>
+    <li>Every 8 bars is a new neighborhood, and the tempo goes up. Your first few notes are a warm-up.</li></ol>
+    <button class="play-big" type="button">${then ? 'GOT IT · PLAY!' : 'GOT IT'}</button></div>`;
+  document.body.append(box);
+  const key = e => { if (e.key === 'Escape') { e.stopPropagation(); done(false); } if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); done(true); } };
+  const done = go => { box.remove(); store.set('rooftop:howto', true); document.removeEventListener('keydown', key, true); if (go && then) then(); };
+  document.addEventListener('keydown', key, true);
+  box.querySelector('button').addEventListener('click', () => done(true));
+  box.addEventListener('click', e => { if (e.target === box) done(false); });
+  setTimeout(() => box.querySelector('button').focus(), 30);
+}
+// PLAY: never start a run the player can't play
+function playPressed() {
+  if ($('start-btn').disabled) { openMore('rhythms'); return; }
+  if (!store.get('rooftop:howto', false)) { showHowTo(playPressed); return; }
+  if (settings.style === 'midi' && midiState !== 'ready') { noMidi(); return; }
+  launch();
+}
+function noMidi() {
+  const why = midiState === 'unsupported' ? "This browser can't use MIDI keyboards (Chrome and Edge can)." : midiState === 'blocked' ? 'The browser blocked the MIDI keyboard. Allow MIDI in the address bar, then try again.' : 'Plug in your keyboard with a USB cable, then press Connect.';
+  showOverlay('MIDI keyboard', 'No MIDI keyboard found', `Your play style is MIDI keyboard, but the game can't see one. ${why} Or play right now with the space bar, a click or a tap.`, [
+    ['Play with space bar, click or tap', () => { hideOverlay(); setChoice('style', 'rhythm'); launch(); }],
+    ['Connect my keyboard', async () => { ensureAudio(); await connectMidi(); if (midiState === 'ready') { hideOverlay(); launch(); } else $('ov-text').textContent = midiState === 'none' ? 'Still no keyboard found. Check the USB cable and that the keyboard is on, then press Connect again.' : why; }],
+    ['Back', hideOverlay]]);
+}
+// the input prompt: on screen from the start of a run until the game hears the player
+let hintTimer = 0;
+function inputHint(html, got) {
+  const h = $('input-hint'); clearTimeout(hintTimer);
+  h.innerHTML = html; h.classList.toggle('got', !!got); h.hidden = false;
+  if (got) hintTimer = setTimeout(() => { h.hidden = true; }, 900);
+}
+function showStartHint() {
+  if (G.demo) { $('input-hint').hidden = true; return; }
+  const st = G.style;
+  inputHint(st === 'rhythm' ? (touchy() ? '<kbd>TAP &amp; HOLD</kbd> the game<small>for each note, right as it reaches the pink line</small>' : 'Hold <kbd>SPACE</kbd> or click &amp; hold<small>for each note, right as it reaches the pink line · any key works too</small>')
+    : st === 'midi' ? 'Play your <kbd>MIDI keyboard</kbd><small>each note, right as it reaches the pink line</small>' : `Play your <kbd>${esc(G.inst ? G.inst.name : 'instrument')}</kbd><small>each note, right as it reaches the pink line</small>`);
+}
+function inputGot() { inputHint('✓ Got it!', true); }
+// no input at all after a few notes: stop and show how, instead of playing on into a zero
+function notHeard() {
+  pause(true);
+  const st = G.style;
+  const text = st === 'rhythm' ? (touchy() ? 'Tap and hold anywhere on the game for each note.' : 'Hold the space bar (or any key), or click and hold on the game, for each note.')
+    : st === 'midi' ? 'Is your MIDI keyboard plugged in and connected? Play each note on it. No keyboard? Switch to Rhythm only and use the space bar, a click or a tap.'
+    : 'Is the microphone on and close to you? Play each note on your instrument. Or switch to Rhythm only and use the space bar, a click or a tap.';
+  const restart = style => { hideOverlay(); G.paused = false; if (style) { setChoice('style', style); lastConfig = { ...lastConfig, style }; } startGame(lastConfig); };
+  showOverlay('Hello?', "We didn't hear you", text, [['Try again', () => restart(null)], st === 'rhythm' ? null : ['Use Rhythm only', () => restart('rhythm')], ['Settings', () => { G.paused = false; hideOverlay(); quitToSetup(); }]], 'Enter to try again');
 }
 function startGame(cfg) {
   cfg = cfg || lastConfig;
@@ -1903,6 +2127,7 @@ function startGame(cfg) {
   $('loop-btn').hidden = G.mode !== 'practice';
   $('loop-btn').setAttribute('aria-pressed', 'false'); $('loop-btn').textContent = 'Repeat this bar (R)';
   G.topBpm = bpmAt(0);
+  showStartHint();
   // bring the game to the middle of the screen, however far down the settings were scrolled
   requestAnimationFrame(() => requestAnimationFrame(centerGame)); setTimeout(centerGame, 400);
 }
@@ -1964,19 +2189,25 @@ function endGame(byChoice) {
   $('res-bpm').textContent = run.bpm + ' BPM';
   $('res-tendency').innerHTML = tendencyText(s.offsets);
   renderTrouble();
+  store.set('rooftop:warmed', true);
+  if (!s.hits) {
+    $('res-title').textContent = "Let's get you started";
+    $('trouble').innerHTML = `<p class="muted" style="margin:0;font-size:17px">${HOW_LINE()} Press right as each note touches the <b>pink line</b>, and hold it for the note's length.</p>`;
+  }
   $('results').hidden = false;
   lastRun = run.practice || (run.style === 'live' && !LIVE_BOARD) ? null : run;
   syncSaveBox(true);
   logRun(run);
-  const title = byChoice ? (run.practice ? 'Practice done' : 'Run complete') : 'Lights out';
-  showOverlay(run.practice ? 'Practice' : 'Game over', title, `${run.score.toLocaleString()} points · reached Level ${run.level}, ${hoodOf(L)}, at ${run.bpm} BPM.`,
+  const title = !s.hits ? 'Almost! Try once more' : byChoice ? (run.practice ? 'Practice done' : 'Run complete') : 'Lights out';
+  showOverlay(run.practice ? 'Practice' : 'Game over', title, !s.hits ? HOW_LINE().replace(/<[^>]+>/g, '') + ' Press right as each note touches the pink line.' : `${run.score.toLocaleString()} points · reached Level ${run.level}, ${hoodOf(L)}, at ${run.bpm} BPM.`,
     [['Run again', () => startGame(lastConfig)], ['See the report', () => { hideOverlay(); $('results').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' }); }]], 'Enter to run again');
 }
 function tendencyText(offs) {
   if (offs.length < 5) return 'Play a few more notes on time to see your timing tendency.';
   const sorted = offs.slice().sort((a, b) => a - b), med = sorted[Math.floor(sorted.length / 2)], m = Math.round(Math.abs(med) / 5) * 5;
   if (m < 15) return '<b>Right on the beat.</b> Your timing is centered.';
-  return med < 0 ? `You tend to <b>rush</b> by about <b>${m} ms</b>. Wait for the line.` : `You tend to <b>drag</b> by about <b>${m} ms</b>. Play right as the note touches the line.`;
+  const cal = m >= 60 ? ' If that feels wrong, <b>calibrate</b> this computer: More options › Timing.' : '';
+  return (med < 0 ? `You tend to <b>rush</b> by about <b>${m} ms</b>. Wait for the line.` : `You tend to <b>drag</b> by about <b>${m} ms</b>. Play right as the note touches the line.`) + cal;
 }
 let lastDrill = null;
 function renderTrouble() {
@@ -2033,6 +2264,16 @@ hp.addEventListener('pointerdown', e => { e.preventDefault(); hp.setPointerCaptu
 hp.addEventListener('pointerup', e => release('pad', e.timeStamp));
 hp.addEventListener('pointercancel', e => release('pad', e.timeStamp));
 hp.addEventListener('contextmenu', e => e.preventDefault());
+// Rhythm only: click (or tap) and hold anywhere on the game, like the space bar
+$('stage').addEventListener('pointerdown', e => {
+  if (view() !== 'game' || G.demo || e.target.closest('button, .overlay')) return;
+  if (G.style === 'rhythm') { e.preventDefault(); $('stage').setPointerCapture?.(e.pointerId); ensureAudio(); hp.classList.add('down'); press('ptr' + e.pointerId, null, e.timeStamp); }
+  else if (G.running && !G.paused && G.style === 'midi') inputHint('Play the notes on your <kbd>MIDI keyboard</kbd><small>To use clicks or taps, pick Play style: Rhythm only.</small>');
+});
+['pointerup', 'pointercancel'].forEach(t => $('stage').addEventListener(t, e => { if (G.style === 'rhythm') release('ptr' + e.pointerId, e.timeStamp); }));
+$('stage').addEventListener('contextmenu', e => { if (view() === 'game') e.preventDefault(); });
+// calibration: a click or tap anywhere on its card counts too (its own pad and buttons have their own handlers)
+$('calib').addEventListener('pointerdown', e => { if (!e.target.closest('button')) calTap(e.timeStamp); });
 
 /* ---------- calibration: tap along to the clicks ---------- */
 const CAL_N = 16, CAL_LISTEN = 4, CAL_MS = 600;
@@ -2041,7 +2282,7 @@ function openCal(then) {
   cal.then = then || null;
   $('cal-dots').innerHTML = Array.from({ length: CAL_N }, (_, i) => `<i class="${i < CAL_LISTEN ? 'listen' : ''}"></i>`).join('');
   $('cal-result').textContent = curLat() != null ? `Current delay: ${Math.round(curLat())} ms.` : '';
-  $('c-help').textContent = calLive() ? 'Listen to the first 4 clicks, then play a short note on your instrument (or sing) right on each of the next 12. With headphones on, this measures the delay through your microphone so the timing is fair.' : 'Listen to the first 4 clicks, then tap along with the next 12, right on each click. Use the space bar, the pad below or any key on your MIDI keyboard. This measures the delay in your speakers and keyboard so the game\'s timing is fair.';
+  $('c-help').textContent = calLive() ? 'Listen to the first 4 clicks, then play a short note on your instrument (or sing) right on each of the next 12. With headphones on, this measures the delay through your microphone so the timing is fair.' : (settings.style === 'midi' ? 'Listen to the first 4 clicks, then play any key on your MIDI keyboard right on each of the next 12.' : 'Listen to the first 4 clicks, then tap right on each of the next 12, the same way you will play: the space bar (or any key), a mouse click or a tap.') + ' This measures the delay in your speakers and keyboard so the game\'s timing is fair.';
   if (calLive() && !MIC.on) { MIC.inst = instNow(); micStart(); }
   $('cal-start').textContent = 'Start'; $('cal-start').disabled = false;
   $('cal-skip').textContent = then ? 'Skip for now' : 'Close';
@@ -3440,6 +3681,7 @@ function refreshSetup() {
   $('start-btn').textContent = settings.mode === 'practice' ? 'Start practice' : 'Start running';
   $('start-btn').disabled = settings.customOn && !customOK();
   syncStyleNote(); syncCalib();
+  if (quickReady) syncQuick();
 }
 $('settings').addEventListener('input', e => {
   const t = e.target;
@@ -3455,9 +3697,9 @@ $('settings').addEventListener('input', e => {
   refreshSetup();
   if (['diff', 'style', 'clef'].includes(t.name)) startDemo();
 });
-function syncSound() { const b = $('sound-btn'); b.textContent = settings.sound ? 'Sound on' : 'Sound off'; b.setAttribute('aria-pressed', String(settings.sound)); }
+function syncSound() { const b = $('sound-btn'); b.textContent = settings.sound ? '🔊' : '🔇'; b.title = settings.sound ? 'Sound on (click to mute)' : 'Sound off (click to turn on)'; b.setAttribute('aria-label', settings.sound ? 'Sound on' : 'Sound off'); b.setAttribute('aria-pressed', String(settings.sound)); }
 $('sound-btn').addEventListener('click', () => { settings.sound = !settings.sound; ensureAudio(); syncSound(); store.set('rooftop:settings', settings); hideSoundHint(); });
-$('start-btn').addEventListener('click', () => launch());
+$('start-btn').addEventListener('click', () => playPressed());
 $('ov-btn').addEventListener('click', () => ovActions[0]?.());
 $('ov-btn2').addEventListener('click', () => ovActions[1]?.());
 $('ov-btn3').addEventListener('click', () => ovActions[2]?.());
@@ -3576,14 +3818,14 @@ addEventListener('keydown', e => {
   if (view() === 'teacher') return;                              // the dashboard has its own fields; no game shortcuts there
   if (!$('tune').hidden) return;
   if (!$('calib').hidden) {
-    if (e.code === 'Space') { e.preventDefault(); if (!e.repeat) calTap(e.timeStamp); }
-    if (e.code === 'Escape') closeCal();
+    if (e.code === 'Escape') { closeCal(); return; }
+    if (!['Tab', 'Enter'].includes(e.code) && !e.metaKey && !e.ctrlKey) { e.preventDefault(); if (!e.repeat) calTap(e.timeStamp); }   // any key taps
     return;
   }
   const v = view();
   if (v === 'board') { if (e.code === 'Escape') { e.preventDefault(); goTo('splash', startDemo); refreshSetup(); } return; }
   if (v === 'splash') {
-    if (e.code === 'Enter' && !(e.target.closest && e.target.closest('button'))) { e.preventDefault(); launch(); }
+    if (e.code === 'Enter' && !(e.target.closest && e.target.closest('button, input, select, details'))) { e.preventDefault(); playPressed(); }
     return;
   }
   // game view
@@ -3592,7 +3834,9 @@ addEventListener('keydown', e => {
   if (G.paused) { if (e.code === 'KeyQ') { e.preventDefault(); quitToSetup(); } return; }
   if (e.code === 'KeyR' && G.mode === 'practice') { e.preventDefault(); setLoop(!G.loop); return; }
   if (e.metaKey || e.ctrlKey) return;
-  if (G.style === 'rhythm' && e.code === 'Space') { e.preventDefault(); if (!e.repeat) { ensureAudio(); hp.classList.add('down'); press('pad', null, e.timeStamp); } return; }
+  // Rhythm only: the space bar or any other key works (Esc and P pause)
+  if (G.style === 'rhythm' && !TAP_SKIP.has(e.code) && !e.altKey) { e.preventDefault(); if (!e.repeat) { ensureAudio(); hp.classList.add('down'); press(e.code === 'Space' ? 'pad' : 'k:' + e.code, null, e.timeStamp); } return; }
+  if (G.style !== 'rhythm' && e.code === 'Space' && !G.gotInput) inputHint(G.style === 'midi' ? 'Play the notes on your <kbd>MIDI keyboard</kbd><small>No keyboard? Pick Play style: Rhythm only to use the space bar, a click or a tap.</small>' : 'Play the notes on your instrument<small>The microphone is listening.</small>');
   if (G.style === 'keys') {
     const m = e.code.match(/^Key([A-G])$/);
     if (m) { e.preventDefault(); if (!e.repeat) { const p = (LETTER_PC[m[1]] + (e.shiftKey ? 1 : e.altKey ? -1 : 0) + 12) % 12; press('key' + m[1], p, e.timeStamp); release('key' + m[1], e.timeStamp); } return; }
@@ -3600,7 +3844,7 @@ addEventListener('keydown', e => {
   if (e.code === 'Space') e.preventDefault();
 });
 addEventListener('keyup', e => {
-  if (e.code === 'Space' && view() === 'game' && G.style === 'rhythm') { e.preventDefault(); release('pad', e.timeStamp); }
+  if (view() === 'game' && G.style === 'rhythm' && !TAP_SKIP.has(e.code)) { e.preventDefault(); release(e.code === 'Space' ? 'pad' : 'k:' + e.code, e.timeStamp); }
 });
 // leaving the window loses key-up events, so any note being held is let go there
 addEventListener('blur', () => { if (G.held) { for (const [src] of G.held) release(src, performance.now()); releaseAll(); } });
@@ -3609,14 +3853,16 @@ new ResizeObserver(() => { if (Math.abs(stage.clientWidth - W) > 1) layout(); })
 
 /* ---------- boot ---------- */
 function boot() {
+  const firstVisit = store.get('rooftop:settings', null) == null;
   Object.assign(settings, store.get('rooftop:settings', {}));
+  if (firstVisit) settings.style = 'rhythm';          // works for everyone (keyboard, mouse, touch); MIDI and Live are a dropdown away
   if (!DIFFS[settings.diff]) settings.diff = 'easy';
   if (!['midi', 'rhythm', 'live'].includes(settings.style)) settings.style = 'midi';   // Computer keys was retired
   if (!INSTR[settings.instrument]) settings.instrument = 'alto-sax';
   if (!['treble', 'bass'].includes(settings.clef)) settings.clef = 'treble';
   if (!Array.isArray(settings.custom)) settings.custom = [];
   settings.custom = settings.custom.filter(tk => TOKENS[tk]);
-  buildLetters(); buildPicker(); buildInstPicker(); buildBoardInst(); syncPicker(); refreshSetup(); syncSound(); syncMicUI(); syncTuneLine();
+  buildLetters(); buildPicker(); buildInstPicker(); buildBoardInst(); syncPicker(); buildQuick(); refreshSetup(); syncSound(); syncMicUI(); syncTuneLine();
   document.fonts?.load(`40px "Noto Music"`, '\u{1D11E}\u{1D122}♯♭♮').catch(() => {});
   startDemo();
   requestAnimationFrame(frame);
