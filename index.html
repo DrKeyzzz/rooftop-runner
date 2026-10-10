@@ -1484,6 +1484,19 @@ function drawCountMarks() {
       ctx.fillText(String(w), x, yOf(6));
     }
   }
+  // Rhythm only: the new level's chord, right above the count where the eyes already are
+  if (G.style === 'rhythm' && (!G.demo || window.__chordTest)) {
+    const label = (b0, L) => {
+      const x0 = Math.max(panelEnd + 3 * g, xOf(b0)), x1 = Math.min(W - g, xOf(b0 + 4));
+      if (x1 - x0 < 4 * g) return;
+      const x = (x0 + x1) / 2, y = yOf(rhythmView() ? 10.4 : 11.2);
+      ctx.globalAlpha = 1; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = `${g * .8}px ${F.ui}`; ctx.fillStyle = C.haze; ctx.fillText('NEW CHORD', x, y - 1.35 * g);
+      ctx.font = `${g * 1.7}px ${F.display}`; ctx.fillStyle = C.cyan; ctx.fillText(chordFor(L).name, x, y);
+    };
+    if (G.v < 0) label(-4, 0);                                       // the opening count-in
+    for (const bar of G.bars) if (bar.count === 0) label(bar.b, bar.L);
+  }
   ctx.restore();
 }
 function drawPanel() {
