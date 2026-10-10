@@ -411,6 +411,11 @@ body[data-view="game"] .stage { touch-action: none; user-select: none; -webkit-u
 .howto-pop ol { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; font-size: 18px; }
 .howto-pop ol b { color: var(--cyan); }
 .howto-pop .play-big { align-self: center; font-size: 22px; padding: 12px 30px 9px; animation: none; }
+/* the game view fills the window: no page width cap, no title, only the controls that matter while playing */
+body[data-view="game"] .wrap { max-width: none; padding: 8px 14px 14px; gap: 8px; }
+body[data-view="game"] .brand, body[data-view="game"] .mtg-home, body[data-view="game"] #who-btn, body[data-view="game"] #board-btn, body[data-view="game"] #teacher-btn { display: none; }
+body[data-view="game"] header.top { align-items: center; }
+body[data-view="game"] .hold-pad { padding: 10px 14px; }
 .devtag { display: inline-block; font: 700 10px var(--f-ui, sans-serif); letter-spacing: .12em; padding: 3px 6px 1px; margin-left: 6px; border-radius: 999px; background: var(--lamp, #ffc45c); color: var(--deep, #0c1a24); vertical-align: middle; }
 </style>
 </head>
@@ -625,6 +630,7 @@ body[data-view="game"] .stage { touch-action: none; user-select: none; -webkit-u
     <div class="game-bar">
       <p class="hint" id="hint"></p>
       <button type="button" id="loop-btn" class="ghost" aria-pressed="false" hidden>Repeat this bar (R)</button>
+      <button type="button" id="fs-btn" class="ghost" hidden>⛶ Full screen</button>
       <button type="button" id="pause-btn" class="ghost">Pause (Esc)</button>
     </div>
   </div>
@@ -1297,9 +1303,15 @@ function minPpb() {
   const fine = G.custom && G.custom.tokens.some(tk => TOKENS[tk].items.some(([d]) => d < .5));
   return DIFFS[G.diff].keyed || fine ? 7.2 : 4.6;
 }
+// the height the playfield may use while playing: the window minus the scoreboard above and the controls below
+function playH() {
+  const hdr = document.querySelector('header.top'), pad = $('pad-area');
+  return innerHeight - (hdr ? hdr.offsetHeight : 0) - (pad ? pad.offsetHeight : 0) - 40;
+}
 function layout() {
   W = stage.clientWidth || 800;
-  g = Math.max(12, Math.min(17, W / 56));
+  // playing: as big as the window allows (width and height); setup screen: the usual size
+  g = view() === 'game' ? Math.max(12, Math.min(44, W / 56, playH() / 29.4)) : Math.max(12, Math.min(17, W / 56));
   skyBot = Math.round(15 * g);
   top8 = skyBot + 3.8 * g;
   H = Math.round(top8 + 10.6 * g);
@@ -1956,7 +1968,18 @@ function syncLights() {
 
 /* ---------- views ---------- */
 const view = () => document.body.dataset.view || 'splash';
+// full screen while playing (a setting, on by default); leaving full screen mid-run pauses it
+const fsAllowed = () => !!(document.fullscreenEnabled && document.documentElement.requestFullscreen);
+function enterFull() { if (fsAllowed() && settings.fullscreen !== false && !document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}); }
+function exitFull() { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); }
+document.addEventListener('fullscreenchange', () => {
+  $('fs-btn').textContent = document.fullscreenElement ? '⛶ Exit full screen' : '⛶ Full screen';
+  if (!document.fullscreenElement && view() === 'game' && G.running && !G.over && !G.paused && !G.demo) pause(true);
+  if (view() === 'game') { layout(); requestAnimationFrame(centerGame); }
+});
+addEventListener('resize', () => { if (view() === 'game') layout(); });
 function goTo(v, then) {
+  if (v !== 'game') exitFull();
   const apply = () => { document.body.dataset.view = v; if (then) then(); layout(); window.scrollTo({ top: 0 }); };
   if (document.startViewTransition && !reduceMotion) { const t = document.startViewTransition(apply); t.ready?.catch(() => {}); t.finished?.catch(() => {}); } else apply();
 }
@@ -1974,7 +1997,7 @@ const hideOverlay = () => { $('overlay').hidden = true; };
 
 let lastConfig = null;
 function launch(drill) {
-  ensureAudio();
+  ensureAudio(); enterFull();
   setTimeout(() => soundHint(true), 600);   // if the browser still has the sound stopped (or Sound is off), say so
   if (settings.style === 'live' && !MIC.on) { MIC.inst = instNow(); micStart().then(ok => { if (ok) launch(drill); else $('live-set').scrollIntoView({ block: 'center' }); }); return; }
   if (settings.style === 'live' && !tunedFor(instNow())) { openTune(() => launch(drill)); return; }
@@ -2017,6 +2040,13 @@ function buildQuick() {
   panel('live').append($('live-set'));
   panel('rhythms').append($('adv'));
   panel('timing').append($('practice-row'), $('calib-btn').closest('fieldset'));
+  const fs = document.createElement('fieldset'); fs.innerHTML = '<legend>Screen</legend><label class="wsw" for="fs-on"><input type="checkbox" id="fs-on"> Full screen when playing</label>';
+  if (fsAllowed()) panel('timing').append(fs);
+  $('fs-on') && ($('fs-on').checked = settings.fullscreen !== false);
+  $('fs-on') && $('fs-on').addEventListener('change', e => { settings.fullscreen = e.target.checked; store.set('rooftop:settings', settings); });
+  document.querySelector('.mtabs [data-tab="timing"]').textContent = 'Timing & screen';
+  $('fs-btn').hidden = !fsAllowed();
+  $('fs-btn').addEventListener('click', () => { if (document.fullscreenElement) exitFull(); else document.documentElement.requestFullscreen().catch(() => {}); $('fs-btn').blur(); });
   grid.classList.add('src-hide');
   document.querySelector('.launch').classList.add('src-hide');
   $('adv').open = true;
