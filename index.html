@@ -750,7 +750,7 @@ body[data-view="game"] .hold-pad { padding: 10px 14px; }
     <p class="werr" id="w-error" role="alert"></p>
     <button class="btn-go big" id="w-go" type="submit">Hit the roofs</button>
     <button class="ghost" id="w-guest" type="button">Play as guest</button>
-    <p class="wnote">Guests' scores aren't saved. One sign-in works for the Rhythm Trainer, Scale Quest, Tidal Tones and Rooftop Runner.</p>
+    <p class="wnote">Guests' scores aren't saved. One sign-in works for every game on Music Theory Games.</p>
   </form>
 </div>
 
@@ -1869,7 +1869,7 @@ function press(src, pitch, ts) {
   else if (G.style === 'keys') ok = pc(pitch) === pc(best.midi);
   if (!ok) {
     best.j = 'W'; best.played = pitch; G.score += WRONG_PTS; breakStreak();
-    pop('Wrong note', C.miss); tally(best, false); flashLetter(pitch, false);
+    pop(`Wrong · it's ${nameOf(best.d, best.acc)}`, C.miss); tally(best, false); flashLetter(pitch, false);   // name the right note at the moment of the mistake
     return;
   }
   const sl = slack();
