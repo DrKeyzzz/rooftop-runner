@@ -140,12 +140,24 @@ legend { padding: 0; margin-bottom: 6px; font-size: 12px; font-weight: 700; lett
 .hold-pad { display: block; width: 100%; padding: 22px 14px; font-family: var(--f-display); font-weight: var(--dw); font-size: clamp(18px, 3vw, 24px); letter-spacing: .06em; color: var(--cyan); background: color-mix(in srgb, var(--cyan) 8%, var(--night)); border: 1px solid var(--edge); border-radius: 14px; user-select: none; -webkit-user-select: none; touch-action: none; }
 .hold-pad small { display: block; font-family: var(--f-ui); font-size: 14px; font-weight: 600; letter-spacing: .04em; color: var(--haze); margin-top: 2px; }
 .hold-pad.down { background: color-mix(in srgb, var(--cyan) 30%, var(--night)); color: var(--chalk); box-shadow: inset 0 0 26px color-mix(in srgb, var(--cyan) 50%, transparent); }
-.letters { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
-.letters button { font-family: var(--f-display); font-weight: var(--dw); font-size: 22px; padding: 12px 0; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
-.letters.small button { font-size: 16px; padding: 7px 0; color: var(--haze); }
-.letters button.hit { border-color: var(--cyan); color: var(--cyan); }
-.letters button.miss { border-color: var(--miss); color: var(--miss); }
-.letters .gap { visibility: hidden; }
+/* On-screen keys: one octave of piano, white keys lettered; black keys (♯/♭) only on Hard and Expert. Same piano colors in every skin. */
+.piano { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); grid-template-rows: 40px 30px; width: 100%; max-width: 620px; margin: 0 auto; position: relative; user-select: none; -webkit-user-select: none; touch-action: none; }
+.piano.no-black { grid-template-rows: 54px; }
+.piano button { all: unset; box-sizing: border-box; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; cursor: pointer; touch-action: none; -webkit-tap-highlight-color: transparent; font-family: var(--f-display); font-weight: var(--dw); line-height: 1; transition: background .06s, transform .06s; }
+.piano .pw { grid-row: 1 / -1; grid-column: span 2; background: #f7f8fc; color: #1d2a44; border: 1px solid #9aa6bd; border-radius: 0 0 10px 10px; margin: 0 2px; padding-bottom: 7px; font-size: 22px; z-index: 1; }
+.piano .pb { grid-row: 1; z-index: 2; margin: 0 18%; background: #1f2433; color: #fff; border: 1px solid #000; border-radius: 0 0 7px 7px; padding-bottom: 4px; font-family: var(--f-ui); font-weight: 700; font-size: 12.5px; gap: 1px; }
+.piano .pb small { font: inherit; opacity: .8; }
+.piano.no-black .pb { display: none; }
+.piano .pw.down { background: #d6def0; transform: translateY(1px); }
+.piano .pb.down { background: #3a4260; }
+.piano button.hit { box-shadow: inset 0 0 0 3px var(--perfect); }
+.piano button.miss { box-shadow: inset 0 0 0 3px var(--miss); }
+.piano button.hit::after, .piano button.miss::after { content: '✓'; position: absolute; top: 3px; left: 50%; transform: translateX(-50%); font: 800 15px/1 system-ui, sans-serif; color: #fff; background: var(--perfect); border-radius: 999px; padding: 2px 5px; }
+.piano button.miss::after { content: '✗'; background: var(--miss); }
+.piano .pw.hit::after, .piano .pw.miss::after { top: auto; left: auto; right: 3px; bottom: 5px; transform: none; font-size: 12px; padding: 2px 4px; }
+.piano .pw.hit { background: #dcf7e5; } .piano .pw.miss { background: #fde0e0; }
+html[data-skin="day"] .piano .pw { border-color: #b8c6dc; }
+@media (prefers-reduced-motion: reduce) { .piano button { transition: none; } .piano .pw.down { transform: none; } }
 .hint { margin: 0; color: var(--haze); font-size: 15px; }
 .hint b { color: var(--chalk); }
 .game-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
@@ -357,7 +369,10 @@ button.sm { font-size: 13px; padding: 5px 11px; }
 
 @media (max-width: 560px) {
   .stat .v { font-size: 20px; }
-  .letters button { font-size: 18px; }
+  .piano .pw { font-size: 19px; margin: 0 1px; }
+  .piano { grid-template-rows: 50px 40px; }                 /* phones: taller keys for fingers */
+  .piano.no-black { grid-template-rows: 64px; }
+  .piano .pb { font-size: 11px; margin: 0 12%; }
   .ranks li { grid-template-columns: 30px minmax(0, 1fr) auto; padding: 8px 10px; }
 }
 @media (prefers-reduced-motion: reduce) { .sign.dim { animation: none; } }
@@ -621,7 +636,8 @@ html:not([data-skin="classic"]) .skin-pop { border-color: var(--edge); box-shado
       </fieldset>
       <fieldset class="tiles">
         <legend>Play style</legend>
-        <input type="radio" name="style" id="style-midi" value="midi" checked><label for="style-midi"><b>MIDI keyboard</b><span>Play the notes. Hold each key for its length from Medium up.</span></label>
+        <input type="radio" name="style" id="style-keys" value="keys" checked><label for="style-keys"><b>On-screen keys</b><span>Read each note and press its letter: tap or click the keys under the game, or type A–G. Works on any device.</span></label>
+        <input type="radio" name="style" id="style-midi" value="midi"><label for="style-midi"><b>MIDI keyboard</b><span>Play the notes. Hold each key for its length from Medium up.</span></label>
         <input type="radio" name="style" id="style-rhythm" value="rhythm"><label for="style-rhythm"><b>Rhythm only</b><span>Hold the space bar, any piano key or the tap pad for each note's full length.</span></label>
         <input type="radio" name="style" id="style-live" value="live"><label for="style-live"><b>Live · microphone</b><span>Play your instrument or sing. Pick your instrument below.</span></label>
       </fieldset>
@@ -730,11 +746,7 @@ html:not([data-skin="classic"]) .skin-pop { border-color: var(--edge); box-shado
 
   <div class="pad-area game-only" id="pad-area">
     <button class="hold-pad" id="hold-pad" type="button" hidden>Hold for the whole note<small>or hold the space bar or any piano key</small></button>
-    <div id="letter-pad" hidden>
-      <div class="letters small" id="sharp-row" hidden></div>
-      <div class="letters" id="letter-row"></div>
-      <div class="letters small" id="flat-row" hidden></div>
-    </div>
+    <div id="letter-pad" class="piano" role="group" aria-label="On-screen keys: press the note's letter, or type A to G" hidden></div>
     <div class="live-hud" id="live-hud" hidden>
       <span class="k">Hearing</span>
       <div><div class="heard" id="lh-heard">—</div><div class="heard-sub" id="lh-cents"></div></div>
@@ -822,6 +834,7 @@ html:not([data-skin="classic"]) .skin-pop { border-color: var(--edge); box-shado
         <legend>Play style</legend>
         <div class="seg">
           <input type="radio" name="bstyle" id="bstyle-all" value="all" checked><label for="bstyle-all">All</label>
+          <input type="radio" name="bstyle" id="bstyle-keys" value="keys"><label for="bstyle-keys">On-screen keys</label>
           <input type="radio" name="bstyle" id="bstyle-midi" value="midi"><label for="bstyle-midi">MIDI</label>
           <input type="radio" name="bstyle" id="bstyle-rhythm" value="rhythm"><label for="bstyle-rhythm">Rhythm only</label>
           <input type="radio" name="bstyle" id="bstyle-live" value="live"><label for="bstyle-live">Live</label>
@@ -1010,7 +1023,7 @@ const TOKENS = {
 };
 const CAT_TITLE = { qt: 'Quarter-note triplets', sr: 'Sixteenth rests', st: 'Sixteenth triplets', sy: 'Syncopation', e: 'Eighth notes', q: 'Quarter notes', dq: 'Dotted quarters', h: 'Half notes', dh: 'Dotted halves', w: 'Whole notes', tie: 'Tied notes', s: 'Sixteenth notes', de: 'Dotted eighths', t: 'Triplets' };
 const CAT_TOKENS = { e: ['e2', 're', 'dq', 'es', 'se', 'ses'], q: ['q'], dq: ['dq'], h: ['h'], dh: ['dh'], w: ['w'], tie: [], s: ['s4', 'es', 'se', 'ses', 'ds'], de: ['ds'], t: ['tr'], st: ['t16a', 't16b'], sy: ['syn', 'edq', 'sds'], qt: ['qt'], sr: ['rss', 'r16', 'er16'] };
-const STYLE_TITLE = { midi: 'MIDI', keys: 'Computer keys', rhythm: 'Rhythm only', live: 'Live' };
+const STYLE_TITLE = { midi: 'MIDI', keys: 'On-screen keys', rhythm: 'Rhythm only', live: 'Live' };
 const CLEF_TITLE = { treble: 'Treble', bass: 'Bass', alto: 'Alto clef', treble8: 'Treble 8vb', none: '' };
 const HOODS = ['Downtown', 'Old Town', 'Market Street', 'Harbor District', 'Theater Row', 'Uptown', 'Chinatown', 'Skyline Heights', 'Riverside', 'Arts District', 'Midtown', 'Neon Mile'];
 const LEVEL_BARS = 8, LEVEL_BEATS = 32, STEP_BPM = 5;   // no top speed: it keeps climbing as long as the student can hang on
@@ -1020,7 +1033,7 @@ const jColor = j => j === 'P' ? C.perfect : j === 'G' ? C.cyan : j === 'E' || j 
 const isHit = j => j === 'P' || j === 'G' || j === 'E' || j === 'L';
 
 /* ---------- settings ---------- */
-const settings = { diff: 'easy', style: 'midi', clef: 'treble', mode: 'levels', practiceBpm: 60, met: 'on', metVol: 70, sound: true, keySound: 'on', customOn: false, custom: [], customTies: false, instrument: 'alto-sax', liveSens: 55, liveHeadphones: false };
+const settings = { diff: 'easy', style: 'rhythm', clef: 'treble', mode: 'levels', practiceBpm: 60, met: 'on', metVol: 70, sound: true, keySound: 'on', customOn: false, custom: [], customTies: false, instrument: 'alto-sax', liveSens: 55, liveHeadphones: false };
 let latency = store.get('rooftop:latency', null);               // ms between a click and a tap on this computer
 let liveLatency = store.get('rooftop:latency:live', null);       // the same, measured through the microphone
 const calLive = () => settings.style === 'live';
@@ -1045,7 +1058,7 @@ function newRun(o) {
   layout();
 }
 const mult = () => Math.min(4, 1 + Math.floor(G.streak / 8));
-const needsHold = () => G.style === 'rhythm' || ((G.style === 'midi' || (G.style === 'live' && !G.inst.perc)) && !!DIFFS[G.diff].hold);
+const needsHold = () => G.style === 'rhythm' || ((G.style === 'midi' || G.style === 'keys' || (G.style === 'live' && !G.inst.perc)) && !!DIFFS[G.diff].hold);
 /* Every level after the first opens with a one-bar count-in at the new tempo: "1 2 3 4".
    Practice keeps one tempo, so it has no count-in bar. */
 const countBars = () => 1;   // one count-in bar before every new level, in Levels and Practice alike
@@ -1373,8 +1386,8 @@ function stopHoldTone(src) {
 }
 // MIDI keyboards without their own speakers: each key plays an electric-piano-like voice while it's held
 const keyVoices = new Map();
-function keyOn(m, vel) {
-  if (!actx || !settings.sound || settings.keySound === 'off') return;
+function keyOn(m, vel, own) {
+  if (!actx || !settings.sound || (settings.keySound === 'off' && !own)) return;
   keyOff(m);
   const t0 = actx.currentTime, f = midiFreq(m), peak = .05 + .13 * (vel / 127);
   const v = actx.createGain(), lp = actx.createBiquadFilter();
@@ -1987,7 +2000,6 @@ function press(src, pitch, ts) {
   G.down.add(src);
   if (!G.gotInput) { G.gotInput = true; inputGot(); }
   if (G.style === 'rhythm') startHoldTone(src);
-  else if (G.style === 'keys' && pitch != null) tone(midiFreq(60 + pitch), .35, 'triangle', .12);
   const tt = beatAt(ts - ((isLive() ? liveLatency : latency) || 0));
   if (tt < -.5 || (G.freeze != null && tt < G.freeze - .5)) return;      // count-in
   const wb = windowBeats(tt);
@@ -2163,6 +2175,7 @@ function launch(drill) {
 const TAP_SKIP = new Set(['Escape', 'KeyP', 'Tab', 'MetaLeft', 'MetaRight', 'ControlLeft', 'ControlRight', 'AltLeft', 'AltRight', 'CapsLock', 'F5']);
 const touchy = () => matchMedia('(pointer: coarse)').matches;
 const HOW_LINE = () => G.style === 'midi' ? 'Play each note on your <b>MIDI keyboard</b>.' : G.style === 'live' ? `Play each note on your <b>${(G.inst && G.inst.name) || 'instrument'}</b>.`
+  : G.style === 'keys' ? (touchy() ? "<b>Tap each note's letter</b> on the keys under the game." : "<b>Press each note's letter</b>: type A–G, or click the keys under the game.")
   : touchy() ? '<b>Tap and hold</b> the game for each note (or the space bar).' : 'Hold the <b>space bar</b> (or any key), or <b>click and hold</b> the game, for each note.';
 let quickReady = false;
 const DD_DESC = { 'clef-treble': '', 'clef-bass': '', 'mode-levels': 'Scored. The tempo climbs every level. Posts to the leaderboard.', 'mode-practice': 'No lights to lose. You pick the tempo (More options › Timing).', 'mode-rhythms': 'Practice only the rhythms you choose (More options › Rhythms).' };
@@ -2278,7 +2291,8 @@ function syncQuick() {
 // How to play: shown once before a student's very first run, and any time from the link
 function showHowTo(then) {
   const st = settings.style, inst = st === 'live' ? instNow().name : '';
-  const how = st === 'midi' ? 'play that note on your <b>MIDI keyboard</b>' : st === 'live' ? `play it on your <b>${esc(inst)}</b>` : touchy() ? '<b>tap and hold</b> anywhere on the game' : 'press and hold the <b>space bar</b> (or any key), or <b>click and hold</b> the game';
+  const how = st === 'midi' ? 'play that note on your <b>MIDI keyboard</b>' : st === 'live' ? `play it on your <b>${esc(inst)}</b>`
+    : st === 'keys' ? (touchy() ? "tap that note's letter on the <b>keys under the game</b>" : "press that note's letter: type it (<b>A</b> to <b>G</b>) or click it on the <b>keys under the game</b>") : touchy() ? '<b>tap and hold</b> anywhere on the game' : 'press and hold the <b>space bar</b> (or any key), or <b>click and hold</b> the game';
   const box = document.createElement('div'); box.className = 'howto-pop'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'How to play');
   box.innerHTML = `<div class="card"><h2>How to play</h2><ol>
     <li>Music scrolls toward the <b>play line</b>.</li>
@@ -2303,8 +2317,9 @@ function playPressed() {
 }
 function noMidi() {
   const why = midiState === 'unsupported' ? "This browser can't use MIDI keyboards (Chrome and Edge can)." : midiState === 'blocked' ? 'The browser blocked the MIDI keyboard. Allow MIDI in the address bar, then try again.' : 'Plug in your keyboard with a USB cable, then press Connect.';
-  showOverlay('MIDI keyboard', 'No MIDI keyboard found', `Your play style is MIDI keyboard, but the game can't see one. ${why} Or play right now with the space bar, a click or a tap.`, [
-    ['Play with space bar, click or tap', () => { hideOverlay(); setChoice('style', 'rhythm'); launch(); }],
+  showOverlay('MIDI keyboard', 'No MIDI keyboard found', `Your play style is MIDI keyboard, but the game can't see one. ${why} Or play right now: On-screen keys lets you read the notes and press their letters (tap, click or type A–G). Rhythm only uses the space bar, a click or a tap.`, [
+    ['Use On-screen keys (recommended)', () => { hideOverlay(); setChoice('style', 'keys'); launch(); }],
+    ['Rhythm only', () => { hideOverlay(); setChoice('style', 'rhythm'); launch(); }],
     ['Connect my keyboard', async () => { ensureAudio(); await connectMidi(); if (midiState === 'ready') { hideOverlay(); launch(); } else $('ov-text').textContent = midiState === 'none' ? 'Still no keyboard found. Check the USB cable and that the keyboard is on, then press Connect again.' : why; }],
     ['Back', hideOverlay]]);
 }
@@ -2319,7 +2334,8 @@ function showStartHint() {
   if (G.demo) { $('input-hint').hidden = true; return; }
   const st = G.style;
   inputHint(st === 'rhythm' ? (touchy() ? '<kbd>TAP &amp; HOLD</kbd> the game<small>for each note, right as it reaches the play line</small>' : 'Hold <kbd>SPACE</kbd> or click &amp; hold<small>for each note, right as it reaches the play line · any key works too</small>')
-    : st === 'midi' ? 'Play your <kbd>MIDI keyboard</kbd><small>each note, right as it reaches the play line</small>' : `Play your <kbd>${esc(G.inst ? G.inst.name : 'instrument')}</kbd><small>each note, right as it reaches the play line</small>`);
+    : st === 'midi' ? 'Play your <kbd>MIDI keyboard</kbd><small>each note, right as it reaches the play line</small>'
+    : st === 'keys' ? (touchy() ? "<kbd>TAP</kbd> the note's letter<small>on the keys below, right as it reaches the play line</small>" : "Type the letter <kbd>A</kbd>–<kbd>G</kbd><small>or click the keys below, right as each note reaches the play line</small>") : `Play your <kbd>${esc(G.inst ? G.inst.name : 'instrument')}</kbd><small>each note, right as it reaches the play line</small>`);
 }
 function inputGot() { inputHint('✓ Got it!', true); }
 // no input at all after a few notes: stop and show how, instead of playing on into a zero
@@ -2327,10 +2343,11 @@ function notHeard() {
   pause(true);
   const st = G.style;
   const text = st === 'rhythm' ? (touchy() ? 'Tap and hold anywhere on the game for each note.' : 'Hold the space bar (or any key), or click and hold on the game, for each note.')
-    : st === 'midi' ? 'Is your MIDI keyboard plugged in and connected? Play each note on it. No keyboard? Switch to Rhythm only and use the space bar, a click or a tap.'
-    : 'Is the microphone on and close to you? Play each note on your instrument. Or switch to Rhythm only and use the space bar, a click or a tap.';
+    : st === 'midi' ? 'Is your MIDI keyboard plugged in and connected? Play each note on it. No keyboard? Use On-screen keys: tap, click or type each note\'s letter.'
+    : st === 'keys' ? (touchy() ? 'Read each note and tap its letter on the keys under the game, right as it reaches the play line.' : 'Read each note and type its letter (A to G), or click it on the keys under the game, right as it reaches the play line.')
+    : 'Is the microphone on and close to you? Play each note on your instrument. Or use On-screen keys: tap, click or type each note\'s letter.';
   const restart = style => { hideOverlay(); G.paused = false; if (style) { setChoice('style', style); lastConfig = { ...lastConfig, style }; } startGame(lastConfig); };
-  showOverlay('Hello?', "We didn't hear you", text, [['Try again', () => restart(null)], st === 'rhythm' ? null : ['Use Rhythm only', () => restart('rhythm')], ['Settings', () => { G.paused = false; hideOverlay(); quitToSetup(); }]], 'Enter to try again');
+  showOverlay('Hello?', "We didn't hear you", text, [['Try again', () => restart(null)], st === 'rhythm' || st === 'keys' ? null : ['Use On-screen keys', () => restart('keys')], st === 'rhythm' ? null : ['Use Rhythm only', () => restart('rhythm')], ['Settings', () => { G.paused = false; hideOverlay(); quitToSetup(); }]], 'Enter to try again');
 }
 function startGame(cfg) {
   cfg = cfg || lastConfig;
@@ -2338,7 +2355,7 @@ function startGame(cfg) {
   newRun(cfg);
   $('results').hidden = true; hideOverlay();
   $('hud-lights-cell').hidden = G.mode === 'practice';
-  syncLights(); syncPad(); hudCache = '';
+  syncLights(); syncPad(); layout(); hudCache = '';   // size the staff after the pad below it shows
   $('loop-btn').hidden = G.mode !== 'practice';
   $('loop-btn').setAttribute('aria-pressed', 'false'); $('loop-btn').textContent = 'Repeat this bar (R)';
   G.topBpm = bpmAt(0);
@@ -2361,6 +2378,7 @@ function centerGame() {
   window.scrollTo({ top: Math.max(0, Math.round(y)), behavior: 'auto' });
 }
 function releaseAll() {
+  padDown.forEach(k => { if (k.b) k.b.classList.remove('down'); keyOff(k.m); }); padDown.clear();
   if (!G.held) return;
   for (const src of [...G.down]) stopHoldTone(src);
   G.down?.clear(); G.held?.clear(); $('hold-pad').classList.remove('down');
@@ -2448,31 +2466,56 @@ function syncPad() {
   const st = G.style;
   $('hold-pad').hidden = st !== 'rhythm';
   $('letter-pad').hidden = st !== 'keys';
-  const accRows = st === 'keys' && (G.diff === 'hard' || G.diff === 'expert');
-  $('sharp-row').hidden = $('flat-row').hidden = !accRows;
+  const accs = keysAcc();
+  $('letter-pad').classList.toggle('no-black', !accs);      // Easy and Medium stay in C: white keys only
   const holdText = needsHold() ? ' Hold each note for its full length.' : '';
   $('live-hud').hidden = st !== 'live';
   $('hint').innerHTML = st === 'live' ? (G.inst.perc ? '<b>Hit the drum</b> as each note reaches the play line. Keep still during rests.' : `<b>Play each note on your ${esc(G.inst.name.toLowerCase())}</b> as it reaches the play line${G.inst.voice ? ' (any octave)' : ''}.${holdText}`) + (MIC.on ? '' : ' <b>Turn on the microphone</b> on the settings page first.')
     : st === 'rhythm' ? '<b>Hold the space bar</b>, any key on your MIDI keyboard, or the pad as each note reaches the play line, and let go when it ends. Keep still during rests.'
-    : st === 'keys' ? '<b>Type the letter</b> as each note reaches the line. <kbd>Shift</kbd> for ♯, <kbd>Option</kbd>/<kbd>Alt</kbd> for ♭.'
+    : st === 'keys' ? (touchy() ? "<b>Tap the note's letter</b> as it reaches the play line, in any octave." : "<b>Type the note's letter</b> (A–G) or click the keys as it reaches the play line, in any octave.")
+      + (accs && !touchy() ? ' <kbd>Shift</kbd> = ♯ · <kbd>Alt</kbd>/<kbd>Option</kbd> = ♭.' : '') + holdText
     : (midiState === 'ready' ? '<b>Play each note</b> as it reaches the play line' + (DIFFS[G.diff].exact ? ', in the exact octave.' : ', in any octave.') : '<b>Connect your MIDI keyboard</b> with the button at the top, then play each note as it reaches the line.') + holdText;
 }
+// On-screen keys: the black keys (♯/♭) only appear when the difficulty uses them (Hard and Expert: key signatures and chromatic notes)
+const keysAcc = () => !!DIFFS[G.diff || settings.diff].acc;
+const padNote = p => (G.clef === 'bass' ? 48 : 60) + p;   // the sound: middle of the staff's range
+const padDown = new Map();                                  // what each finger, mouse or letter key is holding: src -> { b, m }
+function padPress(src, p, ts) {
+  if (padDown.has(src)) return;
+  const b = $('letter-pad').querySelector(`button[data-pc="${p}"]`), m = padNote(p);
+  padDown.set(src, { b, m });
+  if (b) b.classList.add('down');
+  ensureAudio(); keyOn(m, 90, true);
+  press(src, p, ts);
+}
+function padRelease(src, ts) {
+  const k = padDown.get(src); if (!k) return;
+  padDown.delete(src);
+  if (k.b && ![...padDown.values()].some(o => o.b === k.b)) k.b.classList.remove('down');
+  if (![...padDown.values()].some(o => o.m === k.m)) keyOff(k.m);
+  release(src, ts);
+}
+function padReleaseAll() { for (const src of [...padDown.keys()]) padRelease(src, performance.now()); }
 function buildLetters() {
-  const mk = (row, items) => { $(row).innerHTML = ''; items.forEach(it => { const b = document.createElement('button'); b.type = 'button'; if (!it) { b.className = 'gap'; b.tabIndex = -1; b.setAttribute('aria-hidden', 'true'); } else { b.textContent = it[0]; b.dataset.pc = it[1]; } $(row).append(b); }); };
-  mk('letter-row', [['C', 0], ['D', 2], ['E', 4], ['F', 5], ['G', 7], ['A', 9], ['B', 11]]);
-  mk('sharp-row', [['C♯', 1], ['D♯', 3], null, ['F♯', 6], ['G♯', 8], ['A♯', 10], null]);
-  mk('flat-row', [null, ['D♭', 1], ['E♭', 3], null, ['G♭', 6], ['A♭', 8], ['B♭', 10]]);
-  $('letter-pad').addEventListener('pointerdown', e => {
+  const pad = $('letter-pad');
+  const W7 = [['C', 0], ['D', 2], ['E', 4], ['F', 5], ['G', 7], ['A', 9], ['B', 11]];
+  const B5 = [['C♯', 'D♭', 1, 2], ['D♯', 'E♭', 3, 4], ['F♯', 'G♭', 6, 8], ['G♯', 'A♭', 8, 10], ['A♯', 'B♭', 10, 12]];   // [sharp, flat, pc, first grid column]
+  pad.innerHTML = W7.map(([l, p], i) => `<button type="button" class="pw" tabindex="-1" data-pc="${p}" style="grid-column:${2 * i + 1} / span 2" aria-label="${l}">${l}</button>`).join('')
+    + B5.map(([sh, fl, p, c]) => `<button type="button" class="pb" tabindex="-1" data-pc="${p}" style="grid-column:${c} / span 2" aria-label="${sh} or ${fl}">${sh}<small>${fl}</small></button>`).join('');
+  // hold the key (or keep a finger on it) for the note's length; the finger can slide off without letting go
+  pad.addEventListener('pointerdown', e => {
     const b = e.target.closest('button[data-pc]'); if (!b) return;
-    e.preventDefault(); const p = +b.dataset.pc;
-    press('tap' + p, p, e.timeStamp); release('tap' + p, e.timeStamp);
+    e.preventDefault(); try { b.setPointerCapture(e.pointerId); } catch (_) {}
+    padPress('pk' + e.pointerId, +b.dataset.pc, e.timeStamp);
   });
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => pad.addEventListener(t, e => padRelease('pk' + e.pointerId, e.timeStamp)));
+  pad.addEventListener('contextmenu', e => e.preventDefault());
 }
 function flashLetter(pitch, ok) {
   if (G.style !== 'keys' || pitch == null) return;
   const b = $('letter-pad').querySelector(`button[data-pc="${pc(pitch)}"]`); if (!b) return;
   b.classList.remove('hit', 'miss'); void b.offsetWidth; b.classList.add(ok ? 'hit' : 'miss');
-  setTimeout(() => b.classList.remove('hit', 'miss'), 260);
+  clearTimeout(b._t); b._t = setTimeout(() => b.classList.remove('hit', 'miss'), 450);
 }
 const hp = $('hold-pad');
 hp.addEventListener('pointerdown', e => { e.preventDefault(); hp.setPointerCapture?.(e.pointerId); hp.classList.add('down'); ensureAudio(); press('pad', null, e.timeStamp); });
@@ -2483,7 +2526,8 @@ hp.addEventListener('contextmenu', e => e.preventDefault());
 $('stage').addEventListener('pointerdown', e => {
   if (view() !== 'game' || G.demo || e.target.closest('button, .overlay')) return;
   if (G.style === 'rhythm') { e.preventDefault(); $('stage').setPointerCapture?.(e.pointerId); ensureAudio(); hp.classList.add('down'); press('ptr' + e.pointerId, null, e.timeStamp); }
-  else if (G.running && !G.paused && G.style === 'midi') inputHint('Play the notes on your <kbd>MIDI keyboard</kbd><small>To use clicks or taps, pick Play style: Rhythm only.</small>');
+  else if (G.running && !G.paused && G.style === 'midi') inputHint('Play the notes on your <kbd>MIDI keyboard</kbd><small>No keyboard? Pick Play style: On-screen keys to tap, click or type the notes.</small>');
+  else if (G.running && !G.paused && G.style === 'keys' && !G.gotInput) inputHint(touchy() ? "Tap the note's <kbd>letter</kbd><small>on the keys below the game</small>" : "Type the note's letter <kbd>A</kbd>–<kbd>G</kbd><small>or click the keys below the game</small>");
 });
 ['pointerup', 'pointercancel'].forEach(t => $('stage').addEventListener(t, e => { if (G.style === 'rhythm') release('ptr' + e.pointerId, e.timeStamp); }));
 $('stage').addEventListener('contextmenu', e => { if (view() === 'game') e.preventDefault(); });
@@ -2641,7 +2685,7 @@ function applyUrlSettings(o) {
   if (!o || typeof o !== 'object' || Array.isArray(o)) return false;
   const lv = o.level ?? o.diff, all = PICK_GROUPS.flatMap(([, l]) => l);
   if (DIFFS[lv]) settings.diff = lv;
-  if (['midi', 'rhythm', 'live'].includes(o.style)) settings.style = o.style;
+  if (['keys', 'midi', 'rhythm', 'live'].includes(o.style)) settings.style = o.style;
   if (o.clef === 'treble' || o.clef === 'bass') settings.clef = o.clef;
   if (typeof o.inst === 'string' && INSTR[o.inst]) settings.instrument = o.inst;
   const n = Number(o.tempo); if (o.tempo != null && o.tempo !== '' && isFinite(n)) settings.practiceBpm = Math.max(40, Math.min(120, Math.round(n / 2) * 2));
@@ -2839,9 +2883,9 @@ function boardFilter() {
   return { diff: v('bdiff'), style, clef: style === 'live' ? 'all' : v('bclef'), inst: style === 'live' ? $('binst').value : 'all' };
 }
 function setBoardFilter(r) {
-  const style = r.style === 'keys' ? 'all' : r.style;
+  const style = STYLE_TITLE[r.style] ? r.style : 'all';
   $('bdiff-' + r.diff).checked = true; $('bstyle-' + style).checked = true;
-  $('bclef-' + (style !== 'midi' || !['treble', 'bass'].includes(r.clef) ? 'all' : r.clef)).checked = true;
+  $('bclef-' + (!['midi', 'keys'].includes(style) || !['treble', 'bass'].includes(r.clef) ? 'all' : r.clef)).checked = true;
   $('binst').value = style === 'live' && (r.instrument || r.inst) && INSTR[r.instrument || r.inst] ? (r.instrument || r.inst) : 'all';
 }
 // a Live board can be narrowed to one instrument
@@ -3064,7 +3108,7 @@ function renderAssignment() {
 function useAssignment(a = classAssign) {
   if (!a) return;
   if (DIFFS[a.level]) settings.diff = a.level;
-  if (STYLE_TITLE[a.style]) settings.style = a.style === 'keys' ? 'midi' : a.style;
+  if (STYLE_TITLE[a.style]) settings.style = a.style;
   if (a.clef === 'treble' || a.clef === 'bass') settings.clef = a.clef;
   if (MODE_TITLE[a.mode]) settings.mode = a.mode;
   store.set('rooftop:settings', settings); refreshSetup(); startDemo();
@@ -3276,10 +3320,10 @@ function tdStudentDetail(st) {
 }
 function tdCsv(studs) {
   const cls = tdClass(), q = v => `"${String(v).replace(/"/g, '""')}"`;
-  const head = ['Student', 'Range', 'Minutes', 'Notes on time', 'Notes played', 'Accuracy %', 'MIDI accuracy %', 'Live accuracy %', 'Rhythm only accuracy %', 'Runs', 'Best score', 'Best level', 'Trouble spots'];
+  const head = ['Student', 'Range', 'Minutes', 'Notes on time', 'Notes played', 'Accuracy %', 'On-screen keys accuracy %', 'MIDI accuracy %', 'Live accuracy %', 'Rhythm only accuracy %', 'Runs', 'Best score', 'Best level', 'Trouble spots'];
   const pc2 = (st, k) => st.byGame[k] ? pctOf(st.byGame[k].c, st.byGame[k].n) : '';
   const lines = [head.map(q).join(',')].concat(studs.map(st => [st.student, rangeLabel(), st.minutes, st.correct, st.answers, pctOf(st.correct, st.answers),
-    pc2(st, 'midi'), pc2(st, 'live'), pc2(st, 'rhythm'), st.games, st.best || '', st.level || '', st.trouble.map(([lab, v]) => `${lab} x${v.w}`).join('; ')].map(q).join(',')));
+    pc2(st, 'keys'), pc2(st, 'midi'), pc2(st, 'live'), pc2(st, 'rhythm'), st.games, st.best || '', st.level || '', st.trouble.map(([lab, v]) => `${lab} x${v.w}`).join('; ')].map(q).join(',')));
   const link = document.createElement('a');
   link.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' }));
   link.download = `rooftop-runner-${(cls ? cls.name : 'class').replace(/[^A-Za-z0-9]+/g, '-')}-${TD.range === 'date' ? TD.date : TD.range}.csv`;
@@ -3294,7 +3338,7 @@ function tdAssign() {
     <p class="dim" style="margin:0">Choose what <b>${esc(cls.name)}</b> should practice. Students in this class see a banner on the start page with a <b>Use these settings</b> button and their progress toward today's goal. It stays until you change or clear it.</p>
     <div class="td-form" id="as-form">
       <label class="wide">Difficulty${seg('as-level', [['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard'], ['expert', 'Expert']], a.level)}</label>
-      <label class="wide">Play style${seg('as-style', [['midi', 'MIDI keyboard'], ['rhythm', 'Rhythm only'], ['live', 'Live (microphone)']], a.style)}</label>
+      <label class="wide">Play style${seg('as-style', [['keys', 'On-screen keys'], ['midi', 'MIDI keyboard'], ['rhythm', 'Rhythm only'], ['live', 'Live (microphone)']], a.style)}</label>
       <label class="wide">Clef${seg('as-clef', [['treble', 'Treble'], ['bass', 'Bass']], a.clef)}</label>
       <label class="wide">Mode${seg('as-mode', [['levels', 'Levels'], ['practice', 'Practice']], a.mode)}</label>
       <label>Goal: notes on time per day<input id="as-goal" type="number" min="0" max="2000" value="${a.goal ?? 60}"></label>
@@ -3827,7 +3871,7 @@ const MIDI_TEXT = {
   none: ['No keyboard', 'MIDI is on, but no keyboard is connected. Plug one in by USB; it will be found automatically.'],
   ready: ['MIDI', ''],
   blocked: ['MIDI blocked', 'This page is not allowed to use MIDI. Open the game at its own web address in Chrome or Edge, and allow MIDI when asked.'],
-  unsupported: ['No MIDI here', 'This browser does not support MIDI keyboards. Use Chrome or Edge on a computer or Chromebook. On an iPad, open the game in the Web MIDI Browser app, or choose Rhythm only.']
+  unsupported: ['No MIDI here', 'This browser does not support MIDI keyboards. Use Chrome or Edge on a computer or Chromebook. On an iPad, open the game in the Web MIDI Browser app, or choose On-screen keys.']
 };
 async function connectMidi() {
   if (midiAccess) { attachMidi(); return; }
@@ -3871,7 +3915,7 @@ function onMidi(e) {
   if (on) { ensureAudio(); if (!asTap) keyOn(note, vel); soundHint(); } else keyOff(note);
   if (on) {
     if (cal.on) { calTap(ts); return; }
-    if (view() === 'game' && G.style === 'midi') press('midi' + note, note, ts);
+    if (view() === 'game' && (G.style === 'midi' || G.style === 'keys')) press('midi' + note, note, ts);
     else if (asTap) { hp.classList.add('down'); press('midi' + note, null, ts); }
   } else release('midi' + note, ts);
 }
@@ -3896,6 +3940,7 @@ function syncStyleNote() {
     ? `<b>${(midiPlaying ? [midiPlaying] : midiNames).map(n => n.replace(/[<>&]/g, '')).join(', ')}</b> ${midiPlaying || midiNames.length === 1 ? 'is' : 'are'} connected${midiPlaying ? '' : '. Play a key and the button shows which one you\'re using'}.`
     + ` Play each note ${DIFFS[settings.diff].exact ? 'in the exact octave' : 'in any octave'}${DIFFS[settings.diff].hold ? ', and hold it for its full length' : ''}.`
     : MIDI_TEXT[midiState][1] || MIDI_TEXT.off[1];
+  else if (settings.style === 'keys') el.innerHTML = `Read each note and press its letter: <b>tap or click the keys</b> under the game, or <b>type A–G</b>${DIFFS[settings.diff].acc ? ' (Shift + letter = ♯, Alt/Option + letter = ♭)' : ''}. Any octave counts${DIFFS[settings.diff].hold ? ", and hold the key for the note's full length" : ''}.`;
   else if (settings.style === 'live') { const i = instNow(); el.innerHTML = i.perc ? 'Hit the snare as each note reaches the line. Any strong hit counts.' : `Play your <b>${esc(i.name.toLowerCase())}</b> into the microphone as each note reaches the line${i.voice ? ' (any octave)' : ', in the written octave'}${DIFFS[settings.diff].hold ? ', and hold it for its full length' : ''}. The staff shows your written part.`; }
   else el.innerHTML = 'Every note sits on one line. <b>Hold the space bar</b> or <b>any key on your MIDI keyboard</b> for each note\'s full length, or use the tap pad on a touch screen.';
 }
@@ -4075,18 +4120,20 @@ addEventListener('keydown', e => {
   if (e.metaKey || e.ctrlKey) return;
   // Rhythm only: the space bar or any other key works (Esc and P pause)
   if (G.style === 'rhythm' && !TAP_SKIP.has(e.code) && !e.altKey) { e.preventDefault(); if (!e.repeat) { ensureAudio(); hp.classList.add('down'); press(e.code === 'Space' ? 'pad' : 'k:' + e.code, null, e.timeStamp); } return; }
-  if (G.style !== 'rhythm' && e.code === 'Space' && !G.gotInput) inputHint(G.style === 'midi' ? 'Play the notes on your <kbd>MIDI keyboard</kbd><small>No keyboard? Pick Play style: Rhythm only to use the space bar, a click or a tap.</small>' : 'Play the notes on your instrument<small>The microphone is listening.</small>');
+  if (G.style !== 'rhythm' && e.code === 'Space' && !G.gotInput) inputHint(G.style === 'midi' ? 'Play the notes on your <kbd>MIDI keyboard</kbd><small>No keyboard? Pick Play style: On-screen keys to tap, click or type the notes.</small>' : G.style === 'keys' ? "Type the note's letter <kbd>A</kbd>–<kbd>G</kbd><small>not the space bar · or click the keys below the game</small>" : 'Play the notes on your instrument<small>The microphone is listening.</small>');
   if (G.style === 'keys') {
     const m = e.code.match(/^Key([A-G])$/);
-    if (m) { e.preventDefault(); if (!e.repeat) { const p = (LETTER_PC[m[1]] + (e.shiftKey ? 1 : e.altKey ? -1 : 0) + 12) % 12; press('key' + m[1], p, e.timeStamp); release('key' + m[1], e.timeStamp); } return; }
+    // hold the letter for the note's length; Shift raises it a half step (♯), Alt/Option lowers it (♭)
+    if (m) { e.preventDefault(); if (!e.repeat) padPress('key' + m[1], (LETTER_PC[m[1]] + (e.shiftKey ? 1 : e.altKey ? -1 : 0) + 12) % 12, e.timeStamp); return; }
   }
   if (e.code === 'Space') e.preventDefault();
 });
 addEventListener('keyup', e => {
   if (view() === 'game' && G.style === 'rhythm' && !TAP_SKIP.has(e.code)) { e.preventDefault(); release(e.code === 'Space' ? 'pad' : 'k:' + e.code, e.timeStamp); }
+  const m = e.code.match(/^Key([A-G])$/); if (m && padDown.has('key' + m[1])) { e.preventDefault(); padRelease('key' + m[1], e.timeStamp); }
 });
 // leaving the window loses key-up events, so any note being held is let go there
-addEventListener('blur', () => { if (G.held) { for (const [src] of G.held) release(src, performance.now()); releaseAll(); } });
+addEventListener('blur', () => { padReleaseAll(); if (G.held) { for (const [src] of G.held) release(src, performance.now()); releaseAll(); } });
 document.addEventListener('visibilitychange', () => { if (document.hidden && view() === 'game' && G.running && !G.over && !G.paused) pause(true); });
 new ResizeObserver(() => { if (Math.abs(stage.clientWidth - W) > 1) layout(); }).observe(stage);
 
@@ -4094,9 +4141,10 @@ new ResizeObserver(() => { if (Math.abs(stage.clientWidth - W) > 1) layout(); })
 function boot() {
   const firstVisit = store.get('rooftop:settings', null) == null;
   Object.assign(settings, store.get('rooftop:settings', {}));
-  if (firstVisit) settings.style = 'rhythm';          // works for everyone (keyboard, mouse, touch); MIDI and Live are a dropdown away
+  // first visit: Rhythm only, the simplest start (any key, click or tap); On-screen keys, MIDI and Live are a dropdown away
+  if (firstVisit) settings.style = 'rhythm';
   if (!DIFFS[settings.diff]) settings.diff = 'easy';
-  if (!['midi', 'rhythm', 'live'].includes(settings.style)) settings.style = 'midi';   // Computer keys was retired
+  if (!['keys', 'midi', 'rhythm', 'live'].includes(settings.style)) settings.style = 'rhythm';
   if (!INSTR[settings.instrument]) settings.instrument = 'alto-sax';
   if (!['treble', 'bass'].includes(settings.clef)) settings.clef = 'treble';
   if (!Array.isArray(settings.custom)) settings.custom = [];
