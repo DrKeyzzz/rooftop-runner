@@ -2840,8 +2840,16 @@ function classesOf(p) {
   return list.filter(c => c && c.code).slice(0, 3);
 }
 // the profile with this class list; classCode/className/classOwner always mirror the main (first) class
-const withClasses = (p, list) => ({ ...p, classes: list, classCode: list.length ? list[0].code : '', className: list.length ? list[0].name : '', classOwner: list.length ? list[0].owner : '' });
+const withClasses = (p, list) => { const act = (p && list.find(c => c.code === p.classCode)) || list[0]; return { ...p, classes: act ? [act] : [], saved: list, classCode: act ? act.code : '', className: act ? act.name : '', classOwner: act ? act.owner : '' }; };
 const classNames = p => classesOf(p).map(c => c.name).join(' · ');
+/* MTG_CLASSSWITCH: a student can save up to 3 classes (p.saved) but only ONE is active (p.classes = [active]); scores, practice and tests count for the active class */
+const savedOf = p => { if (!p) return []; const l = Array.isArray(p.saved) && p.saved.length ? p.saved : classesOf(p); return l.filter(c => c && c.code).slice(0, 3); };
+const prefillOf = p => { const s = savedOf(p); return p ? [...s.filter(c => c.code === p.classCode), ...s.filter(c => c.code !== p.classCode)] : []; };
+function switchClass(code) { const p = getProfile(), s = savedOf(p), c = s.find(x => x.code === code); if (!p || !c) return; setProfile({ ...p, classCode: c.code, className: c.name || c.code, classOwner: c.owner || '', classes: [c], saved: s }); location.reload(); }
+const switchHTML = p => { const s = savedOf(p); return s.length > 1 ? `<div id="w-switchrow" role="group" aria-label="Switch class" style="margin:0 0 14px"><div style="font-weight:700;margin-bottom:6px">Your classes (tap to switch)</div><div style="display:flex;gap:8px;flex-wrap:wrap">${s.map(c => `<button type="button" data-switch-class="${String(c.code).replace(/[^A-Za-z0-9]/g, '')}" aria-pressed="${c.code === p.classCode}" style="font:inherit;font-weight:700;padding:10px 16px;border-radius:999px;cursor:pointer;background:transparent;color:inherit;border:${c.code === p.classCode ? '4px double' : '2px solid'} currentColor">${String(c.name || c.code).replace(/[<>&"]/g, '')}${c.code === p.classCode ? ' ✓' : ''}</button>`).join('')}</div></div>` : ''; };
+const showSwitch = p => { let sw = document.getElementById('w-switch'); const f = document.getElementById('w-first') && document.getElementById('w-first').closest('form'); if (!f) return; if (!sw) { sw = document.createElement('div'); sw.id = 'w-switch'; f.prepend(sw); } sw.innerHTML = p ? switchHTML(p) : ''; };
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-switch-class]'); if (b) switchClass(b.dataset.switchClass); });
+/* /MTG_CLASSSWITCH */
 function updateWho() {
   const p = getProfile();
   $('who-btn').innerHTML = p ? `${iconHTML(iconOf(p)) || '👤'} ${esc(displayName(p))}${p.classCode ? ' · ' + esc(classNames(p)) : ''}` : isGuest() ? '👤 Guest (sign in)' : '👤 Sign in';
@@ -2931,8 +2939,8 @@ function syncClassBoxes() {
   $('w-add').hidden = solo || classBoxes().length >= 3;
 }
 function showWelcome(keep) {
-  const p = keep ? getProfile() : null, cl = classesOf(p);
-  setPickedIcon(p && p.icon);
+  const p = keep ? getProfile() : null, cl = prefillOf(p);
+  setPickedIcon(p && p.icon); showSwitch(p);
   $('w-first').value = p ? p.first : ''; $('w-init').value = p ? p.init : ''; $('w-code').value = cl.length ? cl[0].code : '';
   $('w-more').innerHTML = ''; cl.slice(1).forEach(c => addClassBox(c.code));
   $('w-solo').checked = !!(p && !p.classCode); syncClassBoxes(); $('w-error').textContent = '';
@@ -2967,13 +2975,13 @@ async function submitWelcome(e) {
 function playAsGuest() { try { sessionStorage.setItem(GUEST_KEY, '1'); } catch {} $('welcome').hidden = true; updateWho(); syncSaveBox(); renderAssignment(); }
 // re-read every class: keep the ones that still exist (fresh name/owner), drop deleted ones
 async function refreshClass() {
-  const p = getProfile(), cl = classesOf(p); if (!cl.length) return;
+  const p = getProfile(), cl = savedOf(p); if (!cl.length) return;
   try {
     const { fs, db } = await fb(), docs = await wait(Promise.all(cl.map(c => fs.getDoc(fs.doc(db, 'classes', c.code)))));
     const keep = cl.filter((c, i) => docs[i].exists()), live = docs.filter(d => d.exists());
     setProfile(withClasses(p, keep.map((c, i) => ({ code: c.code, name: live[i].data().name, owner: live[i].data().ownerEmail || '' }))));
     assignBy = Object.fromEntries(keep.map((c, i) => [c.code, live[i].data()[ASSIGN] || null]));
-    classAssign = keep.length ? assignBy[keep[0].code] : null;
+    { const act = keep.find(c => c.code === p.classCode) || keep[0]; classAssign = act ? assignBy[act.code] : null; }
     updateWho(); renderAssignment();
   } catch {}
 }
