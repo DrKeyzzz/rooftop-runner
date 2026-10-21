@@ -4272,6 +4272,18 @@ function onMidi(e) {
 $('midi-btn').addEventListener('click', () => { ensureAudio(); connectMidi(); });
 // browsers only start sound after a click or key press, so wake the audio on the first one
 addEventListener('pointerdown', () => { ensureAudio(); hideSoundHint(); }); addEventListener('keydown', () => { ensureAudio(); hideSoundHint(); });
+/* the Rooftop Runner intro sound (driving, suspenseful music under his "Rooftop Runner" voice-over; built in docs/sound/):
+   plays every time the page opens, like Brainwaves. Browsers often block sound until the first click or key press, so if starting
+   right away is blocked it starts on the first click. Skipped when sound is off and in test mode (the test screen has its own sting). */
+let introAudio = null, introDone = false;
+function playIntro() {
+  if (introDone || !settings.sound || (window.MTGTest && MTGTest.active)) return;
+  try {
+    introAudio = introAudio || new Audio('sounds/rooftop-intro.m4a'); introAudio.volume = .9;
+    const pr = introAudio.play(); if (pr) pr.then(() => { introDone = true; }).catch(() => {});
+  } catch {}
+}
+['pointerdown', 'keydown'].forEach(ev => addEventListener(ev, () => playIntro(), true));
 // the keyboard's piano plays on every screen, but a browser keeps sound off until the page is clicked once, so say so
 function soundHint(any) {
   if (settings.keySound === 'off' && !any) return;
@@ -4332,7 +4344,7 @@ $('settings').addEventListener('input', e => {
   if (['diff', 'style', 'clef'].includes(t.name)) startDemo();
 });
 function syncSound() { const b = $('sound-btn'); b.textContent = settings.sound ? '🔊' : '🔇'; b.setAttribute('aria-label', settings.sound ? 'Sound on' : 'Sound off'); b.setAttribute('aria-pressed', String(settings.sound)); }
-$('sound-btn').addEventListener('click', () => { settings.sound = !settings.sound; ensureAudio(); syncSound(); store.set('rooftop:settings', settings); hideSoundHint(); });
+$('sound-btn').addEventListener('click', () => { settings.sound = !settings.sound; ensureAudio(); syncSound(); if (!settings.sound && introAudio) introAudio.pause(); store.set('rooftop:settings', settings); hideSoundHint(); });
 $('start-btn').addEventListener('click', () => playPressed());
 $('ov-btn').addEventListener('click', () => ovActions[0]?.());
 $('ov-btn2').addEventListener('click', () => ovActions[1]?.());
@@ -4507,6 +4519,7 @@ function boot() {
   if (!getProfile() && !isGuest()) showWelcome(false); else refreshClass();
   applyFocusFromUrl();
   if (store.get('rooftop:midi', 0)) connectMidi();
+  playIntro();   // the intro sound: try right away (after the saved sound setting is read); if the browser says no, the first click or key press plays it
 }
 /* MTG_TEST setup */ MTGTest.setup({ game: 'rooftop', hide: ["#who-btn", "#board-btn", "#teacher-btn"], apply: () => { applyFocusFromUrl(); }, start: () => { launch(); } }); /* /MTG_TEST setup */
 boot();
