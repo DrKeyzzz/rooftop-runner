@@ -638,7 +638,7 @@ html:not([data-skin="classic"]) .skin-pop { border-color: var(--edge); box-shado
     <div class="hud game-only" aria-label="Scoreboard">
       <div class="stat"><span class="k">Score</span><span class="v" id="hud-score">0</span></div>
       <div class="stat"><span class="k">Streak</span><span class="v mult" id="hud-mult">×1</span></div>
-      <div class="stat"><span class="k" id="hud-level">Level 1 · Downtown</span><span class="v"><span id="hud-bpm">48</span><small>BPM</small></span></div>
+      <div class="stat"><span class="k" id="hud-level">Level 1 · Downtown</span><span class="v"><span id="hud-bpm">72</span><small>BPM</small></span></div>
       <div class="stat" id="hud-lights-cell"><span class="k">Lights</span><div class="lights" id="hud-lights" aria-label="Lights left"><span class="sign"></span><span class="sign"></span><span class="sign"></span></div></div>
     </div>
     <div class="top-actions">
@@ -719,10 +719,10 @@ html:not([data-skin="classic"]) .skin-pop { border-color: var(--edge); box-shado
     <div class="setup-grid">
       <fieldset class="tiles four">
         <legend>Difficulty</legend>
-        <input type="radio" name="diff" id="diff-easy" value="easy" checked><label for="diff-easy"><b>Easy</b><span>Quarter, half and whole notes, a few quarter rests · C to G · starts at 48 BPM</span></label>
-        <input type="radio" name="diff" id="diff-medium" value="medium"><label for="diff-medium"><b>Medium</b><span>Adds pairs of eighth notes and half rests · whole staff · 52 BPM</span></label>
-        <input type="radio" name="diff" id="diff-hard" value="hard"><label for="diff-hard"><b>Hard</b><span>Adds dotted rhythms, sixteenth-note patterns, triplets, eighth rests and ties · ledger lines and ♯ ♭ · new key each level from Level 3 · 56 BPM</span></label>
-        <input type="radio" name="diff" id="diff-expert" value="expert"><label for="diff-expert"><b>Expert</b><span>Adds syncopation, sixteenth–eighth–sixteenth, sixteenth-note triplets and ties inside the bar · two ledger lines · bigger leaps · 64 BPM</span></label>
+        <input type="radio" name="diff" id="diff-easy" value="easy" checked><label for="diff-easy"><b>Easy</b><span>Quarter, half and whole notes, a few quarter rests · C to G · starts at 72 BPM</span></label>
+        <input type="radio" name="diff" id="diff-medium" value="medium"><label for="diff-medium"><b>Medium</b><span>Adds pairs of eighth notes and half rests · whole staff · 80 BPM</span></label>
+        <input type="radio" name="diff" id="diff-hard" value="hard"><label for="diff-hard"><b>Hard</b><span>Adds dotted rhythms, sixteenth-note patterns, triplets, eighth rests and ties · ledger lines and ♯ ♭ · new key each level from Level 3 · 88 BPM</span></label>
+        <input type="radio" name="diff" id="diff-expert" value="expert"><label for="diff-expert"><b>Expert</b><span>Adds syncopation, sixteenth–eighth–sixteenth, sixteenth-note triplets and ties inside the bar · two ledger lines · bigger leaps · 96 BPM</span></label>
       </fieldset>
       <fieldset class="tiles">
         <legend>Play style</legend>
@@ -861,7 +861,7 @@ html:not([data-skin="classic"]) .skin-pop { border-color: var(--edge); box-shado
       <div class="stat"><div class="k">On time</div><div class="v" id="res-acc">0%</div></div>
       <div class="stat"><div class="k">Best streak</div><div class="v" id="res-streak">0</div></div>
       <div class="stat"><div class="k">Level reached</div><div class="v" id="res-level">1</div></div>
-      <div class="stat"><div class="k">Top tempo</div><div class="v" id="res-bpm">48</div></div>
+      <div class="stat"><div class="k">Top tempo</div><div class="v" id="res-bpm">72</div></div>
       <div class="stat"><div class="k">Villains caught</div><div class="v" id="res-caught">0</div></div>
     </div>
     <p class="tendency" id="res-tendency"></p>
@@ -1280,12 +1280,12 @@ const midiFreq = m => 440 * Math.pow(2, (m - 69) / 12);
 // staff positions: 0 = bottom line, 8 = top line; Easy is C D E F G in both clefs (C4–G4 treble, C3–G3 bass)
 const DIFFS = {
 // Easy and Medium keep half notes on beats 1 and 3; Hard and Expert allow them on beat 2 as well (sync)
-  easy:   { title: 'Easy',   bpm: 48, range: { treble: [-2, 2], bass: [3, 7] },   w: { q: 6, h: 3, w: 1, qr: .8 } },
-  medium: { title: 'Medium', bpm: 52, range: { treble: [0, 8], bass: [0, 8] },    w: { q: 6, h: 3, w: .6, qr: .8, e2: 1.6, hr: .5 }, hold: true },
+  easy:   { title: 'Easy',   bpm: 72, range: { treble: [-2, 2], bass: [3, 7] },   w: { q: 6, h: 3, w: 1, qr: .8 } },
+  medium: { title: 'Medium', bpm: 80, range: { treble: [0, 8], bass: [0, 8] },    w: { q: 6, h: 3, w: .6, qr: .8, e2: 1.6, hr: .5 }, hold: true },
   // Hard is what Expert used to be (October 2026: students were acing Expert)
-  hard:   { title: 'Hard',   bpm: 56, range: { treble: [-3, 11], bass: [-3, 11] }, w: { q: 3, h: 1.5, w: .3, qr: .7, e2: 1.8, hr: .4, dh: .7, dq: 1, re: .7, s4: 1.2, es: 1.2, se: 1.2, ds: 1, tr: 1.2 }, hold: true, acc: true, ties: .16, chrom: .07, exact: true, sync: true, keyed: true },
+  hard:   { title: 'Hard',   bpm: 88, range: { treble: [-3, 11], bass: [-3, 11] }, w: { q: 3, h: 1.5, w: .3, qr: .7, e2: 1.8, hr: .4, dh: .7, dq: 1, re: .7, s4: 1.2, es: 1.2, se: 1.2, ds: 1, tr: 1.2 }, hold: true, acc: true, ties: .16, chrom: .07, exact: true, sync: true, keyed: true },
   // Expert: syncopation, sixteenth–eighth–sixteenth, sixteenth-note triplets, ties inside the bar, two ledger lines, wider leaps
-  expert: { title: 'Expert', bpm: 64, range: { treble: [-5, 13], bass: [-5, 13] }, w: { q: 1.2, h: .5, w: .1, qr: .5, e2: 1, hr: .2, dh: .3, dq: .8, re: 1, s4: 1.1, es: 1.1, se: 1.1, ds: 1.1, tr: 1.1, ses: 1.6, syn: 1.5, edq: 1.1, sds: 1, t16a: .9, t16b: .9, qt: .9, rss: .9, r16: .8, er16: .8 }, hold: true, acc: true, ties: .3, inTie: .2, chrom: .16, exact: true, sync: true, keyed: true },
+  expert: { title: 'Expert', bpm: 96, range: { treble: [-5, 13], bass: [-5, 13] }, w: { q: 1.2, h: .5, w: .1, qr: .5, e2: 1, hr: .2, dh: .3, dq: .8, re: 1, s4: 1.1, es: 1.1, se: 1.1, ds: 1.1, tr: 1.1, ses: 1.6, syn: 1.5, edq: 1.1, sds: 1, t16a: .9, t16b: .9, qt: .9, rss: .9, r16: .8, er16: .8 }, hold: true, acc: true, ties: .3, inTie: .2, chrom: .16, exact: true, sync: true, keyed: true },
 };
 // each token fills part of a bar: items are [beats, isRest]
 const TOKENS = {
