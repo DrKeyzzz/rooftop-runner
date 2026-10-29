@@ -3259,7 +3259,7 @@ function scopeCls(scope, p) {
   return c ? c.code : '';
 }
 // Boards read only their top 60 (difficulty filtered on the server; style/clef/instrument here), kept 60 s in memory.
-const BOARD_N = 60, BOARD_TTL = 60000, boardCache = new Map(), noIndex = {};
+const BOARD_N = 60, BOARD_TTL = 600000, boardCache = new Map(), noIndex = {};
 // Try the indexed query; if its composite index is missing, say so once and use the old query for the rest of the visit.
 async function indexed(shape, fresh, old) {
   if (!noIndex[shape]) try { return await fresh(); } catch (e) { if (e.code !== 'failed-precondition') throw e; noIndex[shape] = true; console.warn('[index needed]', e.message); }
