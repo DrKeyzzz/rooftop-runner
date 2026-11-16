@@ -2873,6 +2873,9 @@ function endGame(byChoice) {
   $('results').hidden = false;
   lastRun = run.practice || (run.style === 'live' && !LIVE_BOARD) ? null : run;
   syncSaveBox(true);
+  // 2026-11-16 (student feedback: "I got a 248k and it didn't load on the leader board"): Practice and Specific rhythms runs have no
+  // lives, so they can run up a big score, but only Levels runs post. Say so instead of showing nothing.
+  if (run.practice && s.hits) { $('save-box').hidden = false; $('save-btn').hidden = true; $('save-who').textContent = `${run.custom ? 'Specific rhythms' : 'Practice'} scores don't go on the leaderboard. Choose Levels (3 lights) to post your score.`; }
   logRun(run);
   const title = !s.hits ? 'Almost! Try once more' : byChoice ? (run.practice ? 'Practice done' : 'Run complete') : 'Lights out';
   showOverlay(run.practice ? 'Practice' : 'Game over', title, !s.hits ? HOW_LINE().replace(/<[^>]+>/g, '') + ' Press right as each note touches the play line.' : `${run.score.toLocaleString()} points · reached Level ${run.level}, ${hoodOf(L)}, at ${run.bpm} BPM.`,
