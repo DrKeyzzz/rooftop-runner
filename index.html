@@ -1991,11 +1991,53 @@ function runnerPosAt(v) {
   if (here && v < here.b + air) { const prevY = cur > 0 ? roofY(A[cur - 1].p) : hereY; return arc(prevY, hereY, .5 + (v - here.b) / (2 * air)); }
   return { y: hereY, air: false };
 }
+// ---------- the runner is the student's avatar (2026-11-16, David: "what if the avatar was running?") ----------
+// When the shared avatar (MTGAvatar, from the MTG_AVATAR block) is there and not turned off for the class, its drawing is turned
+// into 8 running pictures + 1 jump picture (+ red copies for a miss), drawn instead of the stick figure. No instrument while running.
+// Rebuilt only when the look changes (checked at most every 2 s). Without the avatar the stick figure runs as before.
+const AVR = { key: '', fr: [], red: [], at: 0 };
+function avrPose(svgText, f) {
+  const d = new DOMParser().parseFromString(svgText.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" '), 'image/svg+xml'), sv = d.documentElement;
+  const sy = (k, cx, cy) => `translate(${cx} ${cy}) scale(1 ${k.toFixed(3)}) translate(${-cx} ${-cy})`, rot = (a, cx, cy) => `rotate(${a.toFixed(1)} ${cx} ${cy})`;
+  const set = (c, t) => { const el = sv.querySelector('.' + c); if (el) el.setAttribute('transform', t); };
+  sv.setAttribute('width', 200); sv.setAttribute('height', 240);
+  set('leg-l', sy(f.lt, 45, 91)); set('shin-l', sy(f.ls, 44.5, 99)); set('leg-r', sy(f.rt, 55, 91)); set('shin-r', sy(f.rs, 55.5, 99));
+  set('arm-l', rot(f.al, 37, 64)); set('arm-r', rot(f.ar, 63, 64)); set('fore-l', rot(f.fl, 33, 75)); set('fore-r', rot(f.fr, 67, 75));
+  set('root', `translate(0 ${(f.bob || 0).toFixed(2)}) ${rot(f.lean || 0, 50, 110)}`);
+  const im = new Image(); im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(sv)); return im;
+}
+function avrRed(im) {   // a red copy for a missed note
+  const c = document.createElement('canvas'); c.width = 200; c.height = 240;
+  const go = () => { const x = c.getContext('2d'); x.drawImage(im, 0, 0, 200, 240); x.globalCompositeOperation = 'source-atop'; x.fillStyle = 'rgba(255,60,60,.55)'; x.fillRect(0, 0, 200, 240); c.ready = true; };
+  if (im.complete) go(); else im.addEventListener('load', go); return c;
+}
+function avrCheck() {
+  const now = performance.now(); if (now - AVR.at < 2000) return; AVR.at = now;
+  const A = window.MTGAvatar;
+  if (!A || !A.look || (A.off && A.off())) { AVR.key = ''; AVR.fr = []; AVR.red = []; return; }
+  let look; try { look = Object.assign(A.look(), { gear: 'none', pet: 'none', bg: 'none' }); } catch (e) { return; }
+  const key = JSON.stringify(look); if (key === AVR.key) return;
+  let svg; try { svg = A.draw(look, { bare: 1, label: 'runner' }); } catch (e) { return; }
+  const fr = [], leg = v => { const lift = Math.max(0, v), kick = Math.max(0, -v), th = 1 - .7 * lift; return [th, (1 / th) * (1 - .65 * kick)]; };
+  for (let i = 0; i < 8; i++) {
+    const t = i / 8 * Math.PI * 2, sl = Math.sin(t), L = leg(sl), R = leg(-sl);
+    fr.push(avrPose(svg, { lt: L[0], ls: L[1], rt: R[0], rs: R[1], al: 45 * sl, ar: 45 * sl, fl: -50 + 20 * sl, fr: 50 + 20 * sl, bob: -4 * Math.abs(Math.cos(t)), lean: 7 }));
+  }
+  fr.push(avrPose(svg, { lt: .35, ls: 2, rt: .45, rs: 1.6, al: 150, ar: -150, fl: 10, fr: -10, bob: 0, lean: 4 }));
+  AVR.key = key; AVR.fr = fr; AVR.red = fr.map(avrRed);
+}
 function drawRunner() {
   const { y, air } = runnerPos(), x = PL, s = g * 1.05, m = G.demo ? 2 : mult(), hurt = G.v - G.ouch < .6;
   const trail = ctx.createLinearGradient(x - 5 * s, 0, x, 0);
   trail.addColorStop(0, alpha(C.hot, 0)); trail.addColorStop(1, alpha(C.hot, .1 + m * .1));
   ctx.fillStyle = trail; ctx.fillRect(x - 5 * s, y - 2.3 * s, 5 * s, 1.6 * s);
+  avrCheck();
+  const fi = air ? 8 : ((Math.floor(G.v * 4) % 8) + 8) % 8, im = hurt ? AVR.red[fi] : AVR.fr[fi];
+  if (im && (im.ready || (im.complete && im.naturalWidth))) {   // the avatar runs: 8 pictures every 2 beats, like the stick figure's stride
+    const h = 4 * s, w = h / 1.2;
+    ctx.drawImage(im, x - w / 2, y - h * 111 / 120, w, h);   // feet (111 of 120 in the picture) on the roof
+    return;
+  }
   drawStick(x, y, air, s, G.v * Math.PI * 4, hurt ? C.miss : C.chalk, C.hot, hurt ? .35 * s : 0, null);
 }
 // a running stick figure; villains add a mask, a loot bag and sometimes a cape
@@ -5260,7 +5302,7 @@ headerHints({
 @keyframes mav-p-wa{from{transform:rotate(-14deg)}to{transform:rotate(14deg)}}
 @media (prefers-reduced-motion:reduce){.mav-perch,.mav-perch *{animation:none!important;transition:none!important}}
 </style>
-<script id="mtg-avatar" data-mount=".mtg-home" data-perch="#stage|sit-r;;#stage|sit-l;;#hold-pad|sit-r;;#hold-pad|sit-l;;#stage|beside-r;;#stage|beside-l">
+<script id="mtg-avatar" data-mount=".mtg-home" data-perch="#stage|sit-r;;#stage|sit-l">
 /* Avatar, build step 1 (added 2026-11-16; spec: Claude outputs/avatar-spec.md). A small cartoon avatar sits right after the
    Music Theory Academy and My Report pills in every game. Tap it to change how it looks (the free Look parts). It reacts to the
    game's own 'mtghist' events: a right answer = happy move, a miss = shrug, a finished run = dance. No hooks inside the games.
