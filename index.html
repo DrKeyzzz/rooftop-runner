@@ -2501,9 +2501,17 @@ function press(src, pitch, ts) {
     if (!best || Math.abs(tt - a.b) < Math.abs(tt - best.b)) best = a;
   }
   if (!best) {
-    if (tt >= 0 && !isCountBar(Math.floor(tt / 4))) { G.extras.push(tt); G.stats.extra++; breakStreak(); G.ouch = G.v; pop(rhythmView() ? 'Extra tap' : 'Extra note', C.miss); }
+    if (tt >= 0 && !isCountBar(Math.floor(tt / 4))) {
+      G.extras.push(tt); G.stats.extra++; breakStreak(); G.ouch = G.v; pop(rhythmView() ? 'Extra tap' : 'Extra note', C.miss);
+      // 2026-11-19 (a student showed that spamming the space bar never loses): an extra tap/note costs half a light, like a miss.
+      // Not in Live (mic noise), not during a first run's warm-up notes, and not a double-tap bounce within 0.15 s after a real note
+      // (measured from the last note that counted, so fast spamming can't hide behind it).
+      const bounce = ts - (G.lastHit || -1e9) < 150, warm = G.attacks.some(a => a.warm && !a.j);
+      if (!isLive() && !bounce && !warm) loseHalf();
+    }
     return;
   }
+  G.lastHit = ts;
   const ms = (tt - best.b) * 60000 / bpmAt(best.b), am = Math.abs(ms);
   let ok = true;
   if (G.style === 'midi') ok = DIFFS[G.diff].exact ? pitch === best.midi : pc(pitch) === pc(best.midi);
@@ -2512,6 +2520,7 @@ function press(src, pitch, ts) {
   if (!ok) {
     best.j = 'W'; best.played = pitch; G.score += WRONG_PTS; breakStreak();
     pop(`Wrong · it's ${nameOf(best.d, best.acc)}`, C.miss); tally(best, false); flashLetter(pitch, false);   // name the right note at the moment of the mistake
+    if (!best.warm) loseHalf();   // 2026-11-19: a wrong note costs half a light, like a miss (mashing letters used to never lose)
     return;
   }
   const sl = slack();
