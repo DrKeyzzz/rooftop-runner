@@ -2506,8 +2506,11 @@ function press(src, pitch, ts) {
       // 2026-11-19 (a student showed that spamming the space bar never loses): an extra tap/note costs half a light, like a miss.
       // Not in Live (mic noise), not during a first run's warm-up notes, and not a double-tap bounce within 0.15 s after a real note
       // (measured from the last note that counted, so fast spamming can't hide behind it).
+      // One near-miss tap per note is forgiven (just outside its window, the note counts as a Miss anyway), so a little-late honest tap isn't charged twice.
       const bounce = ts - (G.lastHit || -1e9) < 150, warm = G.attacks.some(a => a.warm && !a.j);
-      if (!isLive() && !bounce && !warm) loseHalf();
+      const near = G.attacks.find(a => (!a.j || a.j === 'M') && !a.nearUsed && Math.abs(tt - a.b) <= 2.25 * wb);
+      if (near) near.nearUsed = true;
+      else if (!isLive() && !bounce && !warm) loseHalf();
     }
     return;
   }
