@@ -2494,12 +2494,18 @@ function press(src, pitch, ts) {
   const tt = beatAt(ts - ((isLive() ? liveLatency : latency) || 0));
   if (tt < -.5 || (G.freeze != null && tt < G.freeze - .5)) return;      // count-in
   const wb = windowBeats(tt);
-  let best = null;
+  let best = null, nearest = null;
   for (const a of G.attacks) {
     if (a.b > tt + wb) break;
-    if (a.j || Math.abs(tt - a.b) > wb) continue;
+    if (Math.abs(tt - a.b) > wb) continue;
+    if (!nearest || Math.abs(tt - a.b) < Math.abs(tt - nearest.b)) nearest = a;
+    if (a.j) continue;
     if (!best || Math.abs(tt - a.b) < Math.abs(tt - best.b)) best = a;
   }
+  // 2026-11-23 (David spammed and kept going): on fast or busy music the notes' windows touch, so spam always found "some" note.
+  // A tap that is closer to a note already played than to the next one is an extra tap, not an early hit on the next note.
+  const spamTap = !!(nearest && nearest.j && nearest.j !== 'M' && nearest !== best);
+  if (spamTap) best = null;
   if (!best) {
     if (tt >= 0 && !isCountBar(Math.floor(tt / 4))) {
       G.extras.push(tt); G.stats.extra++; breakStreak(); G.ouch = G.v; pop(rhythmView() ? 'Extra tap' : 'Extra note', C.miss);
@@ -2507,8 +2513,10 @@ function press(src, pitch, ts) {
       // Not in Live (mic noise), not during a first run's warm-up notes, and not a double-tap bounce within 0.15 s after a real note
       // (measured from the last note that counted, so fast spamming can't hide behind it).
       // One near-miss tap per note is forgiven (just outside its window, the note counts as a Miss anyway), so a little-late honest tap isn't charged twice.
-      const bounce = ts - (G.lastHit || -1e9) < 150, warm = G.attacks.some(a => a.warm && !a.j);
-      const near = G.attacks.find(a => (!a.j || a.j === 'M') && !a.nearUsed && Math.abs(tt - a.b) <= 2.25 * wb);
+      // 2026-11-23: the bounce grace is used up by one tap (so it can't be chained), and the near-miss grace only applies when no played note was in reach.
+      const bounce = G.lastHit != null && ts - G.lastHit < 150, warm = G.attacks.some(a => a.warm && !a.j);
+      if (bounce) G.lastHit = null;
+      const near = !spamTap && G.attacks.find(a => (!a.j || a.j === 'M') && !a.nearUsed && Math.abs(tt - a.b) <= 2.25 * wb);
       if (near) near.nearUsed = true;
       else if (!isLive() && !bounce && !warm) loseHalf();
     }
